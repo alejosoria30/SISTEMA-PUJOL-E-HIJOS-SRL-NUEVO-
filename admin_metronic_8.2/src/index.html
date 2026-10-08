@@ -72,6 +72,23 @@
       background-color: rgba(9, 15, 34, 0.95) !important;
       border-right: 1px solid rgba(0, 163, 255, 0.1);
     }
+
+    /* ANIMACION PREMIUM DE ENTRADA DE MODULOS/RUTAS */
+    router-outlet + * {
+      animation: module-fade-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+
+    @keyframes module-fade-slide-in {
+      0% {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
   
   <div id="splash-screen" class="splash-screen">
