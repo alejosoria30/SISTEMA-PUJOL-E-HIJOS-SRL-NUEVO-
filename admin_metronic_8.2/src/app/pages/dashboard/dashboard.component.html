@@ -18,7 +18,7 @@
 <div class="row g-5 g-xl-10 mb-8">
   <!-- Action: New Order -->
   <div class="col-md-4">
-    <a routerLink="/ventas" class="card hover-elevate-up pulse-card shadow-sm border-0 h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4) !important;">
+    <a routerLink="/ventas" class="card hover-elevate-up pulse-card shadow-sm border-0 h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none" style="background: linear-gradient(135deg, #00A3FF 0%, #0081CC 100%) !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 163, 255, 0.4) !important;">
       <div class="d-flex align-items-center gap-4">
         <div class="symbol symbol-40px bg-white bg-opacity-20 d-flex align-items-center justify-content-center pulse-icon" style="width: 45px; height: 45px; border-radius: 10px;">
           <app-keenicon name="plus" class="fs-1 text-white"></app-keenicon>
@@ -39,7 +39,7 @@
         </div>
         <div class="d-flex flex-column">
           <span class="fs-5 fw-bold text-brand-title" style="font-family: 'Inter', sans-serif;">Control de Stock</span>
-          <span class="fs-8 text-brand-sub">Ingresar o ajustar insumos</span>
+          <span class="fs-8 text-brand-sub">Mover y reponer bebidas</span>
         </div>
       </div>
     </a>
@@ -52,8 +52,8 @@
           <app-keenicon name="scroll" class="fs-1 text-brand-title"></app-keenicon>
         </div>
         <div class="d-flex flex-column">
-          <span class="fs-5 fw-bold text-brand-title" style="font-family: 'Inter', sans-serif;">Nuevo Combo</span>
-          <span class="fs-8 text-brand-sub">Añadir kit de productos</span>
+          <span class="fs-5 fw-bold text-brand-title" style="font-family: 'Inter', sans-serif;">Catálogo de Bebidas</span>
+          <span class="fs-8 text-brand-sub">Administrar lista de precios</span>
         </div>
       </div>
     </a>
@@ -97,7 +97,7 @@
     <div class="card card-flush h-md-100 p-6"
          [ngClass]="lowStockItems.length > 0 ? 'card-warning-state' : 'card-brand-warm'">
       <div class="card-header p-0 pb-4 border-0 min-h-auto">
-        <span class="fs-6 fw-bold text-gray-700">Insumos Bajo Mínimo</span>
+        <span class="fs-6 fw-bold text-gray-700">Productos Bajo Mínimo</span>
       </div>
       <div class="card-body p-0 d-flex flex-column justify-content-end">
         <span class="fs-2hx fw-bold leading-none mb-2" [ngClass]="lowStockItems.length > 0 ? 'text-warning' : 'text-brand-metric'">
@@ -172,7 +172,7 @@
           <table class="table table-row-dashed table-row-gray-200 align-middle gs-0 gy-3">
             <thead>
               <tr class="fw-bold text-muted fs-8">
-                <th>Insumo</th>
+                <th>Bebida/Producto</th>
                 <th class="text-end">Disponible</th>
                 <th class="text-end">Umbral</th>
                 <th>Estado</th>
@@ -192,7 +192,7 @@
         </div>
         <div *ngIf="lowStockItems.length === 0" class="text-center py-12 text-muted">
           <app-keenicon name="verify" class="fs-3x text-success mb-2 d-block"></app-keenicon>
-          <em>No hay alertas de stock bajo. Todos los insumos tienen stock suficiente.</em>
+          <em>No hay alertas de stock bajo. Todas las bebidas tienen stock suficiente.</em>
         </div>
       </div>
     </div>
@@ -277,7 +277,7 @@
       <div class="card-header pt-5 border-0">
         <h3 class="card-title align-items-start flex-column">
           <span class="card-label fw-bold text-gray-900 fs-5">Salud del Inventario</span>
-          <span class="text-muted mt-1 fw-semibold fs-7">Porcentaje de insumos con stock suficiente</span>
+          <span class="text-muted mt-1 fw-semibold fs-7">Porcentaje de bebidas con stock suficiente</span>
         </h3>
       </div>
       <div class="card-body d-flex flex-center">
