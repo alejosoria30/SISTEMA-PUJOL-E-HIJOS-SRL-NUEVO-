@@ -157,18 +157,18 @@ CREATE TABLE `comprobantes` (
 
 -- DATOS DE PRUEBA
 INSERT IGNORE INTO `productos` (`idProd`, `codigoProd`, `nombreProd`, `descripcionProd`, `precioUnitario`, `estadoProd`) VALUES
-(1, 'PROD-001', 'Taladro Percutor Bosch 600W', 'Taladro percutor profesional', 125000.00, 'Activo'),
-(2, 'PROD-002', 'Amoladora Angular Makita 115mm', 'Amoladora angular 720W', 95000.00, 'Activo'),
-(3, 'PROD-003', 'Martillo Galponero', 'Martillo con mango de madera 500g', 8500.00, 'Activo'),
-(4, 'PROD-004', 'Set Destornilladores x6', 'Set Phillips y Plano', 15000.00, 'Activo'),
-(5, 'PROD-005', 'Cinta Métrica 5m', 'Cinta métrica metálica', 4500.00, 'Activo');
+(1, 'BEB-001', 'Coca-Cola 2.25L Retornable', 'Gaseosa Cola 2.25L envase retornable', 2100.00, 'Activo'),
+(2, 'BEB-002', 'Sprite 2.25L Retornable', 'Gaseosa Lima Limón 2.25L envase retornable', 2100.00, 'Activo'),
+(3, 'BEB-003', 'Agua Mineral Kin 1.5L', 'Agua mineral sin gas 1.5L', 1200.00, 'Activo'),
+(4, 'BEB-004', 'Cepita Naranja 1L', 'Jugo de naranja envasado 1L', 1800.00, 'Activo'),
+(5, 'BEB-005', 'Powerade Mountain Blast 500ml', 'Bebida deportiva sabor azul 500ml', 1500.00, 'Activo');
 
 INSERT IGNORE INTO `inventario` (`idProd`, `stockActual`, `stockMinimo`) VALUES
-(1, 15, 5),
-(2, 8, 3),
-(3, 30, 10),
-(4, 25, 5),
-(5, 50, 15);
+(1, 150, 50),
+(2, 80, 30),
+(3, 300, 100),
+(4, 120, 40),
+(5, 500, 150);
 
 INSERT IGNORE INTO `caja_turnos` (`idTurno`, `montoInicial`, `fechaApertura`, `idUsu`, `estadoTurno`) VALUES
 (1, 10000.00, NOW(), 1, 'Abierto');
