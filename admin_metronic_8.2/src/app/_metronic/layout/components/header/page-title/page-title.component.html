@@ -1,7 +1,7 @@
 <ng-container *ngIf="title$ | async as title">
   <!-- begin::Title -->
   <div class="d-flex align-items-center">
-    <button class="btn btn-sm btn-icon btn-light-primary btn-active-primary me-3" (click)="goBack()" title="Volver Atrás">
+    <button *ngIf="!isDashboard" class="btn btn-sm btn-icon btn-light-primary btn-active-primary me-3" (click)="goBack()" title="Volver al Inicio">
       <app-keenicon name="arrow-left" class="fs-2"></app-keenicon>
     </button>
     <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 my-0"
