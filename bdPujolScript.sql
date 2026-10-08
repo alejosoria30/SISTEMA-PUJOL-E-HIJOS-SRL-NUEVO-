@@ -51,10 +51,10 @@ END
 $$
 DELIMITER ;
 
--- Insertar usuario admin por defecto (admin / admin123)
--- Hash BCRYPT para "admin123"
+-- Insertar usuario admin por defecto (Aldo Pujol)
+-- Contraseña en texto plano para el entorno de pruebas
 INSERT INTO `usuario` (`idUsu`, `nombreUsu`, `apellidoUsu`, `correoUsu`, `usuarioUsu`, `contrasenaUsu`, `estadoUsu`, `rolUsu`) VALUES
-(1, 'Admin', 'Sistema', 'admin@pujolehijos.com', 'admin', 'Pujol2026!', 'Activo', 'Administrador');
+(1, 'Aldo', 'Pujol', 'aldo@pujolehijos.com', 'apujol', 'AldoPujol2026!', 'Activo', 'Administrador');
 
 INSERT INTO `usuario_rol` (`idUsu`, `idRol`) VALUES (1, 1);
 
