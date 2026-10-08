@@ -71,7 +71,7 @@ CREATE TABLE `productos` (
 
 CREATE TABLE `inventario` (
   `idInv` int(11) NOT NULL AUTO_INCREMENT,
-  `idProd` int(11) NOT NULL,
+  `idProd` int(11) NOT NULL UNIQUE,
   `stockActual` int(11) NOT NULL DEFAULT 0,
   `stockMinimo` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`idInv`),
