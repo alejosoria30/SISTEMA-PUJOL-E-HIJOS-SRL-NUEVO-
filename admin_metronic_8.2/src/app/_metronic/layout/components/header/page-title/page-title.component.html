@@ -1,9 +1,13 @@
 <ng-container *ngIf="title$ | async as title">
   <!-- begin::Title -->
-  <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 my-0"
-    [ngClass]="{'flex-column justify-content-center': appPageTitleDirection, 'align-items-center': !appPageTitleDirection}">
-    {{ title }}
-    <ng-container *ngIf="appPageTitleDescription">
+  <div class="d-flex align-items-center">
+    <button class="btn btn-sm btn-icon btn-light-primary btn-active-primary me-3" (click)="goBack()" title="Volver Atrás">
+      <app-keenicon name="arrow-left" class="fs-2"></app-keenicon>
+    </button>
+    <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 my-0"
+      [ngClass]="{'flex-column justify-content-center': appPageTitleDirection, 'align-items-center': !appPageTitleDirection}">
+      {{ title }}
+      <ng-container *ngIf="appPageTitleDescription">
       <ng-container *ngIf="description$ | async as description">
 
 
@@ -23,6 +27,7 @@
     </ng-container>
 
   </h1>
+  </div>
   <!-- end::Title -->
 
   <ng-container *ngIf="appPageTitleBreadcrumb">

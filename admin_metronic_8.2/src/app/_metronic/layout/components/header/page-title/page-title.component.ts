@@ -2,6 +2,8 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { PageInfoService, PageLink } from '../../../core/page-info.service';
 
+import { Location } from '@angular/common';
+
 @Component({
   selector: 'app-page-title',
   templateUrl: './page-title.component.html',
@@ -17,7 +19,11 @@ export class PageTitleComponent implements OnInit, OnDestroy {
   description$: Observable<string>;
   bc$: Observable<Array<PageLink>>;
 
-  constructor(private pageInfo: PageInfoService) {}
+  constructor(private pageInfo: PageInfoService, private location: Location) {}
+
+  goBack(): void {
+    this.location.back();
+  }
 
   ngOnInit(): void {
     this.title$ = this.pageInfo.title.asObservable();
