@@ -27,13 +27,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.logo-spinner-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .splash-screen img.custom-logo {
-  margin-bottom: 20px;
-  height: 80px;
-  width: 80px;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 163, 255, 0.2);
+  height: 70px;
+  width: 70px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  z-index: 2;
+}
+
+[data-bs-theme="dark"] .splash-screen img.custom-logo {
+  box-shadow: 0 0 15px rgba(0, 163, 255, 0.4);
 }
 
 [data-bs-theme="dark"] .splash-screen {
@@ -48,6 +62,11 @@ body {
 .spin-icon {
   animation: spin 3s linear infinite;
   stroke: #00A3FF;
+  position: absolute;
+  z-index: 1;
+  width: 100px;
+  height: 100px;
+  opacity: 0.6;
 }
 
 @keyframes spin {
