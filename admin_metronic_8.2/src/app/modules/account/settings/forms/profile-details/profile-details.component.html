@@ -1,0 +1,139 @@
+<div class="card mb-5 mb-xl-10">
+  <div
+    class="card-header border-0 cursor-pointer"
+    role="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#kt_account_profile_details"
+    aria-expanded="true"
+    aria-controls="kt_account_profile_details"
+  >
+    <div class="card-title m-0">
+      <h3 class="fw-bolder m-0 text-brand-title">Detalles del Perfil</h3>
+    </div>
+  </div>
+  <div id="kt_account_profile_details" class="collapse show">
+    <form novalidate="" class="form" (submit)="saveSettings($event)">
+      <div class="card-body border-top p-9">
+        
+        <!-- Avatar -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Foto de Perfil</label>
+          <div class="col-lg-8">
+            <div class="image-input image-input-outline">
+              <div
+                class="image-input-wrapper w-125px h-125px"
+                [style.background-image]="'url(' + avatarUrl + ')'"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Name -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label required fw-bold fs-6">Nombre Completo</label>
+          <div class="col-lg-8">
+            <div class="row">
+              <div class="col-lg-6 fv-row">
+                <input
+                  type="text"
+                  class="form-control form-control-lg form-control-solid mb-3 mb-lg-0"
+                  placeholder="Nombre"
+                  name="fName"
+                  [(ngModel)]="firstname"
+                  required
+                />
+              </div>
+              <div class="col-lg-6 fv-row">
+                <input
+                  type="text"
+                  class="form-control form-control-lg form-control-solid"
+                  placeholder="Apellido"
+                  name="lName"
+                  [(ngModel)]="lastname"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label required fw-bold fs-6">Nombre de Usuario</label>
+          <div class="col-lg-8 fv-row">
+            <input
+              type="text"
+              class="form-control form-control-lg form-control-solid"
+              placeholder="Nombre de usuario"
+              name="username"
+              [(ngModel)]="username"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label required fw-bold fs-6">Correo Electrónico</label>
+          <div class="col-lg-8 fv-row">
+            <input
+              type="email"
+              class="form-control form-control-lg form-control-solid"
+              placeholder="correo@ejemplo.com"
+              name="email"
+              [(ngModel)]="email"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Teléfono de Contacto</label>
+          <div class="col-lg-8 fv-row">
+            <input
+              type="tel"
+              class="form-control form-control-lg form-control-solid"
+              placeholder="Número de teléfono"
+              name="contactPhone"
+              [(ngModel)]="phone"
+            />
+          </div>
+        </div>
+
+        <!-- System Role -->
+        <div class="row mb-6">
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Rol en el Sistema</label>
+          <div class="col-lg-8 fv-row">
+            <input
+              type="text"
+              class="form-control form-control-lg form-control-solid bg-light"
+              name="roleName"
+              [value]="roleName"
+              disabled
+            />
+            <div class="form-text text-muted fs-8 mt-1">El rol en el sistema es gestionado por el administrador y no puede cambiarse manualmente.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="card-footer d-flex justify-content-end py-6 px-9">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="saveSettings($event)"
+        >
+          <ng-container *ngIf="!isLoading">Guardar Cambios</ng-container>
+          <ng-container *ngIf="isLoading">
+            <span class="indicator-progress" [style.display]="'block'">
+              Por favor espere...
+              <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+            </span>
+          </ng-container>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+<!-- <div class="d-flex flex-column flex-center flex-column-fluid">
+  <div class="d-flex flex-column flex-center text-center p-10">
+    <div class="card card-flush  w-lg-650px py-5">
+      <div class="card-body py-15 py-lg-20">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<div class="d-flex flex-column flex-lg-row flex-column-fluid">
+
+  <!--begin::Body-->
+  <div class="d-flex flex-column flex-lg-row-fluid w-lg-50 p-10 order-2 order-lg-1">
+    <!--begin::Form-->
+    <div class="d-flex flex-center flex-column flex-lg-row-fluid">
+      <!--begin::Wrapper-->
+      <div class="<?php echo $params['wrapperClass']?> p-10">
+        <router-outlet></router-outlet>
+      </div>
+      <!--end::Wrapper-->
+    </div>
+    <!--end::Form-->
+
+    <!--begin::Footer-->
+    <div class="d-flex flex-center flex-wrap px-5">
+      <!--begin::Links-->
+      <div class="d-flex fw-semibold text-primary fs-base">
+        <a href="#" class="px-5" target="_blank">Terminos</a>
+
+        <a href="#" class="px-5" target="_blank">Contactenos</a>
+      </div>
+      <!--end::Links-->
+    </div>
+    <!--end::Footer-->
+  </div>
+  <!--end::Body-->
+
+  <!--begin::Aside-->
+  <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 bg-dark">
+    <!--begin::Content-->
+    <div class="d-flex flex-column flex-center py-15 px-5 px-md-15 w-100 min-h-350px min-h-lg-auto">
+        <h1 class="text-white fs-2tx fw-bold mb-5">Pujol e Hijos S.R.L.</h1>
+        <p class="text-white fs-4 fw-semibold text-center">Gestión integral de inventario, caja y ventas.</p>
+    </div>
+    <!--end::Content-->
+  </div>
+  <!--end::Aside-->
+</div>

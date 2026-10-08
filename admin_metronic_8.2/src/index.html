@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Pujol e Hijos S.R.L.</title>
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="shortcut icon" type="image/png" href="./assets/media/logos/logos/favicon.ico" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap">
+  <!-- SPLASH SCREEN-->
+  <link rel="stylesheet" id="layout-styles-anchor" href="./assets/splash-screen.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body root id="kt_body" class="mat-typography">
+  <!-- <body root id="kt_body" class="mat-typography" direction="rtl" dir="rtl" style="direction: rtl"></body> -->
+  <!--begin::Theme mode setup on page load-->
+  <script>
+    if (document.documentElement) {
+      var defaultThemeMode = "system";
+
+      var hasKTName = document.body.hasAttribute("data-kt-name");
+      var lsKey = "kt_" + (hasKTName ? name + "_" : "") + "theme_mode_value"
+      var themeMode = localStorage.getItem(lsKey);
+      if (!themeMode) {
+        if (defaultThemeMode === "system") {
+          themeMode =
+            window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        } else {
+          themeMode = defaultThemeMode;
+        }
+      }
+
+      document.documentElement.setAttribute("data-bs-theme", themeMode);
+    }
+  </script>
+  <!--end::Theme mode setup on page load-->
+  <div id="splash-screen" class="splash-screen">
+    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 25px;">
+      <span class="splash-title">Pujol e Hijos</span>
+      <span class="splash-subtitle">Ferretería Industrial</span>
+    </div>
+  </div>
+</body>
+
+</html>

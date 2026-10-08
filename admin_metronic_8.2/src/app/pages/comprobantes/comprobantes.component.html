@@ -1,0 +1,197 @@
+<div class="card card-custom">
+  <div class="card-header border-0 pt-6">
+    <div class="card-title flex-column">
+      <h3 class="card-label fw-bold text-gray-900">Emisión y Consulta de Comprobantes</h3>
+      <span class="text-muted mt-1 fw-semibold fs-7">Facturación de ventas (Factura A, B, C o Ticket)</span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab_ventas_pendientes">Ventas y Facturación</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab_historial_comprobantes">Historial de Comprobantes</a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- TAB VENTAS (Para facturar) -->
+      <div class="tab-pane fade show active" id="tab_ventas_pendientes" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+            <thead>
+              <tr class="fw-bold text-muted text-uppercase bg-light">
+                <th class="ps-4 min-w-100px">ID Venta</th>
+                <th class="min-w-150px">Fecha</th>
+                <th class="min-w-150px">Cliente / Usuario</th>
+                <th class="min-w-100px text-end">Total</th>
+                <th class="min-w-150px text-center">Estado Comprobante</th>
+                <th class="pe-4 min-w-100px text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let v of ventas">
+                <td class="ps-4 fw-bold">#{{ v.id }}</td>
+                <td>{{ v.date | date:'short' }}</td>
+                <td>{{ v.clientName }}</td>
+                <td class="text-end fw-bold text-gray-800">${{ v.total | number:'1.2-2' }}</td>
+                
+                <td class="text-center">
+                  <span class="badge badge-light-success" *ngIf="tieneComprobante(v.id)">
+                    Emitido ({{ getComprobanteDeVenta(v.id)?.numeroComp }})
+                  </span>
+                  <span class="badge badge-light-warning" *ngIf="!tieneComprobante(v.id)">
+                    Pendiente
+                  </span>
+                </td>
+
+                <td class="text-end pe-4">
+                  <button class="btn btn-sm btn-primary" (click)="abrirEmitirModal(v)" *ngIf="!tieneComprobante(v.id) && hasAction('create')">
+                    Facturar
+                  </button>
+                  <button class="btn btn-sm btn-light-primary" (click)="verTicket(getComprobanteDeVenta(v.id))" *ngIf="tieneComprobante(v.id)">
+                    Ver Ticket
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="ventas.length === 0">
+                <td colspan="6" class="text-center text-muted py-8">No hay ventas registradas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB HISTORIAL -->
+      <div class="tab-pane fade" id="tab_historial_comprobantes" role="tabpanel">
+        <div class="table-responsive">
+          <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+            <thead>
+              <tr class="fw-bold text-muted text-uppercase bg-light">
+                <th class="ps-4 min-w-120px">Número</th>
+                <th class="min-w-120px">Tipo</th>
+                <th class="min-w-150px">Emisión</th>
+                <th class="min-w-100px text-end">Venta Ref.</th>
+                <th class="min-w-100px text-end">Total ($)</th>
+                <th class="pe-4 text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of comprobantes">
+                <td class="ps-4 fw-bolder text-primary">{{ c.numeroComp }}</td>
+                <td><span class="badge badge-light-dark">{{ c.tipoComp }}</span></td>
+                <td>{{ c.fechaEmision | date:'short' }}</td>
+                <td class="text-end text-muted">#{{ c.idVenta }}</td>
+                <td class="text-end fw-bold text-gray-800">${{ c.totalComp | number:'1.2-2' }}</td>
+                <td class="text-end pe-4">
+                  <button class="btn btn-sm btn-icon btn-light-primary" (click)="verTicket(c)">
+                    <app-keenicon name="eye" class="fs-3"></app-keenicon>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="comprobantes.length === 0">
+                <td colspan="6" class="text-center text-muted py-8">No hay comprobantes emitidos.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Emitir Comprobante -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isEmitirModalOpen">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Generar Comprobante (Venta #{{ ventaSeleccionada?.id }})</h5>
+        <button type="button" class="btn-close" (click)="isEmitirModalOpen = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex justify-content-between mb-4 p-3 bg-light rounded">
+          <span class="text-gray-700">Total a Facturar:</span>
+          <span class="fw-bolder fs-3 text-gray-900">${{ ventaSeleccionada?.total | number:'1.2-2' }}</span>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label required">Tipo de Comprobante</label>
+          <select class="form-select" [(ngModel)]="tipoComprobante">
+            <option value="Ticket">Ticket (Consumidor Final)</option>
+            <option value="Factura C">Factura C (Monotributo)</option>
+            <option value="Factura B">Factura B (IVA Exento)</option>
+            <option value="Factura A">Factura A (Responsable Inscripto)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" (click)="isEmitirModalOpen = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="emitirComprobante()">Generar e Imprimir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Vista de Ticket -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isTicketModalOpen">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" (click)="isTicketModalOpen = false"></button>
+      </div>
+      <div class="modal-body px-5" id="ticket-print-area">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold fs-4 mb-0">Pujol e Hijos S.R.L.</h2>
+          <span class="text-muted fs-8 d-block">Gestión de Insumos y Ventas</span>
+          <div class="separator border-dashed my-3"></div>
+          <h3 class="fs-6 fw-bold mb-1">{{ ticketActivo?.tipoComp | uppercase }}</h3>
+          <span class="fs-7 text-gray-800 d-block">Nº: {{ ticketActivo?.numeroComp }}</span>
+          <span class="fs-8 text-muted d-block">Fecha: {{ ticketActivo?.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <table class="table table-borderless align-middle fs-7 mb-4">
+          <thead>
+            <tr class="border-bottom border-gray-300">
+              <th class="px-0 py-1 text-start">Cant.</th>
+              <th class="px-0 py-1 text-start">Detalle</th>
+              <th class="px-0 py-1 text-end">Subt.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let det of ticketActivo?.details">
+              <td class="px-0 py-1 text-start fw-bold">{{ det.quantity }}</td>
+              <td class="px-0 py-1 text-start">{{ det.productName }}</td>
+              <td class="px-0 py-1 text-end">${{ det.subtotal | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="separator border-dashed mb-3"></div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <span class="fw-bold fs-5">TOTAL</span>
+          <span class="fw-bolder fs-3">${{ ticketActivo?.totalComp | number:'1.2-2' }}</span>
+        </div>
+        
+        <div class="text-center fs-8 text-muted mt-5">
+          ¡Gracias por su compra!<br>Conserve este ticket.
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pt-0">
+        <button class="btn btn-sm btn-primary w-100" (click)="imprimir()">
+          <app-keenicon name="printer" class="fs-4"></app-keenicon> Imprimir Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body * { visibility: hidden; }
+  #ticket-print-area, #ticket-print-area * { visibility: visible; }
+  #ticket-print-area { position: absolute; left: 0; top: 0; width: 100%; max-width: 300px; margin: 0 auto; }
+}
+</style>

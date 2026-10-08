@@ -1,0 +1,159 @@
+<div
+  id="kt_activities"
+  class="bg-body"
+  data-kt-drawer="true"
+  data-kt-drawer-name="activities"
+  data-kt-drawer-activate="true"
+  data-kt-drawer-overlay="true"
+  data-kt-drawer-width="{default:'300px', 'lg': '900px'}"
+  data-kt-drawer-direction="end"
+  data-kt-drawer-toggle="#kt_activities_toggle"
+  data-kt-drawer-close="#kt_activities_close"
+>
+  <div class="card shadow-none rounded-0">
+    <div class="card-header" id="kt_activities_header">
+      <h3 class="card-title fw-bolder text-gray-900">Historial de Actividades</h3>
+
+      <div class="card-toolbar">
+        <button
+          type="button"
+          class="btn btn-sm btn-icon btn-active-light-primary me-n5"
+          id="kt_activities_close"
+        >
+          <app-keenicon name="cross" class="fs-1"></app-keenicon>
+        </button>
+      </div>
+    </div>
+    <div class="card-body position-relative" id="kt_activities_body">
+      <div
+        id="kt_activities_scroll"
+        class="position-relative scroll-y me-n5 pe-5"
+        data-kt-scroll="true"
+        data-kt-scroll-height="auto"
+        data-kt-scroll-wrappers="#kt_activities_body"
+        data-kt-scroll-dependencies="#kt_activities_header, #kt_activities_footer"
+        data-kt-scroll-offset="5px"
+      >
+        <div class="timeline">
+          <!-- Item1: Insumos -->
+          <div class="timeline-item">
+            <div class="timeline-line w-40px"></div>
+            <div class="timeline-icon symbol symbol-circle symbol-40px me-4">
+              <div class="symbol-label bg-light-danger">
+                <app-keenicon name="price-tag" class="fs-2 text-danger"></app-keenicon>
+              </div>
+            </div>
+            <div class="timeline-content mb-10 mt-n1">
+              <div class="pe-3 mb-5">
+                <div class="fs-5 fw-bold mb-2">
+                  Alerta de Stock Crítico: 2 insumos requieren reposición urgente.
+                </div>
+                <div class="d-flex align-items-center mt-1 fs-6">
+                  <div class="text-muted me-2 fs-7">Detectado a las 18:45 por Sistema</div>
+                </div>
+              </div>
+              <div class="overflow-auto pb-5">
+                <div class="d-flex align-items-center border border-dashed border-gray-300 rounded min-w-700px px-7 py-3 mb-3">
+                  <a class="fs-6 text-gray-900 text-hover-primary fw-bold w-250px cursor-pointer">
+                    Cemento Portland 50kg
+                  </a>
+                  <div class="min-w-150px pe-2">
+                    <span class="badge badge-light-danger">Quedan 5 bolsas</span>
+                  </div>
+                  <div class="min-w-150px pe-2">
+                    <span class="text-muted">Mínimo: 50 bolsas</span>
+                  </div>
+                  <a routerLink="/stock" class="btn btn-sm btn-light-danger btn-active-danger ms-auto">
+                    Reponer
+                  </a>
+                </div>
+                <div class="d-flex align-items-center border border-dashed border-gray-300 rounded min-w-700px px-7 py-3">
+                  <a class="fs-6 text-gray-900 text-hover-primary fw-bold w-250px cursor-pointer">
+                    Clavos Punta París 2.5"
+                  </a>
+                  <div class="min-w-150px pe-2">
+                    <span class="badge badge-light-danger">Quedan 2 cajas</span>
+                  </div>
+                  <div class="min-w-150px pe-2">
+                    <span class="text-muted">Mínimo: 10 cajas</span>
+                  </div>
+                  <a routerLink="/stock" class="btn btn-sm btn-light-danger btn-active-danger ms-auto">
+                    Reponer
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item2: Venta -->
+          <div class="timeline-item">
+            <div class="timeline-line w-40px"></div>
+            <div class="timeline-icon symbol symbol-circle symbol-40px">
+              <div class="symbol-label bg-light-success">
+                <app-keenicon name="cart" class="fs-2 text-success"></app-keenicon>
+              </div>
+            </div>
+            <div class="timeline-content mb-10 mt-n1">
+              <div class="pe-3 mb-5">
+                <div class="fs-5 fw-bold mb-2">
+                  Nueva Venta Registrada: Pedido #4023 por un total de $12,450.00
+                </div>
+                <div class="d-flex align-items-center mt-1 fs-6">
+                  <div class="text-muted me-2 fs-7">Registrado a las 17:30 por</div>
+                  <div class="fw-bold text-gray-800 fs-7">Juan Pérez</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item3: Receta -->
+          <div class="timeline-item">
+            <div class="timeline-line w-40px"></div>
+            <div class="timeline-icon symbol symbol-circle symbol-40px">
+              <div class="symbol-label bg-light-info">
+                <app-keenicon name="book-open" class="fs-2 text-info"></app-keenicon>
+              </div>
+            </div>
+            <div class="timeline-content mb-10 mt-n1">
+              <div class="pe-3 mb-5">
+                <div class="fs-5 fw-bold mb-2">
+                  Nuevo Proveedor Añadido: "Distribuidora El Martillo"
+                </div>
+                <div class="d-flex align-items-center mt-1 fs-6">
+                  <div class="text-muted me-2 fs-7">Creado hace 1 día por</div>
+                  <div class="fw-bold text-gray-800 fs-7">Juan Pérez</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item4: Base de Datos -->
+          <div class="timeline-item">
+            <div class="timeline-line w-40px"></div>
+            <div class="timeline-icon symbol symbol-circle symbol-40px">
+              <div class="symbol-label bg-light-primary">
+                <app-keenicon name="shield-search" class="fs-2 text-primary"></app-keenicon>
+              </div>
+            </div>
+            <div class="timeline-content mb-10 mt-n1">
+              <div class="pe-3 mb-5">
+                <div class="fs-5 fw-bold mb-2">
+                  Respaldo automático del ERP completado con éxito
+                </div>
+                <div class="d-flex align-items-center mt-1 fs-6">
+                  <div class="text-muted me-2 fs-7">Completado ayer a las 03:00 AM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer py-5 text-center" id="kt_activities_footer">
+      <a routerLink="/dashboard" class="btn btn-bg-body text-primary">
+        Ver Todas las Actividades
+        <app-keenicon name="arrow-right" class="fs-3 text-primary"></app-keenicon>
+      </a>
+    </div>
+  </div>
+</div>

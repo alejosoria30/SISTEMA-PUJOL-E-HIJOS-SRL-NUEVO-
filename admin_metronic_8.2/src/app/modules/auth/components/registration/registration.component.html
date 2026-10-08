@@ -1,0 +1,304 @@
+<form class="form w-100" novalidate="novalidate" id="kt_login_signup_form" [formGroup]="registrationForm"
+  (ngSubmit)="submit()">
+  <!--begin::Logo-->
+  <div class="text-start mb-6">
+    <!-- <img alt="Logo" src="./assets/media/logos/default-dark.svg" class="h-60px h-lg-75px" /> -->
+  </div>
+  <!--end::Logo-->
+  <!--begin::Heading-->
+  <div class="text-start mb-9">
+    <!--begin::Title-->
+    <h1 class="text-gray-900 fw-bolder mb-3">
+      Crear cuenta
+    </h1>
+    <!--end::Title-->
+
+    <!--begin::Subtitle-->
+    <div class="text-gray-500 fw-semibold fs-6">
+      Sistema de Gestión Comercial Pujol e Hijos S.R.L.
+    </div>
+    <!--end::Subtitle--->
+  </div>
+  <!--end::Heading-->
+
+
+
+  <!-- begin::Alert error-->
+  <ng-container *ngIf="hasError">
+    <div class="mb-lg-15 alert alert-danger">
+      <div class="alert-text font-weight-bold">
+        {{ errorMessage || 'Los datos de registro son incorrectos' }}
+      </div>
+    </div>
+  </ng-container>
+  <!-- end::Alert error-->
+
+  <!--begin::Form group (Nombre y Apellido)-->
+  <div class="row g-3 mb-8">
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Nombre</label>
+      <input class="form-control bg-transparent" type="text" name="firstname" formControlName="firstname"
+        placeholder="Nombre" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['firstname'].invalid,
+          'is-valid': registrationForm.controls['firstname'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 3 y máximo 50 caracteres.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere nombre',
+          control: registrationForm.controls['firstname']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'Nombre debe tener al menos 3 caracteres',
+          control: registrationForm.controls['firstname']
+        }"></ng-container>
+    </div>
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Apellido</label>
+      <input class="form-control bg-transparent" type="text" name="lastname" formControlName="lastname"
+        placeholder="Apellido" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['lastname'].invalid,
+          'is-valid': registrationForm.controls['lastname'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 3 y máximo 50 caracteres.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere apellido',
+          control: registrationForm.controls['lastname']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'Apellido debe tener al menos 3 caracteres',
+          control: registrationForm.controls['lastname']
+        }"></ng-container>
+    </div>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group (Fecha Nacimiento y Teléfono)-->
+  <div class="row g-3 mb-8">
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Fecha de nacimiento</label>
+      <input class="form-control bg-transparent" type="date" name="dob" formControlName="dob"
+        [ngClass]="{
+          'is-invalid': registrationForm.controls['dob'].invalid,
+          'is-valid': registrationForm.controls['dob'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Selecciona tu fecha de nacimiento.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere fecha de nacimiento',
+          control: registrationForm.controls['dob']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'ageRange',
+          message: 'No cumple con el limite de edad',
+          control: registrationForm.controls['dob']
+        }"></ng-container>
+    </div>
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Teléfono</label>
+      <input class="form-control bg-transparent" type="tel" name="phone" formControlName="phone"
+        placeholder="Teléfono" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['phone'].invalid,
+          'is-valid': registrationForm.controls['phone'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 5 y máximo 20 dígitos.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere teléfono',
+          control: registrationForm.controls['phone']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'El teléfono debe tener al menos 5 dígitos',
+          control: registrationForm.controls['phone']
+        }"></ng-container>
+    </div>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group (Dirección y Usuario)-->
+  <div class="row g-3 mb-8">
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Dirección</label>
+      <input class="form-control bg-transparent" type="text" name="address" formControlName="address"
+        placeholder="Dirección" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['address'].invalid,
+          'is-valid': registrationForm.controls['address'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 3 y máximo 150 caracteres.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere dirección',
+          control: registrationForm.controls['address']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'La dirección debe tener al menos 3 caracteres',
+          control: registrationForm.controls['address']
+        }"></ng-container>
+    </div>
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Usuario <span class="text-muted fs-7 fw-normal">(Opcional)</span></label>
+      <input class="form-control bg-transparent" type="text" name="username" formControlName="username"
+        placeholder="Usuario" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['username'].invalid && (registrationForm.controls['username'].dirty || registrationForm.controls['username'].touched),
+          'is-valid': registrationForm.controls['username'].valid && registrationForm.controls['username'].value && (registrationForm.controls['username'].dirty || registrationForm.controls['username'].touched)
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 3 y máximo 50 caracteres (letras/números).</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'El usuario debe tener al menos 3 caracteres',
+          control: registrationForm.controls['username']
+        }"></ng-container>
+    </div>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group (Email)-->
+  <div class="fv-row mb-8">
+    <label class="form-label fw-bolder text-gray-900 fs-6">Correo electrónico</label>
+    <input class="form-control bg-transparent" type="email" placeholder="Correo electrónico" name="email" formControlName="email"
+      autocomplete="off" [ngClass]="{
+        'is-invalid': registrationForm.controls['email'].invalid,
+        'is-valid': registrationForm.controls['email'].valid
+      }" />
+    <div class="form-text text-muted custom-help-text">Ingresa un correo válido (ej: nombre@correo.com).</div>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+        validation: 'required',
+        message: 'Se requiere correo electrónico',
+        control: registrationForm.controls['email']
+      }"></ng-container>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+        validation: 'email',
+        message: 'Correo electrónico inválido',
+        control: registrationForm.controls['email']
+      }"></ng-container>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+        validation: 'minlength',
+        message: 'El correo electrónico debe tener al menos 3 caracteres',
+        control: registrationForm.controls['email']
+      }"></ng-container>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group (Contraseña y Confirmar contraseña)-->
+  <div class="row g-3 mb-8">
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Contraseña</label>
+      <input class="form-control bg-transparent" type="password" placeholder="Contraseña" name="password"
+        formControlName="password" autocomplete="off" [ngClass]="{
+          'is-invalid': registrationForm.controls['password'].invalid,
+          'is-valid': registrationForm.controls['password'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Mínimo 8 caracteres (sin espacios), incluyendo números y caracteres especiales.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere contraseña',
+          control: registrationForm.controls['password']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'minlength',
+          message: 'La contraseña debe tener al menos 8 caracteres',
+          control: registrationForm.controls['password']
+        }"></ng-container>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'pattern',
+          message: 'La contraseña debe incluir números y caracteres especiales, sin espacios',
+          control: registrationForm.controls['password']
+        }"></ng-container>
+    </div>
+    <div class="col-md-6 fv-row">
+      <label class="form-label fw-bolder text-gray-900 fs-6">Confirmar contraseña</label>
+      <input class="form-control bg-transparent" type="password" placeholder="Confirmar contraseña" name="cPassword"
+        autocomplete="off" formControlName="cPassword" [ngClass]="{
+          'is-invalid': registrationForm.controls['cPassword'].invalid,
+          'is-valid': registrationForm.controls['cPassword'].valid
+        }" />
+      <div class="form-text text-muted custom-help-text">Debe ser idéntica a la contraseña ingresada.</div>
+      <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
+          validation: 'required',
+          message: 'Se requiere confirmar contraseña',
+          control: registrationForm.controls['cPassword']
+        }"></ng-container>
+      <ng-container *ngIf="
+          registrationForm.controls['cPassword'].errors &&
+          registrationForm.controls['cPassword'].errors.ConfirmPassword
+        ">
+        <div class="fv-plugins-message-container">
+          <div class="fv-help-block">
+            Las contraseñas no coinciden.
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group-->
+  <div class="fv-row mb-8">
+    <label class="form-check form-check-inline">
+      <input id="kt_login_toc_agree" type="checkbox" formControlName="agree" name="agree" class="form-check-input" />
+      <span for="kt_login_toc_agree" class="form-check-label fw-semibold text-gray-700 fs-base ms-1">
+        Acepto los&nbsp;<a href="https://keenthemes.com/metronic/?page=faq" target="_blank"
+          class="ms-1 link-primary">Términos y condiciones</a>.
+      </span>
+    </label>
+  </div>
+  <!--end::Form group-->
+
+  <!--begin::Form group-->
+  <div class="d-grid mb-5">
+    <button type="submit" id="kt_sign_up_submit" [disabled]="
+        registrationForm.invalid || !registrationForm.controls['agree'].value
+      " class="btn btn-primary">
+      <ng-container *ngIf="(isLoading$ | async) === false">
+        <span class="indicator-label">Registrarse</span>
+      </ng-container>
+      <ng-container *ngIf="isLoading$ | async">
+        <span class="indicator-progress" [style.display]="'block'">
+          Espere por favor...
+          <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+        </span>
+      </ng-container>
+    </button>
+  </div>
+  <!--end::Form group-->
+
+
+
+  <!--begin::Google link--->
+  <div class="d-grid mb-5">
+    <a href="#" (click)="loginWithGoogle($event)"
+      class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100">
+      <img alt="Logo" src="./assets/media/svg/brand-logos/google-icon.svg" class="h-15px me-3" />
+      Iniciar sesión con Google
+    </a>
+  </div>
+  <!--end::Google link--->
+
+  <!--begin::Sign up-->
+  <div class="text-gray-500 text-center fw-semibold fs-6">
+    ¿Ya tienes una cuenta?
+
+    <a routerLink="/auth/login" class="link-primary fw-semibold">
+      Iniciar sesión
+    </a>
+  </div>
+  <!--end::Sign up-->
+
+</form>
+
+<ng-template #formError let-control="control" let-message="message" let-validation="validation">
+  <ng-container *ngIf="control.hasError(validation) && (control.dirty || control.touched)">
+    <div class="fv-plugins-message-container">
+      <div class="fv-help-block">
+        <span role="alert">
+          {{ message }}
+        </span>
+      </div>
+    </div>
+  </ng-container>
+</ng-template>

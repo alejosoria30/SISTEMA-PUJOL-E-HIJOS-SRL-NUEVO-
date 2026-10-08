@@ -1,0 +1,165 @@
+<!-- Styles moved to global styles.scss -->
+
+<div
+  class="d-flex flex-column rounded-top px-9 pt-10 pb-6"
+  style="background-color: #4D2C18 !important;"
+>
+  <h3 class="text-white fw-bold m-0 mb-6" style="font-family: 'Playfair Display', Georgia, serif;">
+    Notificaciones <span class="fs-8 opacity-75 ps-3" style="font-family: 'Inter', sans-serif;">Gestión de Negocio</span>
+  </h3>
+
+  <ul class="nav nav-line-tabs nav-line-tabs-2x nav-stretch fw-bold px-0">
+    <li class ="nav-item">
+      <a
+        class="nav-link text-white opacity-75 opacity-state-100 pb-4 cursor-pointer"
+        data-bs-toggle="tab"
+        [ngClass]="activeTabId === 'kt_topbar_notifications_1' ? 'active' : ''"
+        (click)="setActiveTabId('kt_topbar_notifications_1')"
+      >
+        Alertas
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a
+        class="nav-link text-white opacity-75 opacity-state-100 pb-4 cursor-pointer"
+        data-bs-toggle="tab"
+        [ngClass]="activeTabId === 'kt_topbar_notifications_2' ? 'active' : ''"
+        (click)="setActiveTabId('kt_topbar_notifications_2')"
+      >
+        Pujol e Hijos
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a
+        class="nav-link text-white opacity-75 opacity-state-100 pb-4 cursor-pointer"
+        data-bs-toggle="tab"
+        [ngClass]="activeTabId === 'kt_topbar_notifications_3' ? 'active' : ''"
+        (click)="setActiveTabId('kt_topbar_notifications_3')"
+      >
+        Historial
+      </a>
+    </li>
+  </ul>
+</div>
+
+<div class="tab-content">
+  <!-- Tab 1: Alertas -->
+  <div
+    class="tab-pane fade"
+    id="kt_topbar_notifications_1"
+    role="tabpanel"
+    [ngClass]="activeTabId === 'kt_topbar_notifications_1' ? 'show active' : ''"
+  >
+    <div class="scroll-y mh-325px my-5 px-8">
+      <div *ngFor="let alert of alerts" class="d-flex flex-stack py-4">
+        <div class="d-flex align-items-center">
+          <div class="symbol symbol-35px me-4">
+            <span class="symbol-label" [ngClass]="'bg-light-' + alert.state">
+              <span
+                [inlineSVG]="'./assets/media/' + alert.icon"
+                class="svg-icon fs-2"
+                [ngClass]="'svg-icon-' + alert.state"
+              ></span>
+            </span>
+          </div>
+
+          <div class="mb-0 me-2">
+            <a routerLink="/dashboard" class="fs-6 text-gray-800 text-hover-primary fw-bolder text-decoration-none">
+              {{ alert.title }}
+            </a>
+            <div class="text-gray-500 fs-7">{{ alert.description }}</div>
+          </div>
+        </div>
+
+        <span class="badge badge-light fs-8">{{ alert.time }}</span>
+      </div>
+    </div>
+
+    <div class="py-3 text-center border-top">
+      <a
+        routerLink="/dashboard"
+        class="text-brand-title text-hover-primary fw-bold"
+        style="text-decoration: none;"
+      >
+        Ver Todo
+        <app-keenicon name="arrow-right" class="fs-5 text-brand-title"></app-keenicon>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tab 2: Pujol e Hijos -->
+  <div
+    class="tab-pane fade"
+    id="kt_topbar_notifications_2"
+    role="tabpanel"
+    [ngClass]="activeTabId === 'kt_topbar_notifications_2' ? 'show active' : ''"
+  >
+    <div class="d-flex flex-column px-9">
+      <div class="pt-10 pb-0">
+        <h3 class="text-gray-900 text-center fw-bolder" style="font-family: 'Playfair Display', serif;">Pujol e Hijos S.R.L.</h3>
+
+        <div class="text-center text-gray-600 fw-bold pt-1" style="font-family: 'Inter', sans-serif;">
+          Accedé de forma rápida al panel de ventas o administrá tus insumos activos.
+        </div>
+
+        <div class="text-center mt-5 mb-9">
+          <a
+            routerLink="/ventas"
+            class="btn btn-sm btn-primary px-6 cursor-pointer"
+          >
+            Ir a Ventas
+          </a>
+        </div>
+      </div>
+
+      <div class="text-center px-4 mb-8">
+        <img
+          class="mw-100 mh-100px"
+          alt="Pujol e Hijos"
+          src="./assets/media/logos/default-dark.svg"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Historial -->
+  <div
+    class="tab-pane fade"
+    id="kt_topbar_notifications_3"
+    role="tabpanel"
+    [ngClass]="activeTabId === 'kt_topbar_notifications_3' ? 'show active' : ''"
+  >
+    <div class="scroll-y mh-325px my-5 px-8">
+      <div *ngFor="let log of logs" class="d-flex flex-stack py-4">
+        <div class="d-flex align-items-center flex-grow-1 me-2">
+          <span
+            class="w-70px badge flex-shrink-0 me-4"
+            [ngClass]="'badge-light-' + log.state"
+          >
+            {{ log.code }}
+          </span>
+
+          <div class="mb-0 flex-grow-1">
+            <a class="text-gray-800 text-hover-primary fw-bold cursor-pointer text-decoration-none">
+              {{ log.message }}
+            </a>
+          </div>
+        </div>
+
+        <span class="badge badge-light fs-8 flex-shrink-0 ms-2">{{ log.time }}</span>
+      </div>
+    </div>
+    <div class="py-3 text-center border-top">
+      <a
+        routerLink="/dashboard"
+        class="text-brand-title text-hover-primary fw-bold"
+        style="text-decoration: none;"
+      >
+        Ver Todo
+        <app-keenicon name="arrow-right" class="fs-5 text-brand-title"></app-keenicon>
+      </a>
+    </div>
+  </div>
+</div>

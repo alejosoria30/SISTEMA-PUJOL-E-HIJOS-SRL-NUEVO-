@@ -1,0 +1,28 @@
+<!--begin::Logo image-->
+<a routerLink="/dashboard" class="d-flex align-items-center text-decoration-none">
+  <!-- Default logo state -->
+  <div class="app-sidebar-logo-default d-flex align-items-center gap-2">
+    <app-keenicon name="setting-2" class="fs-2hx text-primary"></app-keenicon>
+    <div class="d-flex flex-column ms-1">
+      <span class="text-brand-title fw-bolder" style="font-family: 'Playfair Display', Georgia, serif; letter-spacing: 0.5px; line-height: 1.2; font-size: 1.25rem;">Pujol e Hijos</span>
+      <span class="text-brand-sub text-uppercase fw-bold" style="font-family: 'Inter', sans-serif; font-size: 0.6rem; letter-spacing: 0.5px; margin-top: -2px;">Ferretería Industrial</span>
+    </div>
+  </div>
+  <!-- Minimize logo state -->
+  <div class="app-sidebar-logo-minimize">
+    <app-keenicon name="setting-2" class="fs-2hx text-primary"></app-keenicon>
+  </div>
+</a>
+<!--end::Logo image-->
+
+
+<ng-container *ngIf="toggleEnabled">
+  <!--begin::Sidebar toggle-->
+  <div id="kt_app_sidebar_toggle"
+    class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary body-bg h-30px w-30px position-absolute top-50 start-100 translate-middle rotate"
+    [ngClass]="toggleButtonClass" data-kt-toggle="true" [attr.data-kt-toggle-state]="toggleState"
+    data-kt-toggle-target="body" [attr.data-kt-toggle-name]="toggleAttr">
+    <app-keenicon name="double-left" class="fs-2 rotate-180"></app-keenicon>
+  </div>
+  <!--end::Sidebar toggle-->
+</ng-container>

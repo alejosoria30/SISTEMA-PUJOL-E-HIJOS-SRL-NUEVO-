@@ -1,0 +1,134 @@
+<!--begin::Menu wrapper-->
+<div id="kt_app_sidebar_menu_scroll" class="scroll-y my-5 mx-3" data-kt-scroll="true" data-kt-scroll-activate="true"
+  data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer"
+  data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
+  <!--begin::Menu-->
+  <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" id="#kt_app_sidebar_menu"
+    data-kt-menu="true" data-kt-menu-expand="false">
+
+    <!-- Dashboard -->
+    <div class="menu-item" *ngIf="hasPermission(1)">
+      <a class="menu-link without-sub" routerLink="/dashboard" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="home-2" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title" translate="MENU.DASHBOARD"></span>
+      </a>
+    </div>
+
+    <!-- Separator Operaciones -->
+    <div class="menu-item" *ngIf="hasRole([1, 2])">
+      <div class="menu-content pt-8 pb-2">
+        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Operaciones</span>
+      </div>
+    </div>
+
+    <!-- Gestión de Stock -->
+    <div class="menu-item" *ngIf="hasPermission(2)">
+      <a class="menu-link without-sub" routerLink="/stock" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="cube-2" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Gestión de Stock</span>
+      </a>
+    </div>
+
+    <!-- Movimientos y Rendición de Caja -->
+    <div class="menu-item" *ngIf="hasPermission(3)">
+      <a class="menu-link without-sub" routerLink="/caja" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="wallet" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Gestión de Caja</span>
+      </a>
+    </div>
+
+    <!-- Gestión de Comprobantes -->
+    <div class="menu-item" *ngIf="hasPermission(4)">
+      <a class="menu-link without-sub" routerLink="/comprobantes" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="document" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Comprobantes</span>
+      </a>
+    </div>
+
+    <!-- Sistema de Ventas -->
+    <div class="menu-item" *ngIf="hasPermission(5)">
+      <a class="menu-link without-sub" routerLink="/ventas" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="dollar" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Sistema de Ventas</span>
+      </a>
+    </div>
+
+    <!-- Historial de Ventas -->
+    <div class="menu-item" *ngIf="hasPermission(8)">
+      <a class="menu-link without-sub" routerLink="/historial-ventas" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="bill" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Historial de Ventas</span>
+      </a>
+    </div>
+
+    <!-- Gestión de Clientes -->
+    <div class="menu-item" *ngIf="hasPermission(6)">
+      <a class="menu-link without-sub" routerLink="/clientes" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="profile-circle" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Gestión de Clientes</span>
+      </a>
+    </div>
+
+    <!-- Separator Administración -->
+    <div class="menu-item" *ngIf="hasPermission(7)">
+      <div class="menu-content pt-8 pb-2">
+        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Administración</span>
+      </div>
+    </div>
+
+    <!-- User Management (Untouched) -->
+    <div class="menu-item menu-accordion" data-kt-menu-trigger="click" routerLinkActive="here show"
+      *ngIf="hasPermission(7)">
+      <span class="menu-link">
+        <span class="menu-icon">
+          <app-keenicon name="profile-user" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title" data-link="/apps">Manejo de Usuarios</span>
+        <span class="menu-arrow"></span>
+      </span>
+      <div class="menu-sub menu-sub-accordion" routerLinkActive="menu-active-bg">
+        <div class="menu-item">
+          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/users">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">Usuarios</span>
+          </a>
+        </div>
+        <div class="menu-item">
+          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/roles">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">Roles</span>
+          </a>
+        </div>
+        <div class="menu-item">
+          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/permissions">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">Permisos</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!--end::Menu-->
+</div>
+<!--end::Menu wrapper-->

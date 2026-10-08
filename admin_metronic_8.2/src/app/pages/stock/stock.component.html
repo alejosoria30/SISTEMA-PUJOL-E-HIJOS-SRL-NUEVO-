@@ -1,0 +1,120 @@
+<div class="card card-custom">
+  <div class="card-header border-0 pt-6">
+    <div class="card-title">
+      <h3 class="card-label">Catálogo de Productos y Stock</h3>
+    </div>
+    <div class="card-toolbar">
+      <button class="btn btn-primary" (click)="openNewItem()" *ngIf="hasAction('create')">
+        <app-keenicon name="plus" class="fs-2"></app-keenicon> Nuevo Producto
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-6">
+      Control de productos y existencias. Configura umbrales de seguridad para alertas de bajo stock.
+    </p>
+
+    <div class="table-responsive">
+      <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+        <thead>
+          <tr class="fw-bold text-muted">
+            <th class="min-w-100px">Código</th>
+            <th class="min-w-150px">Producto</th>
+            <th class="min-w-200px">Descripción</th>
+            <th class="min-w-100px text-end">Stock Actual</th>
+            <th class="min-w-100px text-end">Precio ($)</th>
+            <th class="min-w-120px text-center">Alerta Stock</th>
+            <th class="min-w-100px text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of stock">
+            <td>
+              <span class="text-gray-900 fw-bold fs-6">{{ item.code || '-' }}</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <span class="bullet bullet-bar h-30px w-5px me-3"
+                      [ngClass]="item.quantity < item.minThreshold ? 'bg-danger' : 'bg-success'"></span>
+                <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="text-gray-700 fs-7">{{ item.description }}</span>
+            </td>
+            <td class="text-end text-gray-900 fw-bold fs-6">
+              {{ item.quantity }}
+            </td>
+            <td class="text-end text-gray-900 fw-semibold fs-6">
+              ${{ item.price | number:'1.2-2' }}
+            </td>
+            <td class="text-center">
+              <span *ngIf="item.quantity < item.minThreshold" class="badge badge-light-danger fs-7 fw-bold">
+                Bajo Stock (Min: {{ item.minThreshold }})
+              </span>
+              <span *ngIf="item.quantity >= item.minThreshold" class="badge badge-light-success fs-7 fw-bold">
+                Suficiente
+              </span>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" (click)="editItem(item)" *ngIf="hasAction('update')">
+                <app-keenicon name="pencil" class="fs-3"></app-keenicon>
+              </button>
+              <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" (click)="deleteItem(item.id)" *ngIf="hasAction('delete')">
+                <app-keenicon name="trash" class="fs-3"></app-keenicon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM MODAL FORM -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isItemModalOpen">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-gray-900">{{ itemId > 0 ? 'Editar' : 'Agregar' }} Producto</h5>
+        <button type="button" class="btn-close" (click)="isItemModalOpen = false" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4">
+          
+          <div class="col-12 col-md-4">
+            <label class="form-label">Código del Producto</label>
+            <input type="text" class="form-control" [(ngModel)]="itemCode" placeholder="Ej: PROD-01">
+          </div>
+          <div class="col-12 col-md-8">
+            <label class="form-label required">Nombre del Producto</label>
+            <input type="text" class="form-control" [(ngModel)]="itemName">
+          </div>
+          
+          <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" rows="2" [(ngModel)]="itemDescription"></textarea>
+          </div>
+
+          <div class="col-12 col-sm-4">
+            <label class="form-label required">Stock Actual</label>
+            <input type="number" class="form-control" [(ngModel)]="itemQuantity">
+          </div>
+          <div class="col-12 col-sm-4">
+            <label class="form-label">Umbral de Alerta Mínimo</label>
+            <input type="number" class="form-control" [(ngModel)]="itemMinThreshold">
+          </div>
+          <div class="col-12 col-sm-4">
+            <label class="form-label required">Precio de Venta ($)</label>
+            <input type="number" class="form-control" [(ngModel)]="itemCostPrice">
+          </div>
+          
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="isItemModalOpen = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveItem()">Guardar Producto</button>
+      </div>
+    </div>
+  </div>
+</div>

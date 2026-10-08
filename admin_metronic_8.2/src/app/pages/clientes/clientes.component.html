@@ -1,0 +1,198 @@
+<div class="card card-custom mb-8">
+  <div class="card-header border-0 pt-6">
+    <div class="card-title">
+      <h3 class="card-label fw-bold text-gray-900">Gestión de Clientes y Fidelización</h3>
+    </div>
+    <div class="card-toolbar">
+      <button class="btn btn-primary" (click)="openNew()" *ngIf="hasAction('create')">
+        <app-keenicon name="plus" class="fs-2"></app-keenicon> Registrar Cliente
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-6">
+      Módulo de registro, seguimiento e identificación de clientes frecuentes, con soporte para sistemas de fidelización, acumulación de puntos y descuentos personalizados.
+    </p>
+
+    <!-- Clients List Table -->
+    <div class="table-responsive">
+      <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+        <thead>
+          <tr class="fw-bold text-muted text-uppercase fs-7">
+            <th class="min-w-150px">Cliente</th>
+            <th class="min-w-150px">Contacto</th>
+            <th class="min-w-120px text-end">Puntos de Fidelización</th>
+            <th class="min-w-100px text-center">Nivel</th>
+            <th class="min-w-120px text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of clients">
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="symbol symbol-45px me-3">
+                  <span class="symbol-label bg-light-primary text-primary fw-bold fs-6">
+                    {{ c.name.slice(0, 1) }}{{ c.lastname.slice(0, 1) }}
+                  </span>
+                </div>
+                <div class="d-flex flex-column">
+                  <span class="text-gray-900 fw-bold fs-6">{{ c.name }} {{ c.lastname }}</span>
+                  <span class="text-muted fs-8">{{ c.isVIP ? 'Cliente Destacado' : 'Cliente Frecuente' }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex flex-column fs-7">
+                <span class="text-gray-900 fw-semibold">{{ c.email }}</span>
+                <span class="text-muted">{{ c.phone }}</span>
+              </div>
+            </td>
+            <td class="text-end text-gray-900 fw-bold fs-6">
+              {{ c.points | number }} pts
+            </td>
+            <td class="text-center">
+              <span class="badge fs-7 fw-bold" 
+                    [ngClass]="c.isVIP ? 'badge-light-warning' : 'badge-light-primary'">
+                {{ c.isVIP ? 'VIP (' + c.vipDiscount + '% desc)' : 'Estándar' }}
+              </span>
+            </td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" (click)="viewOrderHistory(c)" title="Ver historial de pedidos y compras">
+                  <app-keenicon name="document" class="fs-3 text-info"></app-keenicon>
+                </button>
+                <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" (click)="editClient(c)" title="Editar datos del cliente" *ngIf="hasAction('update')">
+                  <app-keenicon name="pencil" class="fs-3"></app-keenicon>
+                </button>
+                <button class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" (click)="deleteClient(c.id)" title="Eliminar cliente" *ngIf="hasAction('delete')">
+                  <app-keenicon name="trash" class="fs-3"></app-keenicon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit/New Form Block -->
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isModalOpen">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold text-gray-900">{{ formId > 0 ? 'Editar' : 'Registrar' }} Cliente</h5>
+            <button type="button" class="btn-close" (click)="isModalOpen = false" aria-label="Close"></button>
+          </div>
+          <form (submit)="save(); $event.preventDefault()">
+            <div class="modal-body">
+              <div class="row g-4">
+                <div class="col-12 col-md-6">
+                  <label class="form-label required">Nombre</label>
+                  <input type="text" class="form-control" [(ngModel)]="formName" name="name" required />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label required">Apellido</label>
+                  <input type="text" class="form-control" [(ngModel)]="formLastname" name="lastname" required />
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                  <label class="form-label required">Correo Electrónico</label>
+                  <input type="email" class="form-control" [(ngModel)]="formEmail" name="email" required />
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                  <label class="form-label">Teléfono</label>
+                  <input type="text" class="form-control" [(ngModel)]="formPhone" name="phone" />
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                  <label class="form-label">Puntos Acumulados</label>
+                  <input type="number" class="form-control" [(ngModel)]="formPoints" name="points" min="0" />
+                </div>
+                <div class="col-md-12 mt-6">
+                  <div class="d-flex align-items-center gap-6">
+                    <label class="form-check form-check-custom form-check-solid">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="formIsVIP" name="isVIP" />
+                      <span class="form-check-label fw-bold text-gray-800">Cliente Destacado (VIP con Descuento Especial)</span>
+                    </label>
+                    <div *ngIf="formIsVIP" class="d-flex align-items-center gap-2">
+                      <label class="form-label mb-0 fs-7 text-nowrap">Porcentaje Descuento:</label>
+                      <div class="input-group input-group-sm w-100px">
+                        <input type="number" class="form-control" [(ngModel)]="formVIPDiscount" name="vipDiscount" min="0" max="100" />
+                        <span class="input-group-text">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="isModalOpen = false">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Offcanvas / Order History Drawer Overlay -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isOffcanvasOpen">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-gray-900">Historial Cronológico de Compras</h5>
+        <button type="button" class="btn-close" (click)="isOffcanvasOpen = false" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center mb-6 bg-light p-4 rounded">
+          <div class="symbol symbol-50px me-3">
+            <span class="symbol-label bg-light-primary text-primary fw-bold fs-5">
+              {{ selectedClient?.name?.slice(0, 1) }}{{ selectedClient?.lastname?.slice(0, 1) }}
+            </span>
+          </div>
+          <div>
+            <h4 class="fw-bold text-gray-900 m-0">{{ selectedClient?.name }} {{ selectedClient?.lastname }}</h4>
+            <span class="fs-7 text-muted">{{ selectedClient?.email }} | Puntos Totales: <strong>{{ selectedClient?.points }} pts</strong></span>
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-gray-800 mb-4">Pedidos & Transacciones Comerciales</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-row-dashed table-row-gray-200 align-middle gs-0 gy-3">
+            <thead>
+              <tr class="fw-bold text-muted fs-8 text-uppercase">
+                <th>Pedido</th>
+                <th>Detalle</th>
+                <th class="text-end">Fecha</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of selectedClientOrders">
+                <td><span class="fw-bold text-gray-900">#PED-{{ order.id }}</span></td>
+                <td>{{ order.qty }}x {{ getRecipeName(order.productId) }}</td>
+                <td class="text-end">{{ order.deliveryTime | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="text-center">
+                  <span class="badge fs-8 fw-bold"
+                        [ngClass]="{
+                          'badge-light-warning': order.status === 'Pendiente',
+                          'badge-light-primary': order.status === 'En preparación',
+                          'badge-light-info': order.status === 'Listo',
+                          'badge-light-success': order.status === 'Entregado',
+                          'badge-light-danger': order.status === 'Cancelado'
+                        }">
+                    {{ order.status }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="selectedClientOrders.length === 0">
+                <td colspan="4" class="text-center py-6 text-muted">No se registran compras previas para este cliente.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="isOffcanvasOpen = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

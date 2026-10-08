@@ -1,0 +1,174 @@
+<div class="row g-6">
+  <!-- Columna Izquierda: Estado de la Caja -->
+  <div class="col-xl-4">
+    <div class="card card-flush h-md-100">
+      <div class="card-header pt-6">
+        <h3 class="card-title align-items-start flex-column">
+          <span class="card-label fw-bold text-gray-800">Estado del Turno</span>
+          <span class="text-muted mt-1 fw-semibold fs-7" *ngIf="!turnoActual">Caja cerrada</span>
+          <span class="text-success mt-1 fw-bold fs-7" *ngIf="turnoActual">Turno Abierto</span>
+        </h3>
+      </div>
+      <div class="card-body pt-4">
+        
+        <!-- SI LA CAJA ESTA CERRADA -->
+        <div *ngIf="!turnoActual" class="text-center py-10">
+          <app-keenicon name="wallet" class="fs-4x text-muted mb-4 d-block"></app-keenicon>
+          <h4 class="text-gray-600 mb-6">No hay un turno activo</h4>
+          <div class="mb-5 text-start px-4">
+            <label class="form-label required">Fondo Fijo / Monto Inicial ($)</label>
+            <input type="number" class="form-control form-control-solid form-control-lg" [(ngModel)]="montoInicial">
+          </div>
+          <button class="btn btn-primary w-100" (click)="abrirCaja()" *ngIf="hasAction('create')">
+            Abrir Caja
+          </button>
+        </div>
+
+        <!-- SI LA CAJA ESTA ABIERTA -->
+        <div *ngIf="turnoActual">
+          <div class="border border-dashed border-gray-300 rounded p-4 mb-6">
+            <div class="d-flex justify-content-between mb-3">
+              <span class="text-gray-500 fw-bold">Apertura:</span>
+              <span class="text-gray-800 fw-bold">{{ turnoActual.fechaApertura | date:'short' }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span class="text-gray-500 fw-bold">Monto Inicial:</span>
+              <span class="text-gray-800 fw-bold">${{ turnoActual.montoInicial | number:'1.2-2' }}</span>
+            </div>
+            <div class="separator separator-dashed my-3"></div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-gray-800 fw-bolder fs-5">Saldo Actual Calculado:</span>
+              <span class="text-success fw-bolder fs-2">${{ turnoActual.saldoActual | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <button class="btn btn-danger w-100 mb-3" (click)="abrirModalCierre()" *ngIf="hasAction('update')">
+            <app-keenicon name="lock-2" class="fs-2"></app-keenicon> Cerrar Turno
+          </button>
+
+          <button class="btn btn-light-primary w-100" (click)="abrirModalMov()" *ngIf="hasAction('create')">
+            <app-keenicon name="plus" class="fs-2"></app-keenicon> Registrar Movimiento Manual
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna Derecha: Movimientos -->
+  <div class="col-xl-8">
+    <div class="card card-flush h-md-100">
+      <div class="card-header pt-6">
+        <h3 class="card-title align-items-start flex-column">
+          <span class="card-label fw-bold text-gray-800">Movimientos del Turno Actual</span>
+        </h3>
+      </div>
+      <div class="card-body pt-4">
+        <div class="table-responsive">
+          <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+            <thead>
+              <tr class="fw-bold text-muted text-uppercase">
+                <th class="min-w-150px">Fecha y Hora</th>
+                <th class="min-w-120px">Tipo</th>
+                <th class="min-w-200px">Concepto</th>
+                <th class="min-w-100px text-end">Monto ($)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of movimientos">
+                <td>
+                  <span class="text-gray-800 fw-bold fs-7">{{ m.fechaMovimiento | date:'short' }}</span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="{'badge-light-success': m.tipoMovimiento === 'Ingreso', 'badge-light-danger': m.tipoMovimiento === 'Egreso'}">
+                    {{ m.tipoMovimiento }}
+                  </span>
+                </td>
+                <td>
+                  <span class="text-gray-700 fs-7">{{ m.concepto }}</span>
+                </td>
+                <td class="text-end text-gray-900 fw-bold fs-6">
+                  {{ m.tipoMovimiento === 'Ingreso' ? '+' : '-' }} ${{ m.monto | number:'1.2-2' }}
+                </td>
+              </tr>
+              <tr *ngIf="movimientos.length === 0">
+                <td colspan="4" class="text-center text-muted py-8 fs-7">
+                  No hay movimientos registrados en este turno.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cierre -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isCerrarModalOpen">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-gray-900">Arqueo y Cierre de Caja</h5>
+        <button type="button" class="btn-close" (click)="isCerrarModalOpen = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-primary mb-5">
+          <div class="d-flex flex-column">
+            <span class="fw-bold fs-6">Saldo Teórico del Sistema:</span>
+            <span class="fw-bolder fs-1">${{ turnoActual?.saldoActual | number:'1.2-2' }}</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label required">Dinero Real Físico en Caja ($)</label>
+          <input type="number" class="form-control form-control-lg form-control-solid" [(ngModel)]="montoFinalReal">
+          <div class="form-text mt-2">
+            <strong>Diferencia: </strong> 
+            <span [ngClass]="{'text-success': (montoFinalReal - turnoActual?.saldoActual) >= 0, 'text-danger': (montoFinalReal - turnoActual?.saldoActual) < 0}">
+              ${{ (montoFinalReal - turnoActual?.saldoActual) | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" (click)="isCerrarModalOpen = false">Cancelar</button>
+        <button class="btn btn-danger" (click)="cerrarCaja()">Confirmar Cierre</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Movimiento Manual -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isMovModalOpen">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold text-gray-900">Registrar Movimiento Manual</h5>
+        <button type="button" class="btn-close" (click)="isMovModalOpen = false"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4">
+          <div class="col-12">
+            <label class="form-label required">Tipo de Movimiento</label>
+            <select class="form-select form-select-solid" [(ngModel)]="movTipo">
+              <option value="Ingreso">Ingreso (Entrada de dinero)</option>
+              <option value="Egreso">Egreso (Salida/Pago a proveedor)</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label required">Concepto / Motivo</label>
+            <input type="text" class="form-control form-control-solid" [(ngModel)]="movConcepto" placeholder="Ej: Pago de viáticos, Sencillo...">
+          </div>
+          <div class="col-12">
+            <label class="form-label required">Monto ($)</label>
+            <input type="number" class="form-control form-control-solid" [(ngModel)]="movMonto" min="1">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" (click)="isMovModalOpen = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="registrarMovimiento()">Guardar Movimiento</button>
+      </div>
+    </div>
+  </div>
+</div>

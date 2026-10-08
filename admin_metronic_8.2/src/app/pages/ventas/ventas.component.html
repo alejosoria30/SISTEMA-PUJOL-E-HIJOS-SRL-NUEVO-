@@ -1,0 +1,312 @@
+<div class="card card-custom">
+  <div class="card-header border-0 pt-6">
+    <div class="card-title flex-column">
+      <h3 class="card-label fw-bold text-gray-900">Sistema de Ventas (Punto de Venta POS)</h3>
+      <span class="text-muted mt-1 fw-semibold fs-7">Registre transacciones de caja, liquide por peso o unidad y gestione la fidelidad</span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="row g-6">
+      
+      <!-- Left Column: POS Cart and Checkout -->
+      <div class="col-xl-8">
+        <div class="card border border-dashed border-gray-300 card-flush h-100 p-6">
+          <h4 class="text-gray-800 fw-bold mb-4">Nueva Venta / Terminal de Cobro</h4>
+
+          <!-- Client selection and sales channel -->
+          <div class="row g-4 mb-6">
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-gray-700 fs-7">Cliente Registrado (Fidelización)</label>
+              <select class="form-select" [(ngModel)]="selectedClientId" (change)="onClientChange()">
+                <option value="">-- Consumidor Final (Sin registrar) --</option>
+                <option *ngFor="let c of clients" [value]="c.id">
+                  {{ c.name }} {{ c.lastname }} (Puntos: {{ c.points }} {{ c.isVIP ? '| VIP ' + c.vipDiscount + '%' : '' }})
+                </option>
+              </select>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-gray-700 fs-7">Canal de Venta</label>
+              <select class="form-select" [(ngModel)]="channel">
+                <option value="presencial">Presencial (Mostrador)</option>
+                <option value="telefónico">Telefónico / Delivery</option>
+                <option value="reserva web">Reserva Web</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Add Item Row -->
+          <div class="bg-light p-4 rounded mb-6">
+            <h5 class="fw-bold text-gray-800 fs-7 mb-3">Agregar Producto al Carrito</h5>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-7">
+                <label class="form-label text-muted fs-8">Producto</label>
+                <select class="form-select form-select-solid" [(ngModel)]="currentProductId">
+                  <option value="">Seleccione un producto...</option>
+                  <option *ngFor="let p of stockItems" [value]="p.id">
+                    {{ p.name }} — Precio: {{ p.price | currency:'USD':'symbol':'1.2-2' }} (Stock: {{ p.quantity }})
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-3">
+                <label class="form-label text-muted fs-8">Cantidad / Porciones</label>
+                <input type="number" class="form-control form-control-solid" [(ngModel)]="currentQty" min="1" />
+              </div>
+              
+              <div class="col-md-2">
+                  <button class="btn btn-primary w-100" (click)="addToCart()" title="Añadir producto seleccionado al carrito de cobros" *ngIf="hasAction('create')">
+                    <app-keenicon name="plus" class="fs-4 me-1"></app-keenicon> Añadir
+                  </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart items list -->
+          <h5 class="fw-bold text-gray-800 mb-3">Detalle del Carrito</h5>
+          <div class="table-responsive flex-grow-1 min-h-200px">
+            <table class="table table-row-dashed table-row-gray-200 align-middle gs-0 gy-3">
+              <thead>
+                <tr class="fw-bold text-muted fs-7 text-uppercase">
+                  <th>Producto</th>
+                  <th class="text-end">Precio Unitario</th>
+                  <th class="text-end">Cantidad</th>
+                  <th class="text-end">Subtotal</th>
+                  <th class="text-end">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of cart; let i = index">
+                  <td class="fw-bold text-gray-800">{{ item.name }}</td>
+                  <td class="text-end text-gray-700">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td class="text-end text-gray-700 fw-bold">{{ item.qty }}</td>
+                  <td class="text-end text-gray-900 fw-bold">{{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td class="text-end">
+                    <button class="btn btn-icon btn-active-light-danger btn-sm" (click)="removeFromCart(i)" title="Quitar producto del carrito">
+                      <app-keenicon name="trash" class="fs-5"></app-keenicon>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="cart.length === 0">
+                  <td colspan="5" class="text-center text-muted py-8 fs-7">
+                    El carrito está vacío. Agregue productos arriba para iniciar el cobro.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Checkout calculation and submit -->
+          <div class="separator separator-dashed my-4"></div>
+
+          <div class="row g-4 align-items-center">
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-gray-700 fs-7">Método de Pago</label>
+              <select class="form-select" [(ngModel)]="paymentMethod">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia Bancaria / QR</option>
+              </select>
+              <div class="mt-2 fs-8 text-muted" *ngIf="paymentMethod === 'Transferencia'">
+                * Se registrará en estado "Pendiente de confirmación" hasta su verificación en cuenta.
+              </div>
+            </div>
+
+            <div class="col-md-6 text-end">
+              <div class="d-flex justify-content-end mb-2">
+                <span class="text-muted fw-semibold me-4">Subtotal:</span>
+                <span class="text-gray-800 fw-bold">{{ getCartSubtotal() | currency:'USD':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-end mb-2" *ngIf="getCartDiscount() > 0">
+                <span class="text-success fw-semibold me-4">Descuento Cliente VIP ({{ selectedClient?.vipDiscount }}%):</span>
+                <span class="text-success fw-bold">-{{ getCartDiscount() | currency:'USD':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="d-flex justify-content-end mb-4">
+                <span class="fs-4 text-gray-800 fw-bold me-4">Total a Cobrar:</span>
+                <span class="fs-2 text-success fw-bold">{{ getCartTotal() | currency:'USD':'symbol':'1.2-2' }}</span>
+              </div>
+              
+              <button 
+                class="btn btn-success btn-lg w-100" 
+                (click)="checkout()" 
+                [disabled]="cart.length === 0"
+                title="Haga clic para registrar la venta y generar la factura/recibo correspondiente"
+                ngbTooltip="Finalizar venta"
+                *ngIf="hasAction('create')"
+              >
+                <app-keenicon name="check" class="fs-3 me-1"></app-keenicon> Cobrar y Generar Recibo
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Receipts History & Stats -->
+      <div class="col-xl-4">
+        <div class="d-flex flex-column gap-6 h-100">
+          
+          <!-- Quick Box Stats -->
+          <div class="card border border-dashed border-gray-300 card-flush p-6 bg-light">
+            <h4 class="text-gray-800 fw-bold mb-4">Resumen de Caja</h4>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Total Recaudado (Caja):</span>
+              <span class="text-success fw-bold fs-5">{{ receipts.length > 0 ? (receipts[0].total | currency:'USD':'symbol':'1.2-2') : '$0.00' }} (última)</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Comprobantes hoy:</span>
+              <span class="text-gray-800 fw-bold">{{ receipts.length }} emitidos</span>
+            </div>
+          </div>
+
+          <!-- Receipts list with Search -->
+          <div class="card border border-dashed border-gray-300 card-flush flex-grow-1">
+            <div class="card-header pt-5">
+              <h4 class="card-title fw-bold text-gray-800 fs-5">Últimos Recibos Emitidos</h4>
+            </div>
+            <div class="card-body pt-3">
+              <!-- Search bar -->
+              <div class="position-relative mb-4">
+                <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
+                  <app-keenicon name="magnifier" class="fs-4 text-muted"></app-keenicon>
+                </span>
+                <input 
+                  type="text" 
+                  class="form-control form-control-sm ps-9" 
+                  placeholder="Buscar recibo..." 
+                  [(ngModel)]="searchQueryReceipt"
+                />
+              </div>
+
+              <!-- List container -->
+              <div class="d-flex flex-column gap-3 overflow-auto max-h-400px pe-2">
+                <div 
+                  *ngFor="let r of getFilteredReceipts()" 
+                  class="p-3 rounded border bg-light d-flex align-items-center justify-content-between"
+                >
+                  <div>
+                    <span class="fs-7 fw-bold text-gray-800 d-block">#REC-{{ r.id }} ({{ r.date | date:'dd/MM' }})</span>
+                    <span class="fs-8 text-muted d-block">{{ r.clientName }}</span>
+                    <span class="badge badge-light-dark fs-9 text-capitalize mt-1">{{ r.method }}</span>
+                  </div>
+                  <div class="text-end">
+                    <span class="fs-6 fw-bold text-success d-block">{{ r.total | currency:'USD':'symbol':'1.2-2' }}</span>
+                    <button 
+                      class="btn btn-icon btn-light-primary btn-sm mt-1" 
+                      (click)="printReceipt(r)"
+                      title="Imprimir / Ver Comprobante"
+                      ngbTooltip="Ver recibo"
+                    >
+                      <app-keenicon name="document" class="fs-6"></app-keenicon>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="getFilteredReceipts().length === 0" class="text-center py-6 text-muted fs-8">
+                  No hay recibos registrados.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Print-Friendly Invoice Modal Overlay -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="showReceiptModal">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-gray-900">Comprobante de Venta</h5>
+        <button type="button" class="btn-close" (click)="closeReceiptModal()" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body py-8 px-10">
+        <div id="printable-receipt-card" class="bg-white p-6 border rounded border-gray-300 shadow-xs">
+          <!-- Receipt Header -->
+          <div class="text-center mb-6">
+            <h2 class="fw-bold text-gray-900 mb-1">Pujol e Hijos S.R.L.</h2>
+            <p class="text-muted fs-8 mb-0">Sistema de Control Operativo Gastronómico</p>
+            <p class="text-muted fs-9 mb-0">WAMP Server Host Local</p>
+            <div class="separator separator-dashed my-4"></div>
+            <h4 class="fw-bold text-gray-800">TICKET DE COMPRA #REC-{{ activeReceipt?.id }}</h4>
+            <span class="text-muted fs-8">Fecha de emisión: {{ activeReceipt?.date | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <!-- Metadata -->
+          <div class="fs-7 mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Cliente:</span>
+              <span class="fw-bold text-gray-800">{{ activeReceipt?.clientName }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Canal:</span>
+              <span class="fw-bold text-gray-800 text-capitalize">{{ activeReceipt?.channel }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Método de Pago:</span>
+              <span class="fw-bold text-gray-800">{{ activeReceipt?.method }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Estado del Cobro:</span>
+              <span class="badge fs-8 fw-bold" 
+                [ngClass]="activeReceipt?.method === 'Transferencia' ? 'badge-light-warning' : 'badge-light-success'"
+              >
+                {{ activeReceipt?.method === 'Transferencia' ? 'Pendiente confirmación' : 'Confirmado' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="separator separator-dashed my-4"></div>
+
+          <!-- Items Table -->
+          <table class="w-100 fs-7 mb-4">
+            <thead>
+              <tr class="fw-bold text-gray-700 border-bottom">
+                <th class="pb-2">Detalle</th>
+                <th class="pb-2 text-end">Cant</th>
+                <th class="pb-2 text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of activeReceipt?.details" class="text-gray-800 border-bottom border-bottom-dashed">
+                <td class="py-2">{{ item.productName }}</td>
+                <td class="py-2 text-end">{{ item.qty }}</td>
+                <td class="py-2 text-end">{{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Totals -->
+          <div class="fs-7">
+            <div class="d-flex justify-content-between mb-1" *ngIf="activeReceipt && activeReceipt.discount > 0">
+              <span class="text-muted">Descuento aplicado:</span>
+              <span class="text-success fw-bold">-{{ activeReceipt.discount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="d-flex justify-content-between fs-5 fw-bold text-gray-900 mt-2 pt-2 border-top">
+              <span>Total Neto:</span>
+              <span class="text-success">{{ activeReceipt?.total | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <div class="separator separator-dashed my-4"></div>
+          
+          <div class="text-center mt-4">
+            <p class="fs-8 text-muted mb-0">¡Gracias por su compra!</p>
+            <p class="fs-9 text-muted mb-0">Pujol e Hijos S.R.L. ERP</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light" (click)="closeReceiptModal()">Cerrar</button>
+        <button type="button" class="btn btn-primary" (click)="printAction()">
+          <app-keenicon name="printer" class="fs-5 me-1"></app-keenicon> Imprimir Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

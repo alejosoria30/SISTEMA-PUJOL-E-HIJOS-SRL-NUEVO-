@@ -1,0 +1,714 @@
+/* You can add global styles to this file, and also import other style files */
+@import "./assets/sass/style.scss";
+// Replace above style with this css file to enable RTL styles
+// @import "./assets/css/style.rtl";
+@import './assets/sass/plugins.scss';
+// @import "./assets/css/style.rtl.css";
+@import "./assets/sass/style.angular.scss";
+
+// Keenicons - High quality and pixel perfect font icons available in 3 styles, duotone, outline and solid for Metronic elements
+@import "./assets/plugins/keenicons/duotone/style.css";
+@import "./assets/plugins/keenicons/outline/style.css";
+@import "./assets/plugins/keenicons/solid/style.css";
+
+// regular style toast
+@import 'ngx-toastr/toastr';
+// bootstrap style toast
+// or import a bootstrap 4 alert styled design (SASS ONLY)
+// should be after your bootstrap imports, it uses bs4 variables, mixins, functions
+// @import 'ngx-toastr/toastr-bs4-alert';
+// boostrap 5
+@import 'ngx-toastr/toastr-bs5-alert';
+
+.toast-success {
+    background-color: #d4ffd4 !important;
+}
+.toast-error {
+    background-color: #FFEEF3 !important;
+}
+.toast-info {
+    background-color: #b6e4ff !important;
+}
+.toast-warning {
+    background-color: #ffe1b6 !important;
+}
+
+/* Custom Typography Settings */
+h1, h2, h3, h4, h5, h6, .card-title, .modal-title {
+  font-family: 'Playfair Display', Georgia, serif !important;
+}
+
+body, input, button, select, textarea, label, .form-control, .form-label, .btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Custom Brand Palette Colors & Layout */
+html[data-bs-theme="light"] {
+  /* Custom Brand Palette Colors & Layout */
+  body, .bg-body, .bg-light, .app-page, .app-wrapper, .app-main {
+    background-color: #F1F5F9 !important; // Epicurean Warm Cream background
+  }
+
+  /* Sidebar Redesign */
+  .app-sidebar {
+    background-color: #FFFFFF !important; // Cream sidebar bg
+    border-right: 1px solid rgba(30, 41, 59, 0.08) !important; // Soft brown border
+    box-shadow: none !important;
+
+    // Sidebar Header
+    .app-sidebar-logo {
+      background-color: #FFFFFF !important;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.05) !important;
+    }
+    
+    // Sidebar Menu item spacing & layout
+    .menu {
+      .menu-item {
+        margin-bottom: 6px;
+
+        // Active state
+        .menu-link.active {
+          background: linear-gradient(90deg, #F97316, #EA580C) !important; // Vibrant orange pill
+          color: #ffffff !important;
+          border-radius: 8px !important;
+          box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4) !important;
+
+          .menu-icon, .menu-icon i, .menu-icon .keenicon {
+            color: #ffffff !important;
+          }
+
+          .menu-title {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+          }
+        }
+
+        // Hover state
+        .menu-link:hover:not(.active) {
+          background-color: rgba(30, 41, 59, 0.06) !important; // Soft warm hover
+          color: #1E293B !important;
+          border-radius: 8px !important;
+
+          .menu-icon, .menu-icon i, .menu-icon .keenicon {
+            color: #1E293B !important;
+          }
+
+          .menu-title {
+            color: #1E293B !important;
+          }
+        }
+
+        // Default state
+        .menu-link {
+          color: #0F172A !important; // Dark warm brown text
+          padding: 10px 15px !important;
+          transition: all 0.25s ease-in-out;
+
+          .menu-icon, .menu-icon i, .menu-icon .keenicon {
+            color: #64748B !important; // Richer coffee icon tone
+            font-size: 1.1rem !important;
+            transition: all 0.25s ease-in-out;
+          }
+
+          .menu-title {
+            color: #0F172A !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.925rem !important;
+            font-weight: 500 !important;
+          }
+        }
+        
+        // Muted categories headings
+        .menu-content {
+          .menu-section {
+            color: #64748B !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: 1.5px !important;
+            font-size: 0.7rem !important;
+            opacity: 1;
+            padding-left: 15px !important;
+          }
+        }
+      }
+    }
+  }
+
+  /* Header Redesign */
+  .app-header,
+  #kt_app_header_container {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%) !important; // Sleek dark slate gradient
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.4) !important;
+    border-bottom: 2px solid #F97316 !important; // Bright orange separator
+  }
+
+  // Adjust colors of elements inside the dark header for readability
+  .app-header {
+    color: #FFFFFF !important;
+
+    // Mobile menu buttons, toggles, icon buttons, and navbar buttons
+    .btn-color-muted, 
+    .btn-active-icon-primary, 
+    .btn-active-color-primary, 
+    .app-sidebar-collapse-d-flex .btn,
+    .app-navbar-item .btn,
+    #kt_app_sidebar_mobile_toggle {
+      color: #FFFFFF !important;
+      
+      .keenicon {
+        color: #FFFFFF !important;
+      }
+      
+      &:hover, &.show, &:focus, &:active {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: #ffffff !important;
+        .keenicon {
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    // Theme mode switcher
+    app-theme-mode-switcher {
+      .btn, button {
+        color: #FFFFFF !important;
+        
+        .keenicon {
+          color: #FFFFFF !important;
+        }
+        
+        &:hover, &.show, &:focus, &:active {
+          background-color: rgba(255, 255, 255, 0.08) !important;
+          color: #ffffff !important;
+          .keenicon {
+            color: #ffffff !important;
+          }
+        }
+      }
+    }
+  }
+
+  /* Cards Redesign */
+  .card {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(30, 41, 59, 0.08) !important; // Thin border matching guide
+    box-shadow: 0 4px 20px rgba(30, 41, 59, 0.02) !important; // Extremely soft shadow
+    
+    .card-header {
+      border-bottom: 1px solid rgba(30, 41, 59, 0.05) !important;
+      
+      .card-title, .card-label {
+        color: #1E293B !important;
+      }
+    }
+  }
+
+  /* Table action icon buttons */
+  .btn-bg-light {
+    background-color: rgba(30, 41, 59, 0.06) !important;
+    border: none !important;
+
+    .keenicon {
+      color: #64748B !important;
+    }
+
+    &.btn-active-color-primary:hover {
+      background-color: #1E293B !important;
+      .keenicon { color: #ffffff !important; }
+    }
+    &.btn-active-color-danger:hover {
+      background-color: #EF4444 !important;
+      .keenicon { color: #ffffff !important; }
+    }
+  }
+
+  /* Nav tabs brand color */
+  .nav-line-tabs .nav-link.active,
+  .nav-line-tabs .nav-link:hover:not(.disabled) {
+    border-bottom-color: #1E293B !important;
+    color: #1E293B !important;
+  }
+  .nav-line-tabs .nav-link {
+    color: #64748B !important;
+  }
+
+  .btn-light-primary {
+    background-color: rgba(30, 41, 59, 0.06) !important;
+    color: #1E293B !important;
+    
+    &:hover, &:focus, &:active {
+      background-color: #1E293B !important;
+      color: #ffffff !important;
+    }
+  }
+  .btn-light-warning {
+    background-color: rgba(249, 115, 22, 0.08) !important; // soft orange light
+    color: #F97316 !important;
+    
+    &:hover, &:focus, &:active {
+      background-color: #F97316 !important;
+      color: #ffffff !important;
+    }
+  }
+  .btn-light-success {
+    background-color: rgba(23, 198, 83, 0.08) !important;
+    color: #17C653 !important;
+    
+    &:hover, &:focus, &:active {
+      background-color: #17C653 !important;
+      color: #ffffff !important;
+    }
+  }
+  .btn-outline {
+    border-color: rgba(30, 41, 59, 0.2) !important;
+    color: #1E293B !important;
+    background-color: transparent !important;
+    transition: all 0.3s ease;
+
+    &:hover, &:focus, &:active, &.active {
+      background-color: #1E293B !important;
+      border-color: #1E293B !important;
+      color: #ffffff !important;
+    }
+  }
+
+  /* Badges Redesign */
+  .badge-light-danger {
+    background-color: rgba(216, 26, 72, 0.08) !important;
+    color: #EF4444 !important;
+  }
+  .badge-light-warning {
+    background-color: rgba(249, 115, 22, 0.08) !important;
+    color: #F97316 !important;
+  }
+  .badge-light-success {
+    background-color: rgba(23, 198, 83, 0.08) !important;
+    color: #17C653 !important;
+  }
+  .badge-light-primary {
+    background-color: rgba(30, 41, 59, 0.06) !important;
+    color: #1E293B !important;
+  }
+
+  // Customize link colors
+  a.link-primary,
+  .link-primary,
+  .form-check-label a {
+    color: #F97316 !important; // terracotta links
+
+    &:hover, &:focus {
+      color: #1E293B !important;
+    }
+  }
+
+  // Customize form-control focus styling
+  .form-control:focus {
+    border-color: #F97316 !important;
+  }
+
+  // Checkbox custom color when checked
+  .form-check-input:checked {
+    background-color: #1E293B !important;
+    border-color: #1E293B !important;
+  }
+
+  /* Helper text visible on focus */
+  .custom-help-text {
+    color: #F97316 !important;
+  }
+
+  /* Footer Redesign */
+  .app-footer {
+    border-top: 1px dashed rgba(30, 41, 59, 0.1) !important;
+    color: #94A3B8 !important;
+    
+    a {
+      color: #94A3B8 !important;
+      &:hover {
+        color: #1E293B !important;
+      }
+    }
+  }
+
+  // Brand Classes for Cards & Texts
+  .text-brand-title {
+    color: #1E293B !important;
+  }
+  .text-brand-sub {
+    color: #94A3B8 !important;
+  }
+  .text-brand-metric {
+    color: #1E293B !important;
+  }
+  
+  .card-brand-warm {
+    background-color: #FFFFFF !important;
+    border: 1px solid rgba(30, 41, 59, 0.08) !important;
+    
+    &.border-dashed {
+      border-style: dashed !important;
+      border-color: rgba(30, 41, 59, 0.2) !important;
+    }
+  }
+  .card-danger-state {
+    background-color: #FFE9E9 !important;
+    border: 1px solid #F8285A !important;
+  }
+  .card-warning-state {
+    background-color: #FFF4E5 !important;
+    border: 1px solid #F97316 !important;
+  }
+}
+
+/* Dark Mode Overrides for Branding */
+html[data-bs-theme="dark"] {
+  .text-brand-title {
+    color: #FFFFFF !important;
+  }
+  .text-brand-sub {
+    color: #bfa395 !important;
+  }
+  .text-brand-metric {
+    color: #ffffff !important;
+  }
+
+  /* Table action icon buttons - dark mode */
+  .btn-bg-light {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border: none !important;
+
+    .keenicon {
+      color: #bfa395 !important;
+    }
+
+    &.btn-active-color-primary:hover {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      .keenicon { color: #FFFFFF !important; }
+    }
+    &.btn-active-color-danger:hover {
+      background-color: #EF4444 !important;
+      .keenicon { color: #ffffff !important; }
+    }
+  }
+
+  /* Nav tabs - dark mode */
+  .nav-line-tabs .nav-link {
+    color: #bfa395 !important;
+  }
+  .nav-line-tabs .nav-link.active,
+  .nav-line-tabs .nav-link:hover:not(.disabled) {
+    border-bottom-color: #FFFFFF !important;
+    color: #FFFFFF !important;
+  }
+
+  .card-brand-warm {
+    background-color: #1e1e2d !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    
+    &.border-dashed {
+      border-style: dashed !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+  .card-danger-state {
+    background-color: rgba(248, 40, 90, 0.15) !important;
+    border: 1px solid #F8285A !important;
+  }
+  .card-warning-state {
+    background-color: rgba(249, 115, 22, 0.15) !important;
+    border: 1px solid #F97316 !important;
+  }
+}
+
+/* Global Buttons Redesign */
+.btn {
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.btn-primary {
+  background-color: #1E293B !important;
+  border-color: #1E293B !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  
+  &:hover, &:focus, &:active, &.active, &.show {
+    background-color: #0F172A !important;
+    border-color: #0F172A !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Badges Redesign */
+.badge {
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+}
+
+// Customize link colors (shared styling properties)
+a.link-primary,
+.link-primary,
+.form-check-label a {
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+
+  &:hover, &:focus {
+    text-decoration: underline !important;
+  }
+}
+
+/* Helper text visible on focus */
+.custom-help-text {
+  display: none;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+input:focus ~ .custom-help-text {
+  display: block;
+}
+
+/* Hide helper text when input is invalid to avoid duplication/overlapping */
+.form-control.is-invalid ~ .custom-help-text {
+  display: none !important;
+}
+
+/* Optimize validation message containers and spacing */
+.fv-plugins-message-container {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+
+  .fv-help-block {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+    color: #f1416c !important;
+    display: flex !important;
+    align-items: center;
+    gap: 0.25rem;
+
+    &::before {
+      content: "•";
+      font-size: 1.2rem;
+      color: #f1416c;
+      margin-right: 4px;
+    }
+  }
+}
+
+/* Footer Redesign */
+.app-footer {
+  background-color: transparent !important;
+  a {
+    text-decoration: none;
+  }
+}
+
+/* Sidebar Logo Minimized Toggle Fix (overriding Bootstrap d-flex !important) */
+.app-sidebar-logo-minimize {
+  display: none !important;
+}
+
+[data-kt-app-sidebar-minimize="on"] {
+  // Desktop minimized state when not hovered
+  &:not([data-kt-app-sidebar-hoverable="true"]) .app-sidebar,
+  &[data-kt-app-sidebar-hoverable="true"] .app-sidebar:not(:hover) {
+    .app-sidebar-logo-default {
+      display: none !important;
+    }
+    .app-sidebar-logo-minimize {
+      display: inline-block !important;
+    }
+  }
+}
+
+// Tablet & Mobile minimized state when not hovered
+[data-kt-app-sidebar-minimize-mobile="on"] {
+  &:not([data-kt-app-sidebar-hoverable-mobile="true"]) .app-sidebar,
+  &[data-kt-app-sidebar-hoverable-mobile="true"] .app-sidebar:not(:hover) {
+    .app-sidebar-logo-default {
+      display: none !important;
+    }
+    .app-sidebar-logo-minimize {
+      display: inline-block !important;
+    }
+  }
+}
+
+/* Force custom scrollbar styling globally to eliminate native OS scrollbar buttons */
+::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(30, 41, 59, 0.2);
+  border-radius: 10px;
+  
+  &:hover {
+    background-color: rgba(30, 41, 59, 0.4);
+  }
+}
+
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Custom active tab line color in notifications header */
+.menu-sub-dropdown {
+  .nav-line-tabs.nav-line-tabs-2x {
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+    
+    .nav-item {
+      .nav-link {
+        color: rgba(255, 255, 255, 0.7) !important;
+        border-bottom-color: transparent !important;
+        
+        &.active, 
+        &:hover:not(.disabled) {
+          border-bottom: 2px solid #FFFFFF !important;
+          color: #FFFFFF !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
+
+/* Reset text color inside user profile dropdown in header to prevent inheriting header's light text color */
+.app-header app-user-inner {
+  color: #5E6278 !important;
+  
+  .fw-bolder,
+  div.fw-bolder {
+    color: #181C32 !important;
+  }
+  
+  .text-muted, a.text-muted {
+    color: #A1A5B7 !important;
+  }
+  
+  a.menu-link {
+    color: #5E6278 !important;
+    
+    &:hover {
+      color: #F97316 !important;
+      background-color: #F5F8FA !important;
+    }
+  }
+}
+
+/* ====================================================
+   Pujol e Hijos - Custom Animations & Hover Effects
+   ==================================================== */
+
+/* Smooth generic transition */
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Hover Elevate - Lifts the element and adds shadow */
+.hover-elevate {
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  &:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 20px rgba(30, 41, 59, 0.12) !important;
+  }
+}
+
+/* Button hover animation */
+.btn {
+  transition: all 0.3s ease !important;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Glowing Border for inputs/cards on hover */
+.hover-glow {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease !important;
+  &:hover {
+    border-color: #F97316 !important;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+  }
+}
+
+/* Sidebar links subtle slide */
+.menu-item .menu-link {
+  transition: padding-left 0.3s ease, background-color 0.3s ease, color 0.3s ease !important;
+  &:hover:not(.active) {
+    padding-left: 20px !important;
+  }
+}
+
+/* Dashboard Cards extra styling */
+.card-brand-warm {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease !important;
+  &:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.15) !important;
+    border-color: rgba(249, 115, 22, 0.5) !important;
+    
+    .text-brand-title {
+      color: #F97316 !important;
+      transition: color 0.3s ease;
+    }
+    .keenicon {
+      color: #F97316 !important;
+      transform: scale(1.15) rotate(5deg);
+      transition: all 0.3s ease;
+    }
+  }
+  .keenicon {
+    transition: all 0.3s ease;
+  }
+}
+
+/* Table rows hover effect */
+tbody tr {
+  transition: background-color 0.2s ease !important;
+  &:hover {
+    background-color: rgba(249, 115, 22, 0.05) !important;
+  }
+}
+
+/* Eye-catching pulse animations */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+.pulse-card {
+  animation: pulseGlow 3s infinite;
+  &:hover {
+    animation: none;
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.5) !important;
+  }
+}
+
+@keyframes iconBeat {
+  0% { transform: scale(1); }
+  10% { transform: scale(1.15); }
+  20% { transform: scale(1); }
+  30% { transform: scale(1.15); }
+  40% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
+.pulse-icon {
+  animation: iconBeat 4s infinite;
+}
+

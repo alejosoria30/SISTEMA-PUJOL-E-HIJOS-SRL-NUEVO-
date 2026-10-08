@@ -1,0 +1,225 @@
+<div class="card">
+  <div class="card-header border-0 pt-6">
+    <!--begin::Card title-->
+    <div class="card-title">
+      <!--begin::Search-->
+      <div class="d-flex align-items-center position-relative my-1">
+        <app-keenicon name="magnifier" class="fs-3 position-absolute ms-5"></app-keenicon>
+        <input type="text" data-action="filter" class="form-control form-control-solid w-250px ps-12" placeholder="Buscar Usuarios">
+      </div>
+      <!--end::Search-->
+      <!--begin::Filter Role-->
+      <div class="d-flex align-items-center position-relative my-1 ms-5">
+        <select class="form-select form-select-solid w-150px" (change)="filterRole($event)">
+          <option value="">Todos los Roles</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Empleado">Empleado</option>
+          <option value="Cliente">Cliente</option>
+        </select>
+      </div>
+      <!--end::Filter Role-->
+    </div>
+    <!--begin::Card title-->
+
+    <!--begin::Card toolbar-->
+    <div class="card-toolbar">
+      <!--begin::Toolbar-->
+      <div class="d-flex justify-content-end">
+        <!--begin::Add user-->
+        <button type="button" class="btn btn-primary" data-action="create">
+          Agregar Usuario
+        </button>
+        <!--end::Add user-->
+      </div>
+      <!--end::Toolbar-->
+    </div>
+    <!--end::Card toolbar-->
+  </div>
+
+  <div class="card-body pt-0">
+    <app-crud [datatableConfig]="datatableConfig" route="/apps/users" (deleteEvent)="delete($event)" (editEvent)="edit($event)" (createEvent)="create()" [reload]="reloadEvent" [modal]="formModal"></app-crud>
+  </div>
+</div>
+
+<swal #noticeSwal [swalOptions]="swalOptions">
+</swal>
+
+<ng-template #formModal let-modal>
+  <form #myForm="ngForm" (ngSubmit)="onSubmit($event, myForm)">
+    <div class="modal-header">
+      <h4 class="modal-title" id="modal-basic-title">Detalles del Usuario</h4>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="modal.dismiss('Cross click')"></button>
+    </div>
+    <div class="modal-body">
+      <div class="d-flex flex-column scroll-y me-n7 pe-7 mw-650px" id="kt_modal_update_customer_scroll" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_modal_update_customer_header" data-kt-scroll-wrappers="#kt_modal_update_customer_scroll"
+        data-kt-scroll-offset="300px">
+        <!--begin::Notice-->
+        <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed mb-9 p-6">
+          <!--begin::Icon-->
+          <app-keenicon name="information" class="fs-2tx text-primary me-4"></app-keenicon>
+          <!--end::Icon-->
+          <!--begin::Wrapper-->
+          <div class="d-flex flex-stack flex-grow-1">
+            <!--begin::Content-->
+            <div class="fw-semibold">
+              <div class="fs-6 text-gray-700">La actualización de datos del usuario está sujeta a auditoría de privacidad. Para más información,
+                por favor lea nuestra
+                <a href="#">Política de Privacidad</a>
+              </div>
+            </div>
+            <!--end::Content-->
+          </div>
+          <!--end::Wrapper-->
+        </div>
+        <!--end::Notice-->
+
+        <!--begin::User toggle-->
+        <div class="fw-bold fs-3 rotate collapsible mb-7" data-bs-toggle="collapse" role="button" (click)="collapse1.toggle()" [attr.aria-expanded]="!isCollapsed1" aria-controls="kt_modal_update_customer_user_info">Información del Usuario
+          <span class="ms-2 rotate-180">
+            <i class="ki-duotone ki-down fs-3" [ngClass]="{ 'ki-up': !isCollapsed1 }"></i>
+          </span>
+        </div>
+        <!--end::User toggle-->
+        <!--begin::User form-->
+        <div class="collapse show" #collapse1="ngbCollapse" [(ngbCollapse)]="isCollapsed1">
+          <!--begin::Input group-->
+          <div class="fv-row mb-7">
+            <!--begin::Label-->
+            <label class="required fw-semibold fs-6 mb-2">Nombre Completo</label>
+            <!--end::Label-->
+            <!--begin::Input-->
+            <input type="text" class="form-control form-control-solid" name="name" [(ngModel)]="userModel.name" #name="ngModel" required minlength="4" />
+            <div *ngIf="myForm.submitted && myForm.invalid" class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback">
+              <div *ngIf="name.errors?.['required']">El nombre es obligatorio</div>
+              <div *ngIf="name.errors?.['minlength']">El nombre debe tener al menos 4 caracteres</div>
+            </div>
+            <!--end::Input-->
+          </div>
+          <!--end::Input group-->
+          <!--begin::Input group-->
+          <div class="fv-row mb-7">
+            <!--begin::Label-->
+            <label class="required fw-semibold fs-6 mb-2">
+              <span>Email</span>
+              <span class="ms-1" placement="end" ngbTooltip="El email debe estar activo y ser válido">
+                <app-keenicon name="information" class="fs-7"></app-keenicon>
+              </span>
+            </label>
+            <!--end::Label-->
+            <!--begin::Input-->
+            <input type="email" class="form-control form-control-solid" name="email" [(ngModel)]="userModel.email" #email="ngModel" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" />
+            <div *ngIf="myForm.submitted && myForm.invalid" class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback">
+              <div *ngIf="email.errors?.['required']">El email es obligatorio</div>
+              <div *ngIf="email.errors?.['pattern']">El email no es válido</div>
+            </div>
+            <!--end::Input-->
+          </div>
+          <!--end::Input group-->
+
+          <div class="fv-row mb-7">
+            <label class="fw-semibold fs-6 mb-2">Usuario</label>
+            <input type="text" class="form-control form-control-solid" name="username" [(ngModel)]="userModel.username" />
+          </div>
+          <div class="fv-row mb-7">
+            <label class="fw-semibold fs-6 mb-2">Contraseña (Dejar en blanco para no cambiar)</label>
+            <input type="password" class="form-control form-control-solid" name="password" [(ngModel)]="userModel.password" />
+          </div>
+          <div class="fv-row mb-7">
+            <label class="fw-semibold fs-6 mb-2">Teléfono</label>
+            <input type="text" class="form-control form-control-solid" name="phone" [(ngModel)]="userModel.phone" />
+          </div>
+          <div class="fv-row mb-7">
+            <label class="fw-semibold fs-6 mb-2">Fecha de Nacimiento</label>
+            <input type="date" class="form-control form-control-solid" name="dob" [(ngModel)]="userModel.dob" />
+          </div>
+          
+          <div class="fw-bold fs-4 mb-4 mt-8">Dirección</div>
+          <div class="row g-3 mb-7">
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">Calle</label>
+              <input type="text" class="form-control form-control-solid" name="address_calle" [(ngModel)]="userModel.address.calle" />
+            </div>
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">Número / Depto</label>
+              <input type="text" class="form-control form-control-solid" name="address_numero" [(ngModel)]="userModel.address.numero" />
+            </div>
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">Ciudad</label>
+              <input type="text" class="form-control form-control-solid" name="address_ciudad" [(ngModel)]="userModel.address.ciudad" />
+            </div>
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">Provincia / Estado</label>
+              <input type="text" class="form-control form-control-solid" name="address_provincia" [(ngModel)]="userModel.address.provincia" />
+            </div>
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">Código Postal</label>
+              <input type="text" class="form-control form-control-solid" name="address_cp" [(ngModel)]="userModel.address.codigoPostal" />
+            </div>
+            <div class="col-sm-6 fv-row">
+              <label class="fw-semibold fs-6 mb-2">País</label>
+              <input type="text" class="form-control form-control-solid" name="address_pais" [(ngModel)]="userModel.address.pais" />
+            </div>
+          </div>
+
+          <div class="fv-row mb-7">
+            <label class="fw-semibold fs-6 mb-5">Estado de la Cuenta</label>
+            <div class="d-flex align-items-center">
+              <div class="form-check form-check-custom form-check-solid form-switch">
+                <input class="form-check-input w-45px h-30px" type="checkbox" id="statusSwitch" name="status"
+                  [ngModel]="userModel.status === 'Activo'"
+                  (ngModelChange)="userModel.status = $event ? 'Activo' : 'Inactivo'" />
+                <label class="form-check-label ms-3 fw-bold fs-6" for="statusSwitch">
+                  {{ userModel.status === 'Activo' ? 'Activa' : 'Inactiva' }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-7">
+            <label class="required fw-semibold fs-6 mb-5">Roles</label>
+
+            <div *ngFor="let role of (roles$ | async)?.data; let last = last">
+              <div class="d-flex fv-row">
+                <div class="form-check form-check-custom form-check-solid">
+                  <input class="form-check-input me-3" 
+                         id="kt_modal_update_role_option_{{ role.id }}" 
+                         name="role_{{ role.id }}" 
+                         type="checkbox" 
+                         [checked]="isRoleSelected(role.id)"
+                         (change)="toggleRole(role)" />
+                  <label class="form-check-label" for="kt_modal_update_role_option_{{ role.id }}">
+                    <div class="fw-bold text-gray-800">
+                      {{ role.name | titlecase }}
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div *ngIf="!last" class="separator separator-dashed my-5"></div>
+            </div>
+
+          </div>
+
+        </div>
+        <!--end::User form-->
+      </div>
+    </div>
+    <div class="modal-footer flex-center">
+      <!--begin::Button-->
+      <button type="reset" id="kt_modal_update_customer_cancel" class="btn btn-light me-3" (click)="modal.dismiss('cancel')">
+        Cancelar
+      </button>
+      <!--end::Button-->
+
+      <!--begin::Button-->
+      <button type="submit" id="kt_modal_update_customer_submit" class="btn btn-primary" [attr.data-kt-indicator]="isLoading ? 'on' : 'off'">
+        <span class="indicator-label">
+          Guardar
+        </span>
+        <span class="indicator-progress">
+          Por favor espere... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+        </span>
+      </button>
+      <!--end::Button-->
+    </div>
+  </form>
+</ng-template>
