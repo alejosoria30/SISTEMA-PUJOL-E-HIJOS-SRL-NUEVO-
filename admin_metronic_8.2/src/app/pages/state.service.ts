@@ -116,6 +116,7 @@ export class StateService {
   public employees$ = new BehaviorSubject<Employee[]>([]);
   public suppliers$ = new BehaviorSubject<Supplier[]>([]);
   public stock$ = new BehaviorSubject<StockItem[]>([]);
+  public movimientosStock$ = new BehaviorSubject<any[]>([]);
   public recipes$ = new BehaviorSubject<Recipe[]>([]);
   public clients$ = new BehaviorSubject<Client[]>([]);
   public orders$ = new BehaviorSubject<Order[]>([]);
@@ -187,6 +188,8 @@ export class StateService {
       },
       error: (e) => console.error('Error loading stock items:', e)
     });
+    
+    this.loadMovimientosStock();
 
     // 2. Fetch suppliers from database
     this.http.get<Supplier[]>(`${this.API_URL}/proveedores`).subscribe({
@@ -461,6 +464,39 @@ export class StateService {
         console.error('Error deleting stock item:', e);
         const errMsg = e.error && e.error.message ? e.error.message : 'Error al eliminar el insumo.';
         alert(errMsg);
+      }
+    });
+  }
+
+  // --- MOVIMIENTOS DE STOCK ---
+  public loadMovimientosStock() {
+    this.http.get<any[]>(`${this.API_URL}/movimientos-stock`).subscribe({
+      next: (data) => this.movimientosStock$.next(data),
+      error: (e) => console.error('Error loading movimientos de stock:', e)
+    });
+  }
+
+  public saveMovimientoStock(movimiento: { productId: number, type: string, quantity: number, observations: string }, callback?: (success: boolean) => void) {
+    // We assume userId=1 for now as done in api
+    this.http.post<any>(`${this.API_URL}/movimientos-stock`, movimiento).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.loadMovimientosStock();
+          // Reload products stock
+          this.http.get<StockItem[]>(`${this.API_URL}/productos`).subscribe({
+            next: (data) => this.stock$.next(data)
+          });
+          if (callback) callback(true);
+        } else {
+          alert('Error: ' + res.message);
+          if (callback) callback(false);
+        }
+      },
+      error: (e) => {
+        console.error('Error saving movimiento:', e);
+        const errMsg = e.error && e.error.message ? e.error.message : 'Error al registrar el movimiento.';
+        alert(errMsg);
+        if (callback) callback(false);
       }
     });
   }

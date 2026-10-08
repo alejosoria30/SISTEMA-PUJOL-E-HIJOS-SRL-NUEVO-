@@ -600,6 +600,70 @@ if ($route === '/productos') {
     }
 }
 
+// =============================================================
+// CRUD /movimientos-stock
+// =============================================================
+if ($route === '/movimientos-stock') {
+    if ($method === 'GET') {
+        $stmt = $pdo->query("SELECT m.idMovStock as id, m.idProd as productId, p.nombreProd as productName, p.codigoProd as productCode,
+                                    m.tipoMovimiento as type, m.cantidad as quantity, m.fechaMovimiento as date, 
+                                    m.idUsu as userId, u.nombreUsu as userName, m.observaciones as observations
+                             FROM movimientos_stock m
+                             JOIN productos p ON m.idProd = p.idProd
+                             JOIN usuario u ON m.idUsu = u.idUsu
+                             ORDER BY m.fechaMovimiento DESC");
+        $items = $stmt->fetchAll();
+        foreach ($items as &$item) {
+            $item['id'] = (int)$item['id'];
+            $item['productId'] = (int)$item['productId'];
+            $item['quantity'] = (int)$item['quantity'];
+            $item['userId'] = (int)$item['userId'];
+        }
+        send_response($items);
+    }
+    
+    if ($method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $productId = isset($input['productId']) ? (int)$input['productId'] : 0;
+        $type = $input['type'] ?? '';
+        $quantity = isset($input['quantity']) ? (int)$input['quantity'] : 0;
+        $userId = isset($input['userId']) ? (int)$input['userId'] : 1; // Default to admin for now
+        $observations = $input['observations'] ?? '';
+
+        if ($productId <= 0 || empty($type) || $quantity <= 0) {
+            send_response(["success" => false, "message" => "Producto, tipo de movimiento y cantidad son obligatorios"], 400);
+        }
+
+        try {
+            $pdo->beginTransaction();
+            
+            // Insert movement
+            $stmt = $pdo->prepare("INSERT INTO movimientos_stock (idProd, tipoMovimiento, cantidad, idUsu, observaciones) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$productId, $type, $quantity, $userId, $observations]);
+            $id = $pdo->lastInsertId();
+            
+            // Update inventory
+            if ($type === 'Entrada') {
+                $stmtInv = $pdo->prepare("UPDATE inventario SET stockActual = stockActual + ? WHERE idProd = ?");
+                $stmtInv->execute([$quantity, $productId]);
+            } else if ($type === 'Salida') {
+                $stmtInv = $pdo->prepare("UPDATE inventario SET stockActual = stockActual - ? WHERE idProd = ?");
+                $stmtInv->execute([$quantity, $productId]);
+            } else if ($type === 'Ajuste') {
+                $stmtInv = $pdo->prepare("UPDATE inventario SET stockActual = ? WHERE idProd = ?");
+                $stmtInv->execute([$quantity, $productId]);
+            }
+            
+            $pdo->commit();
+            send_response(["success" => true, "id" => (int)$id]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            send_response(["success" => false, "message" => "Error al registrar el movimiento: " . $e->getMessage()], 500);
+        }
+    }
+}
+
 // Handle CRUD for /proveedores (Suppliers)
 if ($route === '/proveedores') {
     if ($method === 'GET') {
