@@ -72,40 +72,19 @@
       background-color: rgba(9, 15, 34, 0.95) !important;
       border-right: 1px solid rgba(0, 163, 255, 0.1);
     }
-    
-    /* ANIMACION SPLASH SCREEN */
-    @keyframes pulse-logo {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-    .splash-logo-pulse {
-      animation: pulse-logo 2s infinite ease-in-out;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 163, 255, 0.3);
-    }
-    /* SPLASH SCREEN LIGHT/DARK RESPONSIVE */
-    .splash-screen {
-      background-color: #ffffff;
-    }
-    .splash-title {
-      color: #0b132b;
-      font-family: 'Playfair Display', serif;
-    }
-    
-    [data-bs-theme="dark"] .splash-screen {
-      background-color: #0B132B;
-    }
-    [data-bs-theme="dark"] .splash-title {
-      color: #ffffff;
-    }
   </style>
   
   <div id="splash-screen" class="splash-screen">
-    <img src="./assets/media/logos/pujol-logo.jpg" alt="Pujol e Hijos" width="100" class="splash-logo-pulse" style="object-fit: contain; width: 100px; height: 100px;">
-    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 25px;">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon" style="position: absolute; opacity: 0.3;">
+        <circle cx="12" cy="12" r="10" stroke-dasharray="20 10"></circle>
+      </svg>
+      <img src="./assets/media/logos/pujol-logo.jpg" alt="Pujol e Hijos" class="custom-logo">
+    </div>
+    
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 15px;">
       <span class="splash-title">Pujol e Hijos</span>
-      <span class="splash-subtitle" style="color: #00A3FF; font-weight: bold; letter-spacing: 1px;">Distribuidora Mayorista</span>
+      <span class="splash-subtitle">Distribuidora Mayorista</span>
     </div>
   </div>
 </body>

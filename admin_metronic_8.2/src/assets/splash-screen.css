@@ -27,14 +27,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.splash-screen img {
-  margin-left: calc(100vw - 100%);
-  margin-bottom: 30px;
-  height: 30px !important;
+.splash-screen img.custom-logo {
+  margin-bottom: 20px;
+  height: 80px;
+  width: 80px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 163, 255, 0.2);
 }
 
 [data-bs-theme="dark"] .splash-screen {
-  background-color: #151521;
+  background-color: #0b132b;
   color: #92929F;
 }
 
@@ -44,6 +47,7 @@ body {
 
 .spin-icon {
   animation: spin 3s linear infinite;
+  stroke: #00A3FF;
 }
 
 @keyframes spin {
@@ -56,7 +60,7 @@ body {
   font-family: 'Playfair Display', Georgia, serif !important;
   font-weight: 800 !important;
   font-size: 1.8rem !important;
-  color: #1E293B !important;
+  color: #0b132b !important;
   letter-spacing: 0.5px !important;
 }
 
@@ -64,7 +68,7 @@ body {
   font-family: 'Inter', sans-serif !important;
   font-weight: 700 !important;
   font-size: 0.8rem !important;
-  color: #EA580C !important;
+  color: #00A3FF !important;
   text-transform: uppercase !important;
   letter-spacing: 1.5px !important;
   margin-top: 5px !important;
