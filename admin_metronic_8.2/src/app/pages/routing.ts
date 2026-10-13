@@ -47,6 +47,10 @@ const Routing: Routes = [
     loadChildren: () => import('./permission/permission.module').then((m) => m.PermissionModule),
   },
   {
+    path: 'catalogo',
+    loadChildren: () => import('./catalogo/catalogo.module').then((m) => m.CatalogoModule),
+  },
+  {
     path: 'stock',
     loadChildren: () => import('./stock/stock.module').then((m) => m.StockModule),
   },
