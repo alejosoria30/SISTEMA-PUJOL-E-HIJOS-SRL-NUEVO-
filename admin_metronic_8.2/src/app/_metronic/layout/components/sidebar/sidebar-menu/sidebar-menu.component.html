@@ -23,6 +23,16 @@
       </div>
     </div>
 
+    <!-- Catálogo de Bebidas y Precios -->
+    <div class="menu-item" *ngIf="hasPermission(2)">
+      <a class="menu-link without-sub" routerLink="/catalogo" routerLinkActive="active">
+        <span class="menu-icon">
+          <app-keenicon name="scroll" class="fs-2"></app-keenicon>
+        </span>
+        <span class="menu-title">Catálogo de Bebidas</span>
+      </a>
+    </div>
+
     <!-- Gestión de Stock -->
     <div class="menu-item" *ngIf="hasPermission(2)">
       <a class="menu-link without-sub" routerLink="/stock" routerLinkActive="active">

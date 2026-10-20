@@ -1,0 +1,364 @@
+<!-- Cabecera Principal y KPIs -->
+<div class="d-flex flex-wrap flex-stack gap-4 mb-6">
+  <div class="d-flex flex-column">
+    <h1 class="text-gray-900 fw-bolder fs-2 mb-1">Catálogo de Bebidas y Lista de Precios</h1>
+    <span class="text-muted fw-semibold fs-7">
+      Pujol e Hijos S.R.L. — Gestión de precios mayoristas, formatos y existencias de bebidas
+    </span>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <button class="btn btn-primary" (click)="openCreateModal()" *ngIf="hasAction('create')">
+      <app-keenicon name="plus" class="fs-2 me-1"></app-keenicon> Nueva Bebida
+    </button>
+  </div>
+</div>
+
+<!-- Tarjetas de Métricas (KPIs) -->
+<div class="row g-5 g-xl-6 mb-7">
+  <!-- KPI: Total Bebidas -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 p-5 border border-dashed border-gray-300">
+      <div class="d-flex align-items-center">
+        <div class="symbol symbol-45px me-4">
+          <span class="symbol-label bg-light-primary text-primary">
+            <app-keenicon name="flask" class="fs-2 text-primary"></app-keenicon>
+          </span>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-7 text-muted fw-bold">Total en Catálogo</span>
+          <span class="fs-2hx fw-bold text-gray-900 leading-none">{{ totalBeverages }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI: Precio Promedio -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 p-5 border border-dashed border-gray-300">
+      <div class="d-flex align-items-center">
+        <div class="symbol symbol-45px me-4">
+          <span class="symbol-label bg-light-success text-success">
+            <app-keenicon name="dollar" class="fs-2 text-success"></app-keenicon>
+          </span>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-7 text-muted fw-bold">Precio Promedio</span>
+          <span class="fs-2hx fw-bold text-gray-900 leading-none">${{ averagePrice | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI: Stock Óptimo -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 p-5 border border-dashed border-gray-300">
+      <div class="d-flex align-items-center">
+        <div class="symbol symbol-45px me-4">
+          <span class="symbol-label bg-light-info text-info">
+            <app-keenicon name="check-circle" class="fs-2 text-info"></app-keenicon>
+          </span>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-7 text-muted fw-bold">Stock Suficiente</span>
+          <span class="fs-2hx fw-bold text-gray-900 leading-none">{{ optimalStockCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI: Bajo Mínimo -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 p-5 border border-dashed border-gray-300">
+      <div class="d-flex align-items-center">
+        <div class="symbol symbol-45px me-4">
+          <span class="symbol-label bg-light-danger text-danger">
+            <app-keenicon name="information-5" class="fs-2 text-danger"></app-keenicon>
+          </span>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-7 text-muted fw-bold">Bajo Mínimo</span>
+          <span class="fs-2hx fw-bold text-danger leading-none">{{ lowStockCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Barra de Búsqueda, Filtros y Switch de Vistas -->
+<div class="card card-custom mb-7">
+  <div class="card-body p-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-4">
+      
+      <!-- Píldoras de Categoría -->
+      <div class="d-flex flex-wrap gap-2">
+        <button 
+          *ngFor="let cat of categories" 
+          type="button" 
+          class="btn btn-sm"
+          [ngClass]="selectedCategory === cat ? 'btn-primary' : 'btn-light'"
+          (click)="setCategory(cat)">
+          {{ cat }}
+        </button>
+      </div>
+
+      <!-- Buscador y Switch de Vista -->
+      <div class="d-flex align-items-center gap-3">
+        <!-- Input de Búsqueda -->
+        <div class="position-relative">
+          <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
+            <app-keenicon name="magnifier" class="fs-4 text-muted"></app-keenicon>
+          </span>
+          <input 
+            type="text" 
+            class="form-control form-control-sm form-control-solid ps-10 min-w-200px" 
+            placeholder="Buscar por nombre o código..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilters()" />
+        </div>
+
+        <!-- Switch Grid / Tabla -->
+        <div class="btn-group btn-group-sm">
+          <button 
+            type="button" 
+            class="btn btn-icon"
+            [ngClass]="viewMode === 'grid' ? 'btn-primary' : 'btn-light'"
+            (click)="viewMode = 'grid'"
+            title="Vista en Tarjetas">
+            <app-keenicon name="element-11" class="fs-3"></app-keenicon>
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-icon"
+            [ngClass]="viewMode === 'table' ? 'btn-primary' : 'btn-light'"
+            (click)="viewMode = 'table'"
+            title="Vista en Tabla">
+            <app-keenicon name="row-horizontal" class="fs-3"></app-keenicon>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- VISTA 1: GRID DE TARJETAS (CARDS MODERNAS) -->
+<!-- ========================================== -->
+<div class="row g-5 g-xl-6" *ngIf="viewMode === 'grid'">
+  <div class="col-md-6 col-lg-4 col-xl-4" *ngFor="let item of filteredStock">
+    <div class="card card-flush h-100 hover-elevate-up shadow-sm border border-gray-200" style="border-radius: 12px; transition: transform 0.2s ease;">
+      <div class="card-body p-6 d-flex flex-column justify-content-between">
+        
+        <!-- Header de la Tarjeta -->
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <span class="badge" [ngClass]="getCategoryBadgeClass(getCategory(item))">
+              <app-keenicon [name]="getCategoryIcon(getCategory(item))" class="fs-7 me-1"></app-keenicon>
+              {{ getCategory(item) }}
+            </span>
+            <span class="text-gray-500 fs-8 fw-bold">{{ item.code || 'S/C' }}</span>
+          </div>
+
+          <h3 class="fs-5 fw-bold text-gray-900 mb-1">{{ item.name }}</h3>
+          <p class="fs-8 text-muted mb-4" style="min-height: 32px;">
+            {{ item.description || 'Presentación mayorista estándar de distribuidora' }}
+          </p>
+        </div>
+
+        <!-- Bloque de Precio y Stock -->
+        <div>
+          <div class="separator separator-dashed my-3"></div>
+
+          <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+              <span class="text-muted fs-8 d-block fw-semibold">Precio Mayorista</span>
+              <span class="fs-2hx fw-bold text-gray-900 leading-none">
+                ${{ item.price | number:'1.2-2' }}
+              </span>
+            </div>
+            <div class="text-end">
+              <span class="text-muted fs-8 d-block fw-semibold">Stock Actual</span>
+              <span class="badge fs-7 fw-bold" [ngClass]="item.quantity >= item.minThreshold ? 'badge-light-success' : 'badge-light-danger'">
+                {{ item.quantity }} un.
+              </span>
+            </div>
+          </div>
+
+          <!-- Acciones de la Tarjeta -->
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-light-primary flex-grow-1" (click)="openQuickPriceModal(item)" *ngIf="hasAction('update')">
+              <app-keenicon name="price-tag" class="fs-6 me-1"></app-keenicon> Precio
+            </button>
+            <button class="btn btn-sm btn-light-secondary btn-icon" (click)="openEditModal(item)" *ngIf="hasAction('update')" title="Editar Bebida">
+              <app-keenicon name="pencil" class="fs-5 text-gray-700"></app-keenicon>
+            </button>
+            <button class="btn btn-sm btn-light-danger btn-icon" (click)="deleteItem(item)" *ngIf="hasAction('delete')" title="Eliminar del Catálogo">
+              <app-keenicon name="trash" class="fs-5 text-danger"></app-keenicon>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="col-12 text-center py-12" *ngIf="filteredStock.length === 0">
+    <app-keenicon name="bottle" class="fs-4x text-muted mb-3 d-block"></app-keenicon>
+    <h4 class="text-gray-700 fw-bold">No se encontraron bebidas</h4>
+    <p class="text-muted fs-7">Intente ajustando el término de búsqueda o seleccionando otra categoría.</p>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- VISTA 2: TABLA DETALLADA                   -->
+<!-- ========================================== -->
+<div class="card card-custom" *ngIf="viewMode === 'table'">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-row-dashed table-row-gray-300 align-middle gs-6 gy-4 mb-0">
+        <thead>
+          <tr class="fw-bold text-muted fs-7 text-uppercase bg-light">
+            <th class="ps-6 min-w-90px">Código</th>
+            <th class="min-w-200px">Bebida / Presentación</th>
+            <th class="min-w-120px">Categoría</th>
+            <th class="min-w-120px text-end">Precio Mayorista</th>
+            <th class="min-w-100px text-center">Stock Actual</th>
+            <th class="min-w-120px text-center">Estado</th>
+            <th class="pe-6 min-w-140px text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredStock">
+            <td class="ps-6 fw-bold text-gray-700 fs-7">{{ item.code || '-' }}</td>
+            <td>
+              <div class="d-flex flex-column">
+                <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
+                <span class="text-muted fs-8">{{ item.description || '-' }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getCategoryBadgeClass(getCategory(item))">
+                {{ getCategory(item) }}
+              </span>
+            </td>
+            <td class="text-end fw-bold text-gray-900 fs-6">
+              ${{ item.price | number:'1.2-2' }}
+            </td>
+            <td class="text-center fw-bold fs-6">{{ item.quantity }}</td>
+            <td class="text-center">
+              <span class="badge" [ngClass]="item.quantity >= item.minThreshold ? 'badge-light-success' : 'badge-light-danger'">
+                {{ item.quantity >= item.minThreshold ? 'Suficiente' : 'Bajo Stock' }}
+              </span>
+            </td>
+            <td class="pe-6 text-end">
+              <button class="btn btn-sm btn-icon btn-light-primary me-2" (click)="openQuickPriceModal(item)" *ngIf="hasAction('update')" title="Ajustar Precio">
+                <app-keenicon name="price-tag" class="fs-5"></app-keenicon>
+              </button>
+              <button class="btn btn-sm btn-icon btn-light-secondary me-2" (click)="openEditModal(item)" *ngIf="hasAction('update')" title="Editar">
+                <app-keenicon name="pencil" class="fs-5 text-gray-700"></app-keenicon>
+              </button>
+              <button class="btn btn-sm btn-icon btn-light-danger" (click)="deleteItem(item)" *ngIf="hasAction('delete')" title="Eliminar">
+                <app-keenicon name="trash" class="fs-5 text-danger"></app-keenicon>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredStock.length === 0">
+            <td colspan="7" class="text-center text-muted py-8 fs-7">
+              No hay bebidas que coincidan con los filtros seleccionados.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: CREAR / EDITAR BEBIDA               -->
+<!-- ========================================== -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="isModalOpen" style="background: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 12px;">
+      <div class="modal-header">
+        <h4 class="modal-title fw-bold text-gray-900">
+          {{ isEditing ? 'Editar Bebida en Catálogo' : 'Agregar Nueva Bebida' }}
+        </h4>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+
+      <div class="modal-body py-5">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label fs-7 fw-bold text-gray-700">Código</label>
+            <input type="text" class="form-control form-control-solid" [(ngModel)]="currentItem.code" placeholder="BEB-001" />
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label fs-7 fw-bold text-gray-700 required">Nombre de la Bebida</label>
+            <input type="text" class="form-control form-control-solid" [(ngModel)]="currentItem.name" placeholder="Ej. Coca-Cola 2.25L Retornable" />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fs-7 fw-bold text-gray-700">Descripción / Presentación</label>
+            <input type="text" class="form-control form-control-solid" [(ngModel)]="currentItem.description" placeholder="Ej. Pack x 8 unidades, envase vidrio retornable" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fs-7 fw-bold text-gray-700 required">Precio Mayorista ($)</label>
+            <input type="number" class="form-control form-control-solid" [(ngModel)]="currentItem.price" min="0" step="50" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fs-7 fw-bold text-gray-700">Stock Inicial</label>
+            <input type="number" class="form-control form-control-solid" [(ngModel)]="currentItem.quantity" min="0" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fs-7 fw-bold text-gray-700">Stock Mínimo</label>
+            <input type="number" class="form-control form-control-solid" [(ngModel)]="currentItem.minThreshold" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" (click)="closeModal()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveItem()">
+          {{ isEditing ? 'Guardar Cambios' : 'Dar de Alta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: AJUSTE RÁPIDO DE PRECIO             -->
+<!-- ========================================== -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="isQuickPriceModalOpen" style="background: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 12px;">
+      <div class="modal-header py-4">
+        <h5 class="modal-title fw-bold text-gray-900">Ajustar Precio Mayorista</h5>
+        <button type="button" class="btn-close" (click)="closeQuickPriceModal()"></button>
+      </div>
+
+      <div class="modal-body py-4">
+        <div class="mb-3" *ngIf="quickPriceItem">
+          <span class="fs-7 text-muted d-block">{{ quickPriceItem.code }}</span>
+          <span class="fs-6 fw-bold text-gray-800 d-block">{{ quickPriceItem.name }}</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fs-7 fw-bold text-gray-700 required">Nuevo Precio ($)</label>
+          <input type="number" class="form-control form-control-lg form-control-solid" [(ngModel)]="newPriceValue" min="0" step="50" />
+        </div>
+      </div>
+
+      <div class="modal-footer py-3">
+        <button type="button" class="btn btn-sm btn-light" (click)="closeQuickPriceModal()">Cancelar</button>
+        <button type="button" class="btn btn-sm btn-primary" (click)="saveQuickPrice()">Actualizar Precio</button>
+      </div>
+    </div>
+  </div>
+</div>
