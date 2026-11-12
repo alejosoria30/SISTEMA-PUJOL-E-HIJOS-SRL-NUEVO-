@@ -1,21 +1,19 @@
-
 /* ==========================================================
-   PUJOL E HIJOS - DASHBOARD LIGHT / DARK / SYSTEM
+   PUJOL E HIJOS - DASHBOARD PREMIUM LIGHT / DARK
    Archivo: src/app/pages/dashboard/dashboard.component.scss
-   No cambia la logica Angular, las rutas ni los datos.
-   Usa las variables de Bootstrap/Metronic segun el tema activo.
    ========================================================== */
 
 :host {
-  /* Variables visuales del dashboard */
-  --pj-page-bg: var(--bs-app-bg-color, var(--bs-body-bg, #f4f7fb));
-  --pj-card-bg: var(--bs-card-bg, var(--bs-body-bg, #ffffff));
-  --pj-text: var(--bs-gray-900, var(--bs-body-color, #172b4d));
-  --pj-muted: var(--bs-gray-600, #64748b);
-  --pj-text-secondary: var(--bs-gray-700, #475569);
-  --pj-border: var(--bs-border-color, #e2e8f0);
-  --pj-hover: var(--bs-secondary-bg, var(--bs-light, #f1f5f9));
-  --pj-shadow: 0 3px 14px rgba(15, 23, 42, 0.07);
+  /* Variables visuales del dashboard - Modo Claro */
+  --pj-page-bg: #EEF2F6; // Fondo slate suave con tono, no blanco plano
+  --pj-card-bg: #FFFFFF;
+  --pj-text: #0F172A;
+  --pj-muted: #64748B;
+  --pj-text-secondary: #334155;
+  --pj-border: #E2E8F0;
+  --pj-hover: #F8FAFC;
+  --pj-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --pj-table-header-bg: #F8FAFC;
 
   display: block;
   width: 100%;
@@ -24,33 +22,33 @@
   padding: 24px;
   background-color: var(--pj-page-bg);
   color: var(--pj-text);
-  font-family: 'Inter', Arial, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Metronic cambia data-bs-theme al seleccionar Light/Dark/System.
-   Estas alternativas evitan fondos claros si falta alguna variable. */
+/* Modo Oscuro */
 :host-context([data-bs-theme='dark']) {
-  --pj-page-bg: var(--bs-app-bg-color, var(--bs-body-bg, #151820));
-  --pj-card-bg: var(--bs-card-bg, #1e1e2d);
-  --pj-text: var(--bs-gray-900, #f1f5f9);
-  --pj-muted: var(--bs-gray-600, #a7b2c5);
-  --pj-text-secondary: var(--bs-gray-700, #cbd5e1);
-  --pj-border: var(--bs-border-color, #323847);
-  --pj-hover: var(--bs-secondary-bg, #282f40);
-  --pj-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --pj-page-bg: #0F172A; // Obsidian slate
+  --pj-card-bg: #1E293B; // Elevated dark card
+  --pj-text: #F8FAFC;
+  --pj-muted: #94A3B8;
+  --pj-text-secondary: #CBD5E1;
+  --pj-border: rgba(255, 255, 255, 0.08);
+  --pj-hover: rgba(255, 255, 255, 0.04);
+  --pj-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --pj-table-header-bg: rgba(255, 255, 255, 0.03);
 }
 
 :host .h-100 {
   height: 100%;
 }
 
-/* Fuente consistente y textos del tema */
+/* Tipografía */
 :host h1,
 :host h2,
 :host h3,
 :host .card-label {
-  font-family: 'Inter', Arial, sans-serif !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   letter-spacing: -0.02em;
 }
 
@@ -75,13 +73,14 @@
   color: var(--pj-text-secondary) !important;
 }
 
-/* Tarjetas: mismas superficies en todos los modulos */
+/* Tarjetas Principales */
 :host .card {
   background: var(--pj-card-bg) !important;
   color: var(--pj-text);
   border: 1px solid var(--pj-border) !important;
   border-radius: 14px !important;
   box-shadow: var(--pj-shadow) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 :host .card-header,
@@ -94,74 +93,192 @@
   background: var(--pj-card-bg) !important;
 }
 
-:host .border-dashed {
-  border-style: solid !important;
-}
-
-/* Acciones rapidas */
+/* Acciones Rápidas */
 :host a.card {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12) !important;
+  }
 }
 
-:host a.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14) !important;
-}
-
-/* Nueva Venta: conserva el azul para una accion principal.
-   IMPORTANTE: quitar del <a> su style="background: ... !important" del HTML. */
+/* Botón Primario: Nueva Venta (Naranja Pujol) */
 :host .pulse-card.card,
 :host .pujol-primary-action.card {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-  border-color: transparent !important;
-  box-shadow: 0 5px 16px rgba(37, 99, 235, 0.24) !important;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+  border: none !important;
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.32) !important;
   color: #ffffff !important;
+
+  &:hover {
+    box-shadow: 0 10px 24px rgba(234, 88, 12, 0.45) !important;
+    transform: translateY(-2px);
+  }
+
+  .text-white {
+    color: #ffffff !important;
+  }
 }
 
-:host .pulse-card .text-white,
-:host .pujol-primary-action .text-white {
-  color: #ffffff !important;
+/* Tarjetas de Acción Secundarias */
+:host .pujol-action-card-stock,
+:host .pujol-action-card-catalog {
+  background: var(--pj-card-bg) !important;
+  border: 1px solid var(--pj-border) !important;
 }
 
-:host .pulse-card .text-opacity-70,
-:host .pujol-primary-action .text-opacity-70 {
-  opacity: 0.9;
+:host .pujol-action-title {
+  color: var(--pj-text) !important;
 }
 
-/* Alertas: cambian la barra lateral, no la superficie de la tarjeta */
+:host .pujol-action-sub {
+  color: var(--pj-muted) !important;
+}
+
+/* Insignias con tono cromático */
+:host .pujol-action-badge-stock {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+:host .pujol-action-badge-catalog {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+:host-context([data-bs-theme='dark']) {
+  .pujol-action-badge-stock {
+    background: rgba(37, 99, 235, 0.18) !important;
+    color: #60A5FA !important;
+  }
+
+  .pujol-action-badge-catalog {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34D399 !important;
+  }
+}
+
+/* =================================== */
+/* TARJETAS KPI (INDICADORES)          */
+/* =================================== */
+
+:host .pujol-kpi-card {
+  position: relative;
+  overflow: hidden;
+
+  &.pujol-kpi-sales {
+    border-top: 3px solid #10B981 !important; // Acento Verde Ventas
+  }
+  &.pujol-kpi-urgent {
+    border-top: 3px solid #EF4444 !important; // Acento Rojo Urgencia
+  }
+  &.pujol-kpi-stock {
+    border-top: 3px solid #F59E0B !important; // Acento Ámbar Stock
+  }
+  &.pujol-kpi-vip {
+    border-top: 3px solid #8B5CF6 !important; // Acento Púrpura VIP
+  }
+}
+
+:host .pujol-kpi-label {
+  color: var(--pj-text-secondary) !important;
+  font-weight: 700 !important;
+}
+
+:host .pujol-kpi-icon-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.pujol-kpi-icon-sales {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+  }
+  &.pujol-kpi-icon-urgent {
+    background: rgba(239, 68, 68, 0.12);
+    color: #DC2626;
+  }
+  &.pujol-kpi-icon-stock {
+    background: rgba(245, 158, 11, 0.12);
+    color: #D97706;
+  }
+  &.pujol-kpi-icon-vip {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7C3AED;
+  }
+}
+
+:host-context([data-bs-theme='dark']) {
+  .pujol-kpi-icon-sales {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34D399 !important;
+  }
+  .pujol-kpi-icon-urgent {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #F87171 !important;
+  }
+  .pujol-kpi-icon-stock {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #FBBF24 !important;
+  }
+  .pujol-kpi-icon-vip {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #A78BFA !important;
+  }
+}
+
+/* Estados de Alerta en KPIs */
 :host .card-danger-state {
   background: var(--pj-card-bg) !important;
-  border-left: 4px solid var(--bs-danger, #dc2626) !important;
+  border-left: 4px solid var(--bs-danger, #EF4444) !important;
 }
 
 :host .card-warning-state {
   background: var(--pj-card-bg) !important;
-  border-left: 4px solid var(--bs-warning, #d97706) !important;
+  border-left: 4px solid var(--bs-warning, #F59E0B) !important;
 }
 
-/* Estado del sistema: corrige la clase bg-white del HTML actual */
-:host .rounded-pill.bg-white.shadow-xs,
+/* Badge de Estado del Sistema */
 :host .dashboard-status-badge {
   background: var(--pj-card-bg) !important;
   border: 1px solid var(--pj-border) !important;
   color: var(--pj-text) !important;
   border-radius: 999px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
 }
 
-/* Tablas administrativas */
+/* =================================== */
+/* TABLAS ADMINISTRATIVAS              */
+/* =================================== */
+
 :host .table {
   --bs-table-bg: transparent;
   --bs-table-color: var(--pj-text);
   color: var(--pj-text) !important;
 }
 
+:host .table thead tr {
+  background-color: var(--pj-table-header-bg);
+}
+
 :host .table thead th {
   color: var(--pj-muted) !important;
   border-bottom-color: var(--pj-border) !important;
+  padding: 10px 14px !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
 }
 
 :host .table tbody td {
   border-bottom-color: var(--pj-border) !important;
+  padding: 12px 14px !important;
 }
 
 :host .table tbody tr:hover > * {
@@ -177,7 +294,7 @@
   border-radius: 8px;
 }
 
-/* Etiquetas y grillas de ApexCharts: siguen el tema */
+/* ApexCharts */
 :host ::ng-deep .apexcharts-xaxis-label,
 :host ::ng-deep .apexcharts-yaxis-label,
 :host ::ng-deep .apexcharts-legend-text,
@@ -185,13 +302,14 @@
 :host ::ng-deep .apexcharts-datalabel-value {
   fill: var(--pj-muted) !important;
   color: var(--pj-muted) !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 :host ::ng-deep .apexcharts-gridline {
   stroke: var(--pj-border) !important;
 }
 
-/* Adaptacion a pantallas pequenas */
+/* Adaptación Responsive */
 @media (max-width: 767px) {
   :host {
     padding: 14px;

@@ -171,7 +171,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         toolbar: { show: false },
         zoom: { enabled: false }
       },
-      colors: ['#28a745'],
+      colors: ['#F97316'],
       dataLabels: { enabled: false },
       stroke: { curve: 'smooth', width: 3 },
       fill: {

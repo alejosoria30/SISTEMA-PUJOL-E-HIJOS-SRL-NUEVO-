@@ -5,25 +5,28 @@
 
 <a
   routerLink="/dashboard"
-  class="d-flex align-items-center text-decoration-none"
+  class="d-flex align-items-center text-decoration-none pujol-brand-link py-2"
   aria-label="Ir al inicio de Pujol e Hijos"
 >
 
   <!-- Logo cuando el menú está expandido -->
-  <div class="app-sidebar-logo-default">
+  <div class="app-sidebar-logo-default d-flex align-items-center gap-3">
 
     <img
-      src="assets/media/logos/pujol-logo.png"
-      alt="Pujol e Hijos - Distribuidora Mayorista"
-      style="
-        display: block;
-        width: 170px;
-        max-width: 100%;
-        height: auto;
-        max-height: 55px;
-        object-fit: contain;
-      "
+      src="assets/media/logos/pujol-icono.png"
+      alt="PH"
+      class="pujol-brand-icon"
     />
+
+    <div class="d-flex flex-column pujol-brand-text-container">
+      <span class="pujol-brand-name">
+        <span class="pujol-text-main">Pujol</span>
+        <span class="pujol-text-accent"> e Hijos</span>
+      </span>
+      <span class="pujol-brand-tagline">
+        DISTRIBUIDORA S.R.L.
+      </span>
+    </div>
 
   </div>
 
@@ -33,12 +36,7 @@
     <img
       src="assets/media/logos/pujol-icono.png"
       alt="PH"
-      style="
-        display: block;
-        width: 36px;
-        height: 36px;
-        object-fit: contain;
-      "
+      class="pujol-brand-icon-mini"
     />
 
   </div>

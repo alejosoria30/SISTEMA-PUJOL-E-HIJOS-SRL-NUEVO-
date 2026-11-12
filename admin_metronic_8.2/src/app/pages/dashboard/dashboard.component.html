@@ -50,8 +50,8 @@
         <div class="d-flex align-items-center gap-4">
 
           <div
-            class="symbol symbol-40px bg-white bg-opacity-20 d-flex align-items-center justify-content-center pulse-icon"
-            style="width: 45px; height: 45px; border-radius: 10px;">
+            class="symbol symbol-45px bg-white bg-opacity-20 d-flex align-items-center justify-content-center pulse-icon"
+            style="width: 48px; height: 48px; border-radius: 12px;">
 
             <app-keenicon
               name="plus"
@@ -61,11 +61,11 @@
           </div>
 
           <div class="d-flex flex-column">
-            <span class="fs-5 fw-bold text-white">
+            <span class="fs-5 fw-bolder text-white">
               Nueva Venta
             </span>
 
-            <span class="fs-8 text-white text-opacity-70">
+            <span class="fs-8 text-white text-opacity-80">
               Terminal de cobro inmediato
             </span>
           </div>
@@ -82,27 +82,27 @@
 
       <a
         routerLink="/stock"
-        class="card card-brand-warm border-dashed hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none">
+        class="card card-brand-warm hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none pujol-action-card-stock">
 
         <div class="d-flex align-items-center gap-4">
 
           <div
-            class="symbol symbol-40px bg-light d-flex align-items-center justify-content-center"
-            style="width: 45px; height: 45px; border-radius: 10px;">
+            class="symbol symbol-45px d-flex align-items-center justify-content-center pujol-action-badge-stock"
+            style="width: 48px; height: 48px; border-radius: 12px;">
 
             <app-keenicon
               name="category"
-              class="fs-1 text-brand-title">
+              class="fs-1">
             </app-keenicon>
 
           </div>
 
           <div class="d-flex flex-column">
-            <span class="fs-5 fw-bold text-brand-title">
+            <span class="fs-5 fw-bolder pujol-action-title">
               Control de Stock
             </span>
 
-            <span class="fs-8 text-brand-sub">
+            <span class="fs-8 pujol-action-sub">
               Mover y reponer bebidas
             </span>
           </div>
@@ -119,27 +119,27 @@
 
       <a
         routerLink="/catalogo"
-        class="card card-brand-warm border-dashed hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none">
+        class="card card-brand-warm hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-6 text-decoration-none pujol-action-card-catalog">
 
         <div class="d-flex align-items-center gap-4">
 
           <div
-            class="symbol symbol-40px bg-light d-flex align-items-center justify-content-center"
-            style="width: 45px; height: 45px; border-radius: 10px;">
+            class="symbol symbol-45px d-flex align-items-center justify-content-center pujol-action-badge-catalog"
+            style="width: 48px; height: 48px; border-radius: 12px;">
 
             <app-keenicon
               name="scroll"
-              class="fs-1 text-brand-title">
+              class="fs-1">
             </app-keenicon>
 
           </div>
 
           <div class="d-flex flex-column">
-            <span class="fs-5 fw-bold text-brand-title">
+            <span class="fs-5 fw-bolder pujol-action-title">
               Catálogo de Bebidas
             </span>
 
-            <span class="fs-8 text-brand-sub">
+            <span class="fs-8 pujol-action-sub">
               Administrar lista de precios
             </span>
           </div>
@@ -162,23 +162,27 @@
     <!-- VENTAS DEL DIA -->
     <div class="col-md-6 col-xl-3">
 
-      <div class="card card-brand-warm card-flush h-md-100 p-6">
+      <div class="card card-brand-warm card-flush h-md-100 p-6 pujol-kpi-card pujol-kpi-sales">
 
-        <div class="card-header p-0 pb-4 border-0 min-h-auto">
-          <span class="fs-6 fw-bold text-gray-700">
+        <div class="card-header p-0 pb-3 border-0 min-h-auto d-flex flex-stack">
+          <span class="fs-6 fw-bold pujol-kpi-label">
             Ventas de Hoy
           </span>
+          <div class="pujol-kpi-icon-pill pujol-kpi-icon-sales">
+            <app-keenicon name="dollar" class="fs-3"></app-keenicon>
+          </div>
         </div>
 
         <div class="card-body p-0 d-flex flex-column justify-content-end">
 
-          <span class="text-brand-metric fs-2hx fw-bold leading-none mb-2">
+          <span class="text-brand-metric fs-2hx fw-bolder leading-none mb-2">
             {{ todaySales | currency:'USD':'symbol':'1.2-2' }}
           </span>
 
-          <span class="fs-8 text-gray-600">
-            Calculado en tiempo real
-          </span>
+          <div class="d-flex align-items-center gap-1 fs-8 text-muted">
+            <span class="bullet bullet-dot bg-success h-6px w-6px"></span>
+            <span>Calculado en tiempo real</span>
+          </div>
 
         </div>
 
@@ -191,19 +195,22 @@
     <div class="col-md-6 col-xl-3">
 
       <div
-        class="card card-flush h-md-100 p-6"
+        class="card card-flush h-md-100 p-6 pujol-kpi-card pujol-kpi-urgent"
         [ngClass]="urgentOrdersCount > 0 ? 'card-danger-state' : 'card-brand-warm'">
 
-        <div class="card-header p-0 pb-4 border-0 min-h-auto">
-          <span class="fs-6 fw-bold text-gray-700">
+        <div class="card-header p-0 pb-3 border-0 min-h-auto d-flex flex-stack">
+          <span class="fs-6 fw-bold pujol-kpi-label">
             Pedidos Urgentes (&lt;24h)
           </span>
+          <div class="pujol-kpi-icon-pill pujol-kpi-icon-urgent">
+            <app-keenicon name="delivery-fast" class="fs-3"></app-keenicon>
+          </div>
         </div>
 
         <div class="card-body p-0 d-flex flex-column justify-content-end">
 
           <span
-            class="fs-2hx fw-bold leading-none mb-2"
+            class="fs-2hx fw-bolder leading-none mb-2"
             [ngClass]="urgentOrdersCount > 0 ? 'text-danger' : 'text-brand-metric'">
             {{ urgentOrdersCount }}
           </span>
@@ -215,9 +222,9 @@
           </span>
 
           <span
-            class="fs-8 text-gray-600"
+            class="fs-8 text-muted"
             *ngIf="urgentOrdersCount === 0">
-            Sin demoras
+            Sin demoras pendientes
           </span>
 
         </div>
@@ -231,19 +238,22 @@
     <div class="col-md-6 col-xl-3">
 
       <div
-        class="card card-flush h-md-100 p-6"
+        class="card card-flush h-md-100 p-6 pujol-kpi-card pujol-kpi-stock"
         [ngClass]="lowStockItems.length > 0 ? 'card-warning-state' : 'card-brand-warm'">
 
-        <div class="card-header p-0 pb-4 border-0 min-h-auto">
-          <span class="fs-6 fw-bold text-gray-700">
+        <div class="card-header p-0 pb-3 border-0 min-h-auto d-flex flex-stack">
+          <span class="fs-6 fw-bold pujol-kpi-label">
             Productos Bajo Mínimo
           </span>
+          <div class="pujol-kpi-icon-pill pujol-kpi-icon-stock">
+            <app-keenicon name="box" class="fs-3"></app-keenicon>
+          </div>
         </div>
 
         <div class="card-body p-0 d-flex flex-column justify-content-end">
 
           <span
-            class="fs-2hx fw-bold leading-none mb-2"
+            class="fs-2hx fw-bolder leading-none mb-2"
             [ngClass]="lowStockItems.length > 0 ? 'text-warning' : 'text-brand-metric'">
             {{ lowStockItems.length }}
           </span>
@@ -255,7 +265,7 @@
           </span>
 
           <span
-            class="fs-8 text-gray-600"
+            class="fs-8 text-muted"
             *ngIf="lowStockItems.length === 0">
             Stock suficiente
           </span>
@@ -270,21 +280,24 @@
     <!-- CLIENTES VIP -->
     <div class="col-md-6 col-xl-3">
 
-      <div class="card card-brand-warm card-flush h-md-100 p-6">
+      <div class="card card-brand-warm card-flush h-md-100 p-6 pujol-kpi-card pujol-kpi-vip">
 
-        <div class="card-header p-0 pb-4 border-0 min-h-auto">
-          <span class="fs-6 fw-bold text-gray-700">
+        <div class="card-header p-0 pb-3 border-0 min-h-auto d-flex flex-stack">
+          <span class="fs-6 fw-bold pujol-kpi-label">
             Clientes VIP Activos
           </span>
+          <div class="pujol-kpi-icon-pill pujol-kpi-icon-vip">
+            <app-keenicon name="star" class="fs-3"></app-keenicon>
+          </div>
         </div>
 
         <div class="card-body p-0 d-flex flex-column justify-content-end">
 
-          <span class="text-brand-metric fs-2hx fw-bold leading-none mb-2">
+          <span class="text-brand-metric fs-2hx fw-bolder leading-none mb-2">
             {{ vipClientsCount }}
           </span>
 
-          <span class="fs-8 text-gray-600">
+          <span class="fs-8 text-muted">
             Total acumulado: {{ totalLoyaltyPoints }} pts
           </span>
 

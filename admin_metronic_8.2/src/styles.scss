@@ -44,21 +44,32 @@ body, input, button, select, textarea, label, .form-control, .form-label, .btn {
 
 /* Custom Brand Palette Colors & Layout */
 html[data-bs-theme="light"] {
+  /* Brand Typography */
+  .pujol-text-main {
+    color: #0F172A !important;
+  }
+  .pujol-text-accent {
+    color: #EA580C !important;
+  }
+  .pujol-brand-tagline {
+    color: #64748B !important;
+  }
+
   /* Custom Brand Palette Colors & Layout */
   body, .bg-body, .bg-light, .app-page, .app-wrapper, .app-main {
-    background-color: #F1F5F9 !important; // Epicurean Warm Cream background
+    background-color: #EEF2F6 !important; // Distinct cool-slate background, not pure white
   }
 
   /* Sidebar Redesign */
   .app-sidebar {
-    background-color: #FFFFFF !important; // Cream sidebar bg
-    border-right: 1px solid rgba(30, 41, 59, 0.08) !important; // Soft brown border
-    box-shadow: none !important;
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E2E8F0 !important;
+    box-shadow: 0 0 15px rgba(15, 23, 42, 0.03) !important;
 
     // Sidebar Header
     .app-sidebar-logo {
       background-color: #FFFFFF !important;
-      border-bottom: 1px solid rgba(30, 41, 59, 0.05) !important;
+      border-bottom: 1px solid #E2E8F0 !important;
     }
     
     // Sidebar Menu item spacing & layout
@@ -191,14 +202,16 @@ html[data-bs-theme="light"] {
   /* Cards Redesign */
   .card {
     background-color: #ffffff !important;
-    border: 1px solid rgba(30, 41, 59, 0.08) !important; // Thin border matching guide
-    box-shadow: 0 4px 20px rgba(30, 41, 59, 0.02) !important; // Extremely soft shadow
+    border: 1px solid #E2E8F0 !important; // Crisp, defined border
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04) !important; // Tactile shadow
+    border-radius: 14px !important;
     
     .card-header {
-      border-bottom: 1px solid rgba(30, 41, 59, 0.05) !important;
+      border-bottom: 1px solid #EDF2F7 !important;
       
       .card-title, .card-label {
-        color: #1E293B !important;
+        color: #0F172A !important;
+        font-weight: 700 !important;
       }
     }
   }
@@ -362,11 +375,85 @@ html[data-bs-theme="light"] {
 
 /* Dark Mode Overrides for Branding */
 html[data-bs-theme="dark"] {
+  /* Brand Typography */
+  .pujol-text-main {
+    color: #F8FAFC !important;
+  }
+  .pujol-text-accent {
+    color: #FB923C !important;
+  }
+  .pujol-brand-tagline {
+    color: #94A3B8 !important;
+  }
+
+  /* Body & Layout */
+  body, .bg-body, .app-page, .app-wrapper, .app-main {
+    background-color: #0F172A !important;
+  }
+
+  /* Sidebar Dark */
+  .app-sidebar {
+    background-color: #1E1E2D !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+    .app-sidebar-logo {
+      background-color: #1E1E2D !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .menu {
+      .menu-item {
+        .menu-link:not(.active) {
+          .menu-title {
+            color: #E2E8F0 !important;
+            font-weight: 500 !important;
+          }
+          .menu-icon, .menu-icon i, .menu-icon .keenicon {
+            color: #94A3B8 !important;
+          }
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            .menu-title {
+              color: #FB923C !important;
+            }
+            .menu-icon, .menu-icon i, .menu-icon .keenicon {
+              color: #FB923C !important;
+            }
+          }
+        }
+        .menu-content .menu-section {
+          color: #94A3B8 !important;
+          font-weight: 700 !important;
+          font-size: 0.72rem !important;
+          letter-spacing: 1.5px !important;
+          text-transform: uppercase !important;
+        }
+      }
+    }
+  }
+
+  /* Cards in Dark Mode */
+  .card {
+    background-color: #1E293B !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 14px !important;
+
+    .card-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+
+      .card-title, .card-label {
+        color: #F8FAFC !important;
+        font-weight: 700 !important;
+      }
+    }
+  }
+
   .text-brand-title {
     color: #FFFFFF !important;
   }
   .text-brand-sub {
-    color: #bfa395 !important;
+    color: #94A3B8 !important;
   }
   .text-brand-metric {
     color: #ffffff !important;
