@@ -170,12 +170,15 @@
   &.pujol-kpi-sales {
     border-top: 3px solid #10B981 !important; // Acento Verde Ventas
   }
+
   &.pujol-kpi-urgent {
     border-top: 3px solid #EF4444 !important; // Acento Rojo Urgencia
   }
+
   &.pujol-kpi-stock {
     border-top: 3px solid #F59E0B !important; // Acento Ámbar Stock
   }
+
   &.pujol-kpi-vip {
     border-top: 3px solid #8B5CF6 !important; // Acento Púrpura VIP
   }
@@ -199,14 +202,17 @@
     background: rgba(16, 185, 129, 0.12);
     color: #059669;
   }
+
   &.pujol-kpi-icon-urgent {
     background: rgba(239, 68, 68, 0.12);
     color: #DC2626;
   }
+
   &.pujol-kpi-icon-stock {
     background: rgba(245, 158, 11, 0.12);
     color: #D97706;
   }
+
   &.pujol-kpi-icon-vip {
     background: rgba(139, 92, 246, 0.12);
     color: #7C3AED;
@@ -218,14 +224,17 @@
     background: rgba(16, 185, 129, 0.2) !important;
     color: #34D399 !important;
   }
+
   .pujol-kpi-icon-urgent {
     background: rgba(239, 68, 68, 0.2) !important;
     color: #F87171 !important;
   }
+
   .pujol-kpi-icon-stock {
     background: rgba(245, 158, 11, 0.2) !important;
     color: #FBBF24 !important;
   }
+
   .pujol-kpi-icon-vip {
     background: rgba(139, 92, 246, 0.2) !important;
     color: #A78BFA !important;
@@ -281,7 +290,7 @@
   padding: 12px 14px !important;
 }
 
-:host .table tbody tr:hover > * {
+:host .table tbody tr:hover>* {
   background-color: var(--pj-hover) !important;
 }
 
@@ -325,6 +334,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   :host,
   :host a.card {
     transition: none;
