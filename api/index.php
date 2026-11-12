@@ -27,20 +27,31 @@ $db_host = '127.0.0.1';
 $db_name = 'pujol_e_hijos';
 $db_user = 'root';
 $db_pass = '';
+$db_ports = [3307, 3306];
 
-try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-} catch (PDOException $e) {
+$pdo = null;
+$lastException = null;
+
+foreach ($db_ports as $port) {
+    try {
+        $pdo = new PDO("mysql:host=$db_host;port=$port;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+        break;
+    } catch (PDOException $e) {
+        $lastException = $e;
+    }
+}
+
+if (!$pdo) {
     http_response_code(500);
     echo json_encode([
         "success" => false,
         "message" => "Error de conexion a la base de datos.",
-        "error" => $e->getMessage(),
-        "hint" => "Asegurate de que WampServer este activo, que la base de datos '$db_name' exista y que hayas importado el archivo 'bdPujolScript.sql'."
+        "error" => $lastException ? $lastException->getMessage() : "Error desconocido",
+        "hint" => "Asegurate de que XAMPP MySQL este activo (puerto 3307 o 3306), que la base de datos '$db_name' exista y que hayas importado el archivo 'bdPujolScript.sql'."
     ]);
     exit;
 }
