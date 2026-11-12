@@ -945,95 +945,602 @@ if ($route === '/ventas') {
 }
 
 // Handle CRUD for /caja
-if (strpos($route, '/caja') === 0) {
-    if ($route === '/caja/turno' && $method === 'GET') {
-        $stmt = $pdo->query("SELECT t.idTurno, t.fechaApertura, t.montoInicial, t.estadoTurno, u.nombreUsu as userName 
-                             FROM caja_turnos t 
-                             LEFT JOIN usuario u ON t.idUsu = u.idUsu 
-                             WHERE t.estadoTurno = 'Abierto' LIMIT 1");
-        $turno = $stmt->fetch();
-        if ($turno) {
-            $turno['idTurno'] = (int)$turno['idTurno'];
-            $turno['montoInicial'] = (float)$turno['montoInicial'];
-            
-            // Calculate current total
-            $stmtMov = $pdo->prepare("SELECT SUM(CASE WHEN tipoMovimiento = 'Ingreso' THEN monto ELSE -monto END) as balance FROM movimientos_caja WHERE idTurno = ?");
-            $stmtMov->execute([$turno['idTurno']]);
-            $balance = (float)$stmtMov->fetchColumn();
-            $turno['saldoActual'] = $turno['montoInicial'] + $balance;
+// Pujol e Hijos: historial, arqueo y proteccion contra duplicados.
+if (strpos($route, '/caja/') === 0) {
+
+    // Preparar columna e indice de idempotencia solo si faltan.
+    try {
+        $col = $pdo->query("SHOW COLUMNS FROM movimientos_caja LIKE 'requestKey'")->fetch();
+
+        if (!$col) {
+            $pdo->exec("ALTER TABLE movimientos_caja ADD COLUMN requestKey VARCHAR(64) NULL");
         }
-        send_response(["success" => true, "turno" => $turno ?: null]);
+
+        $indice = $pdo->query("SHOW INDEX FROM movimientos_caja WHERE Key_name = 'uk_movimientos_caja_requestKey'")->fetch();
+
+        if (!$indice) {
+            $pdo->exec("CREATE UNIQUE INDEX uk_movimientos_caja_requestKey ON movimientos_caja (requestKey)");
+        } elseif ((int)$indice['Non_unique'] !== 0) {
+            send_response([
+                'success' => false,
+                'message' => 'El indice requestKey debe ser UNIQUE.'
+            ], 500);
+        }
+
+    } catch (Throwable $e) {
+        error_log('Migracion de caja: ' . $e->getMessage());
+
+        send_response([
+            'success' => false,
+            'message' => 'No se pudo preparar la proteccion de movimientos de caja.'
+        ], 500);
     }
+
+    // ==========================================
+    // HISTORIAL DE TURNOS CERRADOS
+    // ==========================================
+
+    if ($route === '/caja/historial' && $method === 'GET') {
+
+        try {
+            $sql = "SELECT
+                        t.idTurno,
+                        t.fechaApertura,
+                        t.fechaCierre,
+                        t.montoInicial,
+                        t.montoFinal,
+                        t.diferencia,
+                        t.estadoTurno,
+                        t.idUsu,
+                        u.nombreUsu AS userName,
+                        COALESCE(m.ingresos, 0) AS ingresos,
+                        COALESCE(m.egresos, 0) AS egresos,
+                        COALESCE(m.totalMovimientos, 0) AS totalMovimientos
+                    FROM caja_turnos t
+                    LEFT JOIN usuario u ON u.idUsu = t.idUsu
+                    LEFT JOIN (
+                        SELECT
+                            idTurno,
+                            SUM(
+                                CASE
+                                    WHEN tipoMovimiento = 'Ingreso'
+                                    THEN monto ELSE 0
+                                END
+                            ) AS ingresos,
+                            SUM(
+                                CASE
+                                    WHEN tipoMovimiento = 'Egreso'
+                                    THEN monto ELSE 0
+                                END
+                            ) AS egresos,
+                            COUNT(*) AS totalMovimientos
+                        FROM movimientos_caja
+                        GROUP BY idTurno
+                    ) m ON m.idTurno = t.idTurno
+                    WHERE t.estadoTurno = 'Cerrado'
+                    ORDER BY t.fechaCierre DESC, t.idTurno DESC
+                    LIMIT 100";
+
+            $turnos = $pdo->query($sql)->fetchAll();
+
+            foreach ($turnos as &$t) {
+                $t['idTurno'] = (int)$t['idTurno'];
+                $t['idUsu'] = (int)$t['idUsu'];
+
+                foreach (
+                    ['montoInicial', 'montoFinal', 'diferencia', 'ingresos', 'egresos']
+                    as $campo
+                ) {
+                    $t[$campo] = round((float)$t[$campo], 2);
+                }
+
+                $t['totalMovimientos'] = (int)$t['totalMovimientos'];
+
+                $t['saldoEsperado'] = round(
+                    $t['montoInicial'] + $t['ingresos'] - $t['egresos'],
+                    2
+                );
+            }
+
+            unset($t);
+
+            send_response($turnos);
+
+        } catch (Throwable $e) {
+            error_log('Historial caja: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo cargar el historial de caja.'
+            ], 500);
+        }
+    }
+
+    // ==========================================
+    // CONSULTAR TURNO ACTUAL
+    // ==========================================
+
+    if ($route === '/caja/turno' && $method === 'GET') {
+
+        try {
+            $stmt = $pdo->query("
+                SELECT
+                    t.idTurno,
+                    t.fechaApertura,
+                    t.montoInicial,
+                    t.estadoTurno,
+                    u.nombreUsu AS userName
+                FROM caja_turnos t
+                LEFT JOIN usuario u ON u.idUsu = t.idUsu
+                WHERE t.estadoTurno = 'Abierto'
+                ORDER BY t.idTurno DESC
+                LIMIT 1
+            ");
+
+            $turno = $stmt->fetch();
+
+            if ($turno) {
+                $turno['idTurno'] = (int)$turno['idTurno'];
+                $turno['montoInicial'] = (float)$turno['montoInicial'];
+
+                $s = $pdo->prepare("
+                    SELECT COALESCE(
+                        SUM(
+                            CASE
+                                WHEN tipoMovimiento = 'Ingreso'
+                                THEN monto ELSE -monto
+                            END
+                        ), 0
+                    )
+                    FROM movimientos_caja
+                    WHERE idTurno = ?
+                ");
+
+                $s->execute([$turno['idTurno']]);
+
+                $turno['saldoActual'] = round(
+                    $turno['montoInicial'] + (float)$s->fetchColumn(),
+                    2
+                );
+            }
+
+            send_response([
+                'success' => true,
+                'turno' => $turno ?: null
+            ]);
+
+        } catch (Throwable $e) {
+            error_log('Turno caja: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo consultar el turno.'
+            ], 500);
+        }
+    }
+
+    // ==========================================
+    // APERTURA DE CAJA
+    // ==========================================
 
     if ($route === '/caja/abrir' && $method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $montoInicial = isset($input['montoInicial']) ? (float)$input['montoInicial'] : 0.0;
-        $idUsu = 1; // Default admin
 
-        // Check if there's already an open turn
-        $stmtCheck = $pdo->query("SELECT idTurno FROM caja_turnos WHERE estadoTurno = 'Abierto'");
-        if ($stmtCheck->fetch()) {
-            send_response(["success" => false, "message" => "Ya existe una caja abierta. Por favor ciérrela primero."], 400);
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $raw = $input['montoInicial'] ?? null;
+
+        if (!is_numeric($raw) || !is_finite((float)$raw) || (float)$raw < 0) {
+            send_response([
+                'success' => false,
+                'message' => 'El fondo inicial debe ser valido y no negativo.'
+            ], 400);
         }
+
+        $lockTomado = false;
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO caja_turnos (montoInicial, idUsu, estadoTurno) VALUES (?, ?, 'Abierto')");
-            $stmt->execute([$montoInicial, $idUsu]);
-            send_response(["success" => true, "idTurno" => (int)$pdo->lastInsertId()]);
-        } catch (Exception $e) {
-            send_response(["success" => false, "message" => "Error al abrir caja: " . $e->getMessage()], 500);
+            $lockTomado = (int)$pdo->query(
+                "SELECT GET_LOCK('pujol_caja_apertura', 5)"
+            )->fetchColumn() === 1;
+
+            if (!$lockTomado) {
+                send_response([
+                    'success' => false,
+                    'message' => 'Hay otra apertura en proceso.'
+                ], 409);
+            }
+
+            $existente = $pdo->query("
+                SELECT idTurno
+                FROM caja_turnos
+                WHERE estadoTurno = 'Abierto'
+                LIMIT 1
+            ")->fetchColumn();
+
+            if ($existente) {
+                $pdo->query("SELECT RELEASE_LOCK('pujol_caja_apertura')");
+
+                send_response([
+                    'success' => false,
+                    'message' => 'Ya existe una caja abierta.'
+                ], 409);
+            }
+
+            $stmt = $pdo->prepare("
+                INSERT INTO caja_turnos
+                (montoInicial, idUsu, estadoTurno)
+                VALUES (?, 1, 'Abierto')
+            ");
+
+            $stmt->execute([round((float)$raw, 2)]);
+
+            $id = (int)$pdo->lastInsertId();
+
+            $pdo->query("SELECT RELEASE_LOCK('pujol_caja_apertura')");
+
+            send_response([
+                'success' => true,
+                'idTurno' => $id
+            ]);
+
+        } catch (Throwable $e) {
+            if ($lockTomado) {
+                try {
+                    $pdo->query("SELECT RELEASE_LOCK('pujol_caja_apertura')");
+                } catch (Throwable $ignored) {}
+            }
+
+            error_log('Apertura caja: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo abrir la caja.'
+            ], 500);
         }
     }
+
+    // ==========================================
+    // ARQUEO Y CIERRE DE CAJA
+    // ==========================================
 
     if ($route === '/caja/cerrar' && $method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $idTurno = isset($input['idTurno']) ? (int)$input['idTurno'] : 0;
-        $montoFinal = isset($input['montoFinal']) ? (float)$input['montoFinal'] : 0.0;
-        $diferencia = isset($input['diferencia']) ? (float)$input['diferencia'] : 0.0;
+
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $id = filter_var($input['idTurno'] ?? null, FILTER_VALIDATE_INT);
+        $raw = $input['montoFinal'] ?? null;
+
+        if (!$id || !is_numeric($raw) || !is_finite((float)$raw) || (float)$raw < 0) {
+            send_response([
+                'success' => false,
+                'message' => 'Debe ingresar el dinero realmente contado en caja.'
+            ], 400);
+        }
+
+        $contado = round((float)$raw, 2);
 
         try {
-            $stmt = $pdo->prepare("UPDATE caja_turnos SET fechaCierre = CURRENT_TIMESTAMP, montoFinal = ?, diferencia = ?, estadoTurno = 'Cerrado' WHERE idTurno = ?");
-            $stmt->execute([$montoFinal, $diferencia, $idTurno]);
-            send_response(["success" => true]);
-        } catch (Exception $e) {
-            send_response(["success" => false, "message" => "Error al cerrar caja: " . $e->getMessage()], 500);
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare("
+                SELECT idTurno, montoInicial, estadoTurno
+                FROM caja_turnos
+                WHERE idTurno = ?
+                FOR UPDATE
+            ");
+
+            $stmt->execute([$id]);
+            $turno = $stmt->fetch();
+
+            if (!$turno || $turno['estadoTurno'] !== 'Abierto') {
+                $pdo->rollBack();
+
+                send_response([
+                    'success' => false,
+                    'message' => 'Turno inexistente o ya cerrado.'
+                ], 409);
+            }
+
+            $stmt = $pdo->prepare("
+                SELECT COALESCE(
+                    SUM(
+                        CASE
+                            WHEN tipoMovimiento = 'Ingreso'
+                            THEN monto ELSE -monto
+                        END
+                    ), 0
+                )
+                FROM movimientos_caja
+                WHERE idTurno = ?
+            ");
+
+            $stmt->execute([$id]);
+
+            $esperado = round(
+                (float)$turno['montoInicial'] + (float)$stmt->fetchColumn(),
+                2
+            );
+
+            $diferencia = round($contado - $esperado, 2);
+
+            $stmt = $pdo->prepare("
+                UPDATE caja_turnos
+                SET fechaCierre = CURRENT_TIMESTAMP,
+                    montoFinal = ?,
+                    diferencia = ?,
+                    estadoTurno = 'Cerrado'
+                WHERE idTurno = ?
+                AND estadoTurno = 'Abierto'
+            ");
+
+            $stmt->execute([$contado, $diferencia, $id]);
+
+            if ($stmt->rowCount() !== 1) {
+                $pdo->rollBack();
+
+                send_response([
+                    'success' => false,
+                    'message' => 'No se pudo finalizar el cierre.'
+                ], 409);
+            }
+
+            $pdo->commit();
+
+            send_response([
+                'success' => true,
+                'saldoEsperado' => $esperado,
+                'montoFinal' => $contado,
+                'diferencia' => $diferencia
+            ]);
+
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            error_log('Cierre caja: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo guardar el cierre.'
+            ], 500);
         }
     }
+
+    // ==========================================
+    // MOVIMIENTOS DE TURNOS
+    // ==========================================
 
     if ($route === '/caja/movimientos' && $method === 'GET') {
-        $idTurno = isset($_GET['idTurno']) ? (int)$_GET['idTurno'] : 0;
-        $stmt = $pdo->prepare("SELECT m.idMovCaja, m.tipoMovimiento, m.concepto, m.monto, m.fechaMovimiento, m.idVenta, u.nombreUsu as userName 
-                               FROM movimientos_caja m 
-                               LEFT JOIN usuario u ON m.idUsu = u.idUsu 
-                               WHERE m.idTurno = ? ORDER BY m.fechaMovimiento DESC");
-        $stmt->execute([$idTurno]);
-        $movs = $stmt->fetchAll();
-        foreach ($movs as &$m) {
-            $m['idMovCaja'] = (int)$m['idMovCaja'];
-            $m['monto'] = (float)$m['monto'];
-            $m['idVenta'] = $m['idVenta'] ? (int)$m['idVenta'] : null;
-        }
-        send_response($movs);
-    }
 
-    if ($route === '/caja/movimiento' && $method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $idTurno = isset($input['idTurno']) ? (int)$input['idTurno'] : 0;
-        $tipo = $input['tipoMovimiento'] ?? 'Ingreso';
-        $concepto = $input['concepto'] ?? '';
-        $monto = isset($input['monto']) ? (float)$input['monto'] : 0.0;
-        $idUsu = 1;
+        $id = filter_var($_GET['idTurno'] ?? null, FILTER_VALIDATE_INT);
 
-        if ($idTurno <= 0 || empty($concepto) || $monto <= 0) {
-            send_response(["success" => false, "message" => "Datos inválidos para el movimiento."], 400);
+        if (!$id) {
+            send_response([
+                'success' => false,
+                'message' => 'Turno invalido.'
+            ], 400);
         }
 
         try {
-            $stmt = $pdo->prepare("INSERT INTO movimientos_caja (idTurno, tipoMovimiento, concepto, monto, idUsu) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$idTurno, $tipo, $concepto, $monto, $idUsu]);
-            send_response(["success" => true, "idMovCaja" => (int)$pdo->lastInsertId()]);
-        } catch (Exception $e) {
-            send_response(["success" => false, "message" => "Error al registrar movimiento: " . $e->getMessage()], 500);
+            $stmt = $pdo->prepare("
+                SELECT
+                    m.idMovCaja,
+                    m.tipoMovimiento,
+                    m.concepto,
+                    m.monto,
+                    m.fechaMovimiento,
+                    m.idVenta,
+                    u.nombreUsu AS userName
+                FROM movimientos_caja m
+                LEFT JOIN usuario u ON u.idUsu = m.idUsu
+                WHERE m.idTurno = ?
+                ORDER BY m.fechaMovimiento DESC, m.idMovCaja DESC
+            ");
+
+            $stmt->execute([$id]);
+            $movs = $stmt->fetchAll();
+
+            foreach ($movs as &$m) {
+                $m['idMovCaja'] = (int)$m['idMovCaja'];
+                $m['monto'] = (float)$m['monto'];
+
+                $m['idVenta'] = $m['idVenta'] !== null
+                    ? (int)$m['idVenta']
+                    : null;
+            }
+
+            unset($m);
+
+            send_response($movs);
+
+        } catch (Throwable $e) {
+            error_log('Movimientos caja: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudieron consultar los movimientos.'
+            ], 500);
+        }
+    }
+
+    // ==========================================
+    // MOVIMIENTO MANUAL SIN DUPLICADOS
+    // ==========================================
+
+    if ($route === '/caja/movimiento' && $method === 'POST') {
+
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+
+        $id = filter_var($input['idTurno'] ?? null, FILTER_VALIDATE_INT);
+        $tipo = $input['tipoMovimiento'] ?? '';
+        $concepto = trim((string)($input['concepto'] ?? ''));
+        $raw = $input['monto'] ?? null;
+        $key = (string)($input['requestKey'] ?? '');
+
+        if (
+            !$id ||
+            !in_array($tipo, ['Ingreso', 'Egreso'], true) ||
+            $concepto === '' ||
+            strlen($concepto) > 200 ||
+            !is_numeric($raw) ||
+            !is_finite((float)$raw) ||
+            (float)$raw <= 0 ||
+            !preg_match('/^[A-Za-z0-9_-]{8,64}$/', $key)
+        ) {
+            send_response([
+                'success' => false,
+                'message' => 'Verifique tipo, concepto, importe y clave de operacion.'
+            ], 400);
+        }
+
+        $monto = round((float)$raw, 2);
+
+        if ($monto <= 0) {
+            send_response([
+                'success' => false,
+                'message' => 'El monto minimo es $0,01.'
+            ], 400);
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare("
+                SELECT estadoTurno
+                FROM caja_turnos
+                WHERE idTurno = ?
+                FOR UPDATE
+            ");
+
+            $stmt->execute([$id]);
+            $turno = $stmt->fetch();
+
+            if (!$turno) {
+                $pdo->rollBack();
+
+                send_response([
+                    'success' => false,
+                    'message' => 'El turno no existe.'
+                ], 404);
+            }
+
+            // Comprobar si la solicitud ya fue registrada
+            $stmt = $pdo->prepare("
+                SELECT
+                    idMovCaja,
+                    idTurno,
+                    tipoMovimiento,
+                    concepto,
+                    monto
+                FROM movimientos_caja
+                WHERE requestKey = ?
+                LIMIT 1
+            ");
+
+            $stmt->execute([$key]);
+            $anterior = $stmt->fetch();
+
+            if ($anterior) {
+                $igual = (int)$anterior['idTurno'] === (int)$id
+                    && $anterior['tipoMovimiento'] === $tipo
+                    && $anterior['concepto'] === $concepto
+                    && round((float)$anterior['monto'], 2) === $monto;
+
+                $pdo->commit();
+
+                if (!$igual) {
+                    send_response([
+                        'success' => false,
+                        'message' => 'La clave ya se utilizo con otra operacion.'
+                    ], 409);
+                }
+
+                send_response([
+                    'success' => true,
+                    'idMovCaja' => (int)$anterior['idMovCaja'],
+                    'duplicadoEvitado' => true
+                ]);
+            }
+
+            if ($turno['estadoTurno'] !== 'Abierto') {
+                $pdo->rollBack();
+
+                send_response([
+                    'success' => false,
+                    'message' => 'No se permiten movimientos en un turno cerrado.'
+                ], 409);
+            }
+
+            $stmt = $pdo->prepare("
+                INSERT INTO movimientos_caja
+                (idTurno, tipoMovimiento, concepto, monto, idUsu, requestKey)
+                VALUES (?, ?, ?, ?, 1, ?)
+            ");
+
+            $stmt->execute([$id, $tipo, $concepto, $monto, $key]);
+
+            $idMov = (int)$pdo->lastInsertId();
+
+            $pdo->commit();
+
+            send_response([
+                'success' => true,
+                'idMovCaja' => $idMov
+            ]);
+
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            if ($e->getCode() == '23000') {
+                $stmt = $pdo->prepare("
+                    SELECT idMovCaja, idTurno, tipoMovimiento, concepto, monto
+                    FROM movimientos_caja
+                    WHERE requestKey = ?
+                    LIMIT 1
+                ");
+
+                $stmt->execute([$key]);
+                $anterior = $stmt->fetch();
+
+                if (
+                    $anterior &&
+                    (int)$anterior['idTurno'] === (int)$id &&
+                    $anterior['tipoMovimiento'] === $tipo &&
+                    $anterior['concepto'] === $concepto &&
+                    round((float)$anterior['monto'], 2) === $monto
+                ) {
+                    send_response([
+                        'success' => true,
+                        'idMovCaja' => (int)$anterior['idMovCaja'],
+                        'duplicadoEvitado' => true
+                    ]);
+                }
+
+                send_response([
+                    'success' => false,
+                    'message' => 'Clave repetida con datos diferentes.'
+                ], 409);
+            }
+
+            error_log('Registro movimiento: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo registrar el movimiento.'
+            ], 500);
+
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            error_log('Registro movimiento: ' . $e->getMessage());
+
+            send_response([
+                'success' => false,
+                'message' => 'No se pudo registrar el movimiento.'
+            ], 500);
         }
     }
 }

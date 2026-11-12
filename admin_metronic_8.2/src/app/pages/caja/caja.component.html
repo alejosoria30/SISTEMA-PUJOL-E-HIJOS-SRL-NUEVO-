@@ -104,6 +104,252 @@
   </div>
 </div>
 
+<!-- HISTORIAL DE CAJA - PUJOL E HIJOS -->
+<div class="card card-flush shadow-sm mt-8 mb-8">
+
+  <div class="card-header pt-6">
+    <div class="card-title align-items-start flex-column">
+      <h3 class="fw-bold text-gray-900 mb-2">
+        Historial de Caja
+      </h3>
+      <span class="text-muted fs-7">
+        Turnos cerrados, movimientos y rendiciones registradas.
+      </span>
+    </div>
+
+    <div class="card-toolbar">
+      <button
+        type="button"
+        class="btn btn-light-primary btn-sm"
+        (click)="cargarHistorial()"
+        [disabled]="cargandoHistorial">
+        {{ cargandoHistorial ? 'Cargando...' : 'Actualizar historial' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <div *ngIf="errorHistorial" class="alert alert-danger">
+      {{ errorHistorial }}
+    </div>
+
+    <div *ngIf="cargandoHistorial" class="text-center text-muted py-8">
+      Recuperando historial desde MySQL...
+    </div>
+
+    <div class="table-responsive" *ngIf="!cargandoHistorial">
+      <table class="table table-row-dashed align-middle gy-4">
+
+        <thead>
+          <tr class="fw-bold text-muted text-uppercase fs-8">
+            <th>Turno</th>
+            <th>Apertura</th>
+            <th>Cierre</th>
+            <th class="text-end">Inicial</th>
+            <th class="text-end">Final</th>
+            <th class="text-end">Diferencia</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of historialTurnos">
+
+            <td class="fw-bold text-gray-900">
+              #{{ t.idTurno }}
+            </td>
+
+            <td class="text-gray-700 fs-7">
+              {{ t.fechaApertura | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td class="text-gray-700 fs-7">
+              {{ t.fechaCierre | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td class="text-end fw-semibold text-gray-800">
+              ${{ t.montoInicial | number:'1.2-2' }}
+            </td>
+
+            <td class="text-end fw-bold text-gray-900">
+              ${{ t.montoFinal | number:'1.2-2' }}
+            </td>
+
+            <td class="text-end">
+              <span
+                class="badge"
+                [ngClass]="t.diferencia == 0
+                  ? 'badge-light-success'
+                  : 'badge-light-warning'">
+                ${{ t.diferencia | number:'1.2-2' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="badge badge-light-secondary">
+                {{ t.estadoTurno }}
+              </span>
+            </td>
+
+            <td class="text-end">
+              <button
+                type="button"
+                class="btn btn-sm btn-light-primary"
+                (click)="verDetalleTurno(t)">
+                Ver movimientos
+              </button>
+            </td>
+
+          </tr>
+
+          <tr *ngIf="historialTurnos.length === 0 && !errorHistorial">
+            <td colspan="8" class="text-center text-muted py-8">
+              Presioná Actualizar historial para consultar los turnos.
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DETALLE DE UN TURNO CERRADO -->
+<div
+  class="card card-flush shadow-sm mb-8"
+  *ngIf="mostrarDetalleHistorial && turnoSeleccionado">
+
+  <div class="card-header pt-6">
+    <div class="card-title align-items-start flex-column">
+      <h3 class="fw-bold text-gray-900 mb-2">
+        Detalle del Turno #{{ turnoSeleccionado.idTurno }}
+      </h3>
+      <span class="text-muted fs-7">
+        Movimientos registrados y resultado del arqueo.
+      </span>
+    </div>
+
+    <div class="card-toolbar">
+      <button
+        type="button"
+        class="btn btn-sm btn-light"
+        (click)="cerrarDetalleTurno()">
+        Cerrar detalle
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <div class="row g-4 mb-7">
+
+      <div class="col-md-3">
+        <div class="border border-dashed rounded p-4 h-100">
+          <div class="text-muted fs-8 mb-2">Fondo inicial</div>
+          <div class="fw-bold fs-3 text-gray-900">
+            ${{ turnoSeleccionado.montoInicial | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="border border-dashed rounded p-4 h-100">
+          <div class="text-muted fs-8 mb-2">Saldo esperado</div>
+          <div class="fw-bold fs-3 text-gray-900">
+            ${{ turnoSeleccionado.saldoEsperado | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="border border-dashed rounded p-4 h-100">
+          <div class="text-muted fs-8 mb-2">Efectivo contado</div>
+          <div class="fw-bold fs-3 text-gray-900">
+            ${{ turnoSeleccionado.montoFinal | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="border border-dashed rounded p-4 h-100">
+          <div class="text-muted fs-8 mb-2">Diferencia registrada</div>
+          <div
+            class="fw-bold fs-3"
+            [ngClass]="turnoSeleccionado.diferencia == 0
+              ? 'text-success'
+              : 'text-warning'">
+            ${{ turnoSeleccionado.diferencia | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <h5 class="fw-bold text-gray-900 mb-4">
+      Movimientos del turno
+    </h5>
+
+    <div *ngIf="cargandoDetalle" class="text-muted py-5">
+      Cargando movimientos...
+    </div>
+
+    <div class="table-responsive" *ngIf="!cargandoDetalle">
+      <table class="table table-row-dashed align-middle gy-4">
+
+        <thead>
+          <tr class="fw-bold text-muted text-uppercase fs-8">
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Concepto</th>
+            <th class="text-end">Monto</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let m of movimientosHistorial">
+
+            <td class="text-gray-700">
+              {{ m.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td>
+              <span
+                class="badge"
+                [ngClass]="m.tipoMovimiento === 'Ingreso'
+                  ? 'badge-light-success'
+                  : 'badge-light-danger'">
+                {{ m.tipoMovimiento }}
+              </span>
+            </td>
+
+            <td class="text-gray-800">
+              {{ m.concepto }}
+            </td>
+
+            <td
+              class="text-end fw-bold"
+              [ngClass]="m.tipoMovimiento === 'Ingreso'
+                ? 'text-success'
+                : 'text-danger'">
+              {{ m.tipoMovimiento === 'Ingreso' ? '+' : '-' }}
+              ${{ m.monto | number:'1.2-2' }}
+            </td>
+
+          </tr>
+
+          <tr *ngIf="movimientosHistorial.length === 0">
+            <td colspan="4" class="text-center text-muted py-7">
+              No hay movimientos para mostrar.
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
 <!-- Modal Cierre -->
 <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isCerrarModalOpen">
   <div class="modal-dialog modal-dialog-centered">

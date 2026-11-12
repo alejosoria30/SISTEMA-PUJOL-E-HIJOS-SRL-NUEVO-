@@ -1,0 +1,1026 @@
+
+<!-- ============================================= -->
+<!-- PUJOL E HIJOS - GESTION DE CAJA               -->
+<!-- Apertura, movimientos, historial y rendicion  -->
+<!-- Compatible con Metronic Light / Dark          -->
+<!-- ============================================= -->
+
+<!-- ENCABEZADO -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-6">
+  <div>
+    <h2 class="fw-bold text-gray-900 mb-1">
+      Gestión de Caja
+    </h2>
+    <span class="text-muted fs-7">
+      Administración de turnos, movimientos y rendiciones.
+    </span>
+  </div>
+
+  <span
+    class="badge fs-7 px-4 py-3"
+    [ngClass]="turnoActual ? 'badge-light-success' : 'badge-light-secondary'">
+    {{ turnoActual ? 'Turno abierto' : 'Caja cerrada' }}
+  </span>
+</div>
+
+
+<!-- ============================================= -->
+<!-- SECCION PRINCIPAL                             -->
+<!-- ============================================= -->
+
+<div class="row g-6 mb-8">
+
+  <!-- COLUMNA IZQUIERDA: ESTADO DE LA CAJA -->
+  <div class="col-xl-4">
+
+    <div class="card card-flush h-100 shadow-sm">
+
+      <div class="card-header pt-6">
+        <h3 class="card-title align-items-start flex-column">
+          <span class="card-label fw-bold text-gray-900">
+            Estado del Turno
+          </span>
+
+          <span
+            class="text-muted mt-1 fw-semibold fs-7"
+            *ngIf="!turnoActual">
+            No hay un turno activo
+          </span>
+
+          <span
+            class="text-success mt-1 fw-bold fs-7"
+            *ngIf="turnoActual">
+            Turno abierto correctamente
+          </span>
+        </h3>
+      </div>
+
+      <div class="card-body pt-4">
+
+        <!-- CAJA CERRADA -->
+        <div *ngIf="!turnoActual" class="text-center py-6">
+
+          <app-keenicon
+            name="wallet"
+            class="fs-4x text-muted mb-4 d-block">
+          </app-keenicon>
+
+          <h4 class="text-gray-700 mb-3">
+            Caja cerrada
+          </h4>
+
+          <p class="text-muted fs-7 mb-6">
+            Ingresá el fondo inicial para comenzar
+            un nuevo turno de caja.
+          </p>
+
+          <div class="mb-5 text-start">
+
+            <label class="form-label required fw-semibold">
+              Fondo Fijo / Monto Inicial ($)
+            </label>
+
+            <input
+              type="number"
+              class="form-control form-control-solid form-control-lg"
+              [(ngModel)]="montoInicial"
+              [disabled]="guardandoApertura"
+              min="0"
+              step="0.01">
+
+            <div class="form-text">
+              Dinero disponible al comenzar el turno.
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary w-100"
+            (click)="abrirCaja()"
+            [disabled]="guardandoApertura"
+            *ngIf="hasAction('create')">
+
+            <span *ngIf="!guardandoApertura">
+              Abrir Caja
+            </span>
+
+            <span *ngIf="guardandoApertura">
+              Abriendo caja...
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <!-- CAJA ABIERTA -->
+        <div *ngIf="turnoActual">
+
+          <div class="border border-dashed border-gray-300 rounded p-5 mb-5">
+
+            <div class="d-flex justify-content-between mb-4 gap-3">
+              <span class="text-gray-600 fw-semibold">
+                Apertura:
+              </span>
+
+              <span class="text-gray-900 fw-bold text-end">
+                {{ turnoActual.fechaApertura | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="d-flex justify-content-between mb-4">
+              <span class="text-gray-600 fw-semibold">
+                Monto inicial:
+              </span>
+
+              <span class="text-gray-900 fw-bold">
+                ${{ turnoActual.montoInicial | number:'1.2-2' }}
+              </span>
+            </div>
+
+            <div class="separator separator-dashed my-4"></div>
+
+            <div class="d-flex justify-content-between align-items-center gap-3">
+
+              <span class="text-gray-800 fw-bold fs-6">
+                Saldo calculado:
+              </span>
+
+              <span class="text-success fw-bolder fs-2">
+                ${{ turnoActual.saldoActual | number:'1.2-2' }}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div class="alert alert-light-primary fs-7 mb-5">
+            El saldo incluye el fondo inicial y los
+            ingresos y egresos registrados.
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-danger w-100 mb-3"
+            (click)="abrirModalCierre()"
+            [disabled]="guardandoCierre || guardandoMovimiento"
+            *ngIf="hasAction('update')">
+
+            <app-keenicon
+              name="lock-2"
+              class="fs-3 me-1">
+            </app-keenicon>
+
+            Cerrar Turno
+
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-light-primary w-100"
+            (click)="abrirModalMov()"
+            [disabled]="guardandoMovimiento || guardandoCierre"
+            *ngIf="hasAction('create')">
+
+            <app-keenicon
+              name="plus"
+              class="fs-3 me-1">
+            </app-keenicon>
+
+            Registrar Movimiento Manual
+
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================= -->
+  <!-- COLUMNA DERECHA: MOVIMIENTOS ACTUALES         -->
+  <!-- ============================================= -->
+
+  <div class="col-xl-8">
+
+    <div class="card card-flush h-100 shadow-sm">
+
+      <div class="card-header pt-6">
+
+        <h3 class="card-title align-items-start flex-column">
+
+          <span class="card-label fw-bold text-gray-900">
+            Movimientos del Turno Actual
+          </span>
+
+          <span class="text-muted mt-1 fw-semibold fs-7">
+            Ingresos y egresos registrados durante la jornada.
+          </span>
+
+        </h3>
+
+        <div class="card-toolbar">
+          <span class="badge badge-light-primary">
+            {{ movimientos.length }} movimientos
+          </span>
+        </div>
+
+      </div>
+
+      <div class="card-body pt-4">
+
+        <div class="table-responsive">
+
+          <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+
+            <thead>
+              <tr class="fw-bold text-muted text-uppercase fs-8">
+                <th class="min-w-150px">Fecha y Hora</th>
+                <th class="min-w-100px">Tipo</th>
+                <th class="min-w-150px">Concepto</th>
+                <th class="min-w-100px text-end">Monto ($)</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr *ngFor="let m of movimientos">
+
+                <td>
+                  <span class="text-gray-800 fw-bold fs-7">
+                    {{ m.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
+                </td>
+
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'badge-light-success': m.tipoMovimiento === 'Ingreso',
+                      'badge-light-danger': m.tipoMovimiento === 'Egreso'
+                    }">
+                    {{ m.tipoMovimiento }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="text-gray-700 fs-7">
+                    {{ m.concepto }}
+                  </span>
+                </td>
+
+                <td
+                  class="text-end fw-bold fs-6"
+                  [ngClass]="m.tipoMovimiento === 'Ingreso'
+                    ? 'text-success'
+                    : 'text-danger'">
+
+                  {{ m.tipoMovimiento === 'Ingreso' ? '+' : '-' }}
+                  ${{ m.monto | number:'1.2-2' }}
+
+                </td>
+
+              </tr>
+
+              <tr *ngIf="movimientos.length === 0">
+
+                <td colspan="4" class="text-center py-12">
+
+                  <div class="text-muted fs-7">
+                    No hay movimientos registrados en el turno actual.
+                  </div>
+
+                  <div class="text-gray-500 fs-8 mt-2">
+                    Los movimientos aparecerán aquí cuando
+                    se registren operaciones.
+                  </div>
+
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================= -->
+<!-- HISTORIAL DE CAJA                             -->
+<!-- ============================================= -->
+
+<div class="card card-flush shadow-sm mb-8">
+
+  <div class="card-header pt-6">
+
+    <h3 class="card-title align-items-start flex-column">
+
+      <span class="card-label fw-bold text-gray-900">
+        Historial de Caja
+      </span>
+
+      <span class="text-muted mt-1 fw-semibold fs-7">
+        Consultá los turnos anteriores, sus cierres
+        y los movimientos realizados.
+      </span>
+
+    </h3>
+
+    <div class="card-toolbar d-flex flex-wrap align-items-center gap-2">
+
+      <button
+        type="button"
+        class="btn btn-sm btn-light-primary"
+        (click)="cargarHistorial()"
+        [disabled]="cargandoHistorial"
+        *ngIf="hasAction('read')">
+
+        {{ cargandoHistorial ? 'Cargando...' : 'Actualizar historial' }}
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-sm btn-light"
+        (click)="alternarHistorial()">
+
+        {{ mostrarHistorial ? 'Ocultar' : 'Mostrar' }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- CONTENIDO DEL HISTORIAL -->
+  <div class="card-body pt-4" *ngIf="mostrarHistorial">
+
+    <!-- CARGANDO -->
+    <div
+      *ngIf="cargandoHistorial"
+      class="text-center text-muted py-8">
+
+      Recuperando turnos desde la base de datos...
+
+    </div>
+
+
+    <!-- ERROR -->
+    <div
+      class="alert alert-light-danger"
+      *ngIf="errorHistorial">
+
+      {{ errorHistorial }}
+
+    </div>
+
+
+    <!-- TABLA DE TURNOS -->
+    <div
+      class="table-responsive"
+      *ngIf="!cargandoHistorial && historialTurnos.length > 0">
+
+      <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+
+        <thead>
+
+          <tr class="fw-bold text-muted text-uppercase fs-8">
+
+            <th>Turno</th>
+            <th>Apertura</th>
+            <th>Cierre</th>
+            <th class="text-end">Monto Inicial</th>
+            <th class="text-end">Monto Final</th>
+            <th class="text-end">Diferencia</th>
+            <th>Estado</th>
+            <th class="text-end">Acción</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let t of historialTurnos">
+
+            <td class="fw-bold text-gray-900">
+              #{{ t.idTurno }}
+            </td>
+
+            <td class="text-gray-700 fs-7">
+              {{ t.fechaApertura | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td class="text-gray-700 fs-7">
+              {{ t.fechaCierre
+                ? (t.fechaCierre | date:'dd/MM/yyyy HH:mm')
+                : 'Sin cierre' }}
+            </td>
+
+            <td class="text-end text-gray-800 fw-semibold">
+              ${{ t.montoInicial | number:'1.2-2' }}
+            </td>
+
+            <td class="text-end text-gray-900 fw-bold">
+              ${{ t.montoFinal | number:'1.2-2' }}
+            </td>
+
+            <td
+              class="text-end fw-bold"
+              [ngClass]="
+                t.diferencia == 0
+                  ? 'text-success'
+                  : 'text-warning'
+              ">
+
+              ${{ t.diferencia | number:'1.2-2' }}
+
+            </td>
+
+            <td>
+
+              <span
+                class="badge"
+                [ngClass]="t.estadoTurno === 'Cerrado'
+                  ? 'badge-light-secondary'
+                  : 'badge-light-success'">
+
+                {{ t.estadoTurno }}
+
+              </span>
+
+            </td>
+
+            <td class="text-end">
+
+              <button
+                type="button"
+                class="btn btn-sm btn-light-primary"
+                (click)="verDetalleTurno(t)"
+                [disabled]="cargandoDetalle"
+                *ngIf="hasAction('read')">
+
+                Ver movimientos
+
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- SIN REGISTROS CARGADOS -->
+    <div
+      *ngIf="
+        !cargandoHistorial &&
+        !errorHistorial &&
+        historialTurnos.length === 0
+      "
+      class="text-center py-10">
+
+      <app-keenicon
+        name="wallet"
+        class="fs-3x text-muted mb-3 d-block">
+      </app-keenicon>
+
+      <h5 class="text-gray-700 fw-bold">
+        No hay turnos cargados
+      </h5>
+
+      <p class="text-muted fs-7">
+        Presioná Actualizar historial para consultar
+        los turnos registrados.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================= -->
+<!-- DETALLE DE TURNO DEL HISTORIAL                 -->
+<!-- ============================================= -->
+
+<div
+  class="card card-flush shadow-sm mb-8"
+  *ngIf="mostrarDetalleHistorial && turnoSeleccionado">
+
+  <div class="card-header pt-6">
+
+    <h3 class="card-title align-items-start flex-column">
+
+      <span class="card-label fw-bold text-gray-900">
+        Detalle del Turno #{{ turnoSeleccionado.idTurno }}
+      </span>
+
+      <span class="text-muted mt-1 fw-semibold fs-7">
+        Consulta de movimientos y rendición registrada.
+      </span>
+
+    </h3>
+
+    <div class="card-toolbar">
+
+      <button
+        type="button"
+        class="btn btn-sm btn-light"
+        (click)="cerrarDetalleTurno()">
+
+        Cerrar detalle
+
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card-body">
+
+    <!-- RESUMEN -->
+    <div class="row g-4 mb-6">
+
+      <div class="col-md-4">
+
+        <div class="bg-light rounded p-4 h-100">
+
+          <span class="text-muted fs-8 d-block mb-2">
+            Monto inicial
+          </span>
+
+          <span class="fw-bold fs-3 text-gray-900">
+            ${{ turnoSeleccionado.montoInicial | number:'1.2-2' }}
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="col-md-4">
+
+        <div class="bg-light rounded p-4 h-100">
+
+          <span class="text-muted fs-8 d-block mb-2">
+            Monto final registrado
+          </span>
+
+          <span class="fw-bold fs-3 text-gray-900">
+            ${{ turnoSeleccionado.montoFinal | number:'1.2-2' }}
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="col-md-4">
+
+        <div class="bg-light rounded p-4 h-100">
+
+          <span class="text-muted fs-8 d-block mb-2">
+            Diferencia del cierre
+          </span>
+
+          <span
+            class="fw-bold fs-3"
+            [ngClass]="turnoSeleccionado.diferencia == 0
+              ? 'text-success'
+              : 'text-warning'">
+
+            ${{ turnoSeleccionado.diferencia | number:'1.2-2' }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- MOVIMIENTOS HISTORICOS -->
+    <h5 class="fw-bold text-gray-800 mb-4">
+      Movimientos registrados
+    </h5>
+
+    <div
+      *ngIf="cargandoDetalle"
+      class="text-center py-6 text-muted">
+
+      Cargando movimientos...
+
+    </div>
+
+    <div
+      class="table-responsive"
+      *ngIf="!cargandoDetalle">
+
+      <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+
+        <thead>
+
+          <tr class="fw-bold text-muted text-uppercase fs-8">
+            <th>Fecha y Hora</th>
+            <th>Tipo</th>
+            <th>Concepto</th>
+            <th class="text-end">Monto</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let m of movimientosHistorial">
+
+            <td class="text-gray-800 fs-7">
+              {{ m.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td>
+
+              <span
+                class="badge"
+                [ngClass]="m.tipoMovimiento === 'Ingreso'
+                  ? 'badge-light-success'
+                  : 'badge-light-danger'">
+
+                {{ m.tipoMovimiento }}
+
+              </span>
+
+            </td>
+
+            <td class="text-gray-700">
+              {{ m.concepto }}
+            </td>
+
+            <td
+              class="text-end fw-bold"
+              [ngClass]="m.tipoMovimiento === 'Ingreso'
+                ? 'text-success'
+                : 'text-danger'">
+
+              {{ m.tipoMovimiento === 'Ingreso' ? '+' : '-' }}
+              ${{ m.monto | number:'1.2-2' }}
+
+            </td>
+
+          </tr>
+
+          <tr *ngIf="movimientosHistorial.length === 0">
+
+            <td
+              colspan="4"
+              class="text-center text-muted py-8">
+
+              No hay movimientos disponibles para este turno.
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================= -->
+<!-- MODAL: ARQUEO Y CIERRE DE CAJA                 -->
+<!-- ============================================= -->
+
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  style="background: rgba(0,0,0,0.65);"
+  *ngIf="isCerrarModalOpen">
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title fw-bold text-gray-900">
+          Arqueo y Rendición de Caja
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          [disabled]="guardandoCierre"
+          (click)="isCerrarModalOpen = false"
+          aria-label="Cerrar">
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <p class="text-muted fs-7 mb-5">
+          Verificá el efectivo disponible antes de
+          finalizar el turno.
+        </p>
+
+        <!-- SALDO ESPERADO -->
+        <div class="alert alert-primary mb-5">
+
+          <span class="fw-bold fs-7 d-block">
+            Saldo esperado del sistema
+          </span>
+
+          <span class="fw-bolder fs-1">
+            ${{ turnoActual?.saldoActual | number:'1.2-2' }}
+          </span>
+
+        </div>
+
+
+        <!-- MONTO REAL -->
+        <div class="mb-5">
+
+          <label class="form-label required fw-bold">
+            Dinero físico contado en caja ($)
+          </label>
+
+          <input
+            type="number"
+            class="form-control form-control-lg form-control-solid"
+            [(ngModel)]="montoFinalReal"
+            [disabled]="guardandoCierre"
+            min="0"
+            step="0.01">
+
+          <div class="form-text mt-2">
+            Ingresá el importe que efectivamente contaste.
+          </div>
+
+        </div>
+
+
+        <!-- DIFERENCIA -->
+        <div class="border border-dashed border-gray-300 rounded p-4 mb-4">
+
+          <div class="d-flex justify-content-between align-items-center gap-3">
+
+            <span class="text-gray-700 fw-bold">
+              Diferencia detectada
+            </span>
+
+            <span
+              class="fw-bolder fs-3"
+              [ngClass]="{
+                'text-success': getDiferenciaCaja() === 0,
+                'text-warning': getDiferenciaCaja() > 0,
+                'text-danger': getDiferenciaCaja() < 0
+              }">
+
+              ${{ getDiferenciaCaja() | number:'1.2-2' }}
+
+            </span>
+
+          </div>
+
+          <div class="mt-3 fs-7">
+
+            <span
+              class="text-success fw-semibold"
+              *ngIf="getDiferenciaCaja() === 0">
+
+              La caja coincide con el saldo esperado.
+
+            </span>
+
+            <span
+              class="text-warning fw-semibold"
+              *ngIf="getDiferenciaCaja() > 0">
+
+              Se detectó un sobrante de efectivo.
+
+            </span>
+
+            <span
+              class="text-danger fw-semibold"
+              *ngIf="getDiferenciaCaja() < 0">
+
+              Se detectó un faltante de efectivo.
+
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="alert alert-light-warning fs-7 mb-0">
+          El cierre quedará registrado en el historial
+          de caja y no deberá modificarse directamente
+          desde la base de datos.
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          [disabled]="guardandoCierre"
+          (click)="isCerrarModalOpen = false">
+
+          Cancelar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-danger"
+          [disabled]="
+            guardandoCierre ||
+            montoFinalReal === null ||
+            montoFinalReal < 0
+          "
+          (click)="cerrarCaja()">
+
+          {{ guardandoCierre ? 'Cerrando turno...' : 'Confirmar Cierre' }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================= -->
+<!-- MODAL: REGISTRAR MOVIMIENTO MANUAL            -->
+<!-- ============================================= -->
+
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  style="background: rgba(0,0,0,0.65);"
+  *ngIf="isMovModalOpen">
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title fw-bold text-gray-900">
+          Registrar Movimiento Manual
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          [disabled]="guardandoMovimiento"
+          (click)="isMovModalOpen = false"
+          aria-label="Cerrar">
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <div class="row g-4">
+
+          <!-- TIPO -->
+          <div class="col-12">
+
+            <label class="form-label required fw-bold">
+              Tipo de Movimiento
+            </label>
+
+            <select
+              class="form-select form-select-solid"
+              [(ngModel)]="movTipo"
+              [disabled]="guardandoMovimiento">
+
+              <option value="Ingreso">
+                Ingreso (Entrada de dinero)
+              </option>
+
+              <option value="Egreso">
+                Egreso (Salida / Pago)
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- CONCEPTO -->
+          <div class="col-12">
+
+            <label class="form-label required fw-bold">
+              Concepto / Motivo
+            </label>
+
+            <input
+              type="text"
+              class="form-control form-control-solid"
+              [(ngModel)]="movConcepto"
+              [disabled]="guardandoMovimiento"
+              maxlength="200"
+              placeholder="Ej: Reposición de efectivo, pago de viáticos...">
+
+          </div>
+
+
+          <!-- MONTO -->
+          <div class="col-12">
+
+            <label class="form-label required fw-bold">
+              Monto ($)
+            </label>
+
+            <input
+              type="number"
+              class="form-control form-control-solid"
+              [(ngModel)]="movMonto"
+              [disabled]="guardandoMovimiento"
+              min="0.01"
+              step="0.01">
+
+          </div>
+
+        </div>
+
+        <div class="alert alert-light-primary fs-7 mt-5 mb-0">
+          Verificá el tipo, concepto y monto antes
+          de guardar. El movimiento se asociará
+          al turno actualmente abierto.
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          (click)="isMovModalOpen = false"
+          [disabled]="guardandoMovimiento">
+
+          Cancelar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="registrarMovimiento()"
+          [disabled]="
+            guardandoMovimiento ||
+            !movConcepto.trim() ||
+            movMonto <= 0
+          ">
+
+          {{ guardandoMovimiento
+            ? 'Guardando movimiento...'
+            : 'Guardar Movimiento' }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
