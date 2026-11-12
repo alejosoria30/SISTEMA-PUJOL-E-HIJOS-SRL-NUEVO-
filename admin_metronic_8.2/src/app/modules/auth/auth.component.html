@@ -15,7 +15,7 @@
     <!--begin::Form-->
     <div class="d-flex flex-center flex-column flex-lg-row-fluid">
       <!--begin::Wrapper-->
-      <div class="<?php echo $params['wrapperClass']?> p-10">
+      <div class="w-lg-500px w-100 p-10">
         <router-outlet></router-outlet>
       </div>
       <!--end::Wrapper-->
@@ -26,9 +26,8 @@
     <div class="d-flex flex-center flex-wrap px-5">
       <!--begin::Links-->
       <div class="d-flex fw-semibold text-primary fs-base">
-        <a href="#" class="px-5" target="_blank">Terminos</a>
-
-        <a href="#" class="px-5" target="_blank">Contactenos</a>
+        <a href="#" class="px-5 text-gray-600 text-hover-primary" target="_blank">Términos</a>
+        <a href="#" class="px-5 text-gray-600 text-hover-primary" target="_blank">Contáctenos</a>
       </div>
       <!--end::Links-->
     </div>
@@ -37,11 +36,47 @@
   <!--end::Body-->
 
   <!--begin::Aside-->
-  <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 bg-dark">
+  <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2 position-relative"
+    [ngStyle]="{'background-image': isRegistration ? 'url(./assets/media/auth/pujol-registro.jpg)' : 'url(./assets/media/auth/pujol-login.jpg)'}">
+    
+    <!-- Ambient dark gradient overlay for optimal readability & color harmony -->
+    <div class="position-absolute w-100 h-100 top-0 start-0" 
+         style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.28) 42%, rgba(15, 23, 42, 0.72) 100%);">
+    </div>
+
     <!--begin::Content-->
-    <div class="d-flex flex-column flex-center py-15 px-5 px-md-15 w-100 min-h-350px min-h-lg-auto">
-        <h1 class="text-white fs-2tx fw-bold mb-5">Pujol e Hijos S.R.L.</h1>
-        <p class="text-white fs-4 fw-semibold text-center">Gestión integral de inventario, caja y ventas.</p>
+    <div class="position-relative d-flex flex-column justify-content-between p-10 p-lg-17 w-100 h-100 min-h-350px min-h-lg-auto text-white">
+      
+      <!-- Top Section: Header Badge & Institution -->
+      <div class="d-flex flex-column align-items-start">
+        <span class="badge px-4 py-2 mb-4 fs-7 fw-bold text-uppercase" 
+              style="background-color: #F97316; letter-spacing: 1.5px; color: #ffffff;">
+          {{ isRegistration ? 'Portal de Clientes y Distribución' : 'Distribuidora Mayorista y Minorista' }}
+        </span>
+        <h1 class="text-white fs-2hx fw-bold mb-3" style="font-family: 'Playfair Display', Georgia, serif; text-shadow: 0 2px 10px rgba(0,0,0,0.85);">
+          {{ isRegistration ? 'Sumate a Pujol e Hijos' : 'Pujol e Hijos S.R.L.' }}
+        </h1>
+        <p class="fs-5 fw-medium mb-0" style="color: #E2E8F0; text-shadow: 0 1px 6px rgba(0,0,0,0.85); max-width: 490px; line-height: 1.6;">
+          {{ isRegistration 
+              ? 'Registrá tu cuenta para gestionar pedidos al por mayor, consultar listas de precios y acceder a entregas directas.' 
+              : 'Gestión integral de stock, caja y ventas de bebidas sin alcohol en Formosa y toda la región.' }}
+        </p>
+      </div>
+
+      <!-- Bottom Highlights / Badges -->
+      <div class="d-flex flex-wrap gap-3 mt-auto pt-10">
+        <div class="d-flex align-items-center px-4 py-3 rounded-2" 
+             style="background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.14);">
+          <i class="ki-outline ki-delivery-fast fs-2 text-warning me-3"></i>
+          <span class="fs-7 fw-semibold text-white">Entregas programadas en Formosa</span>
+        </div>
+        <div class="d-flex align-items-center px-4 py-3 rounded-2" 
+             style="background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.14);">
+          <i class="ki-outline ki-shield-tick fs-2 text-warning me-3"></i>
+          <span class="fs-7 fw-semibold text-white">Stock y listas en tiempo real</span>
+        </div>
+      </div>
+
     </div>
     <!--end::Content-->
   </div>

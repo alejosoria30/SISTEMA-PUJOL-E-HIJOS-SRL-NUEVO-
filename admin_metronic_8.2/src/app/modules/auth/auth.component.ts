@@ -1,4 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 // const BODY_CLASSES = ['bgi-size-cover', 'bgi-position-center', 'bgi-no-repeat'];
 
@@ -10,14 +13,28 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 })
 export class AuthComponent implements OnInit, OnDestroy {
   today: Date = new Date();
+  isRegistration = false;
+  private routerSub: Subscription;
 
-  constructor() {}
+  constructor(private router: Router) {
+    this.checkRoute(this.router.url);
+  }
 
   ngOnInit(): void {
-    // BODY_CLASSES.forEach((c) => document.body.classList.add(c));
+    this.routerSub = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.checkRoute(event.urlAfterRedirects || event.url);
+      });
+  }
+
+  private checkRoute(url: string): void {
+    this.isRegistration = url.includes('registration');
   }
 
   ngOnDestroy() {
-    // BODY_CLASSES.forEach((c) => document.body.classList.remove(c));
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
+    }
   }
 }

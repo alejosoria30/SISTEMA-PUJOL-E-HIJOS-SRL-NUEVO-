@@ -1,0 +1,208 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T20:25:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_caja_rendiciones_pujol" name="Módulo 4 - Caja y Rendiciones (Pujol e Hijos SRL)">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="820" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================================================== -->
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR)               -->
+        <!-- ======================================================== -->
+        <mxCell id="boundary" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="30" width="1010" height="740" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (SOBRE EL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Caja y Rendiciones&#xa;(Pujol e Hijos S.R.L.)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="475" y="16" width="280" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 3. ACTORES BILATERALES (CAJERO A LA IZQ / TESORERO A LA DER) -->
+        <!-- ======================================================== -->
+        <!-- Actor Empleado / Cajero (Extremo Izquierdo) -->
+        <mxCell id="actor_cajero" value="Empleado&#xa;(Cajero)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="25" y="260" width="45" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Actor Administrador / Tesorero (Extremo Derecho) -->
+        <mxCell id="actor_admin" value="Administrador&#xa;(Tesorero / Auditor)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="240" width="45" height="85" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 4. CASOS DE USO DISTRIBUIDOS POR FASES OPERATIVAS         -->
+        <!-- ======================================================== -->
+
+        <!-- CLUSTER 1: APERTURA DE TURNO (SUPERIOR IZQUIERDA) -->
+        <mxCell id="cu_abrir_caja" value="&lt;b&gt;Abrir Turno&lt;/b&gt;&#xa;&lt;b&gt;de Caja&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="90" width="165" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_validar_turno" value="Validar Inexistencia&#xa;de Turno Abierto" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="60" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_fondo_inicial" value="Asignar Fondo Inicial&#xa;de Cambio" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="130" width="160" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- CLUSTER 2: MONITOREO Y SALDO EN TIEMPO REAL (CENTRO IZQUIERDA) -->
+        <mxCell id="cu_consultar_saldo" value="&lt;b&gt;Consultar Saldo y&lt;/b&gt;&#xa;&lt;b&gt;Estado de Turno&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="250" width="165" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_calcular_balance" value="Calcular Saldo Teórico&#xa;&lt;i&gt;(montoInicial + Ing - Egr)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_listar_movimientos" value="Listar Movimientos de&#xa;Efectivo del Turno" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="290" width="160" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- CLUSTER 3: MOVIMIENTOS MANUALES Y GASTOS (INFERIOR IZQUIERDA) -->
+        <mxCell id="cu_registrar_mov_manual" value="&lt;b&gt;Registrar Movimiento&lt;/b&gt;&#xa;&lt;b&gt;Manual de Caja&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="440" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ingreso_extra" value="Registrar Ingreso&#xa;&lt;i&gt;(Aporte / Cobranza)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="560" width="155" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_egreso_extra" value="Registrar Egreso&#xa;&lt;i&gt;(Fletes / Viáticos)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="560" width="155" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_justificar" value="Validar Concepto y&#xa;Monto Positivo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="445" width="160" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- CLUSTER 4: CIERRE Y RENDICIÓN DE CUENTAS (CENTRO DERECHA) -->
+        <mxCell id="cu_cerrar_caja" value="&lt;b&gt;Cerrar Turno de Caja&lt;/b&gt;&#xa;&lt;b&gt;y Rendición&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="660" y="440" width="175" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_declarar_efectivo" value="Ingresar Conteo Físico&#xa;&lt;i&gt;(montoFinalReal)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="665" y="340" width="165" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_calcular_diferencia" value="Calcular Diferencia de Arqueo&#xa;&lt;i&gt;(Sobrante / Faltante)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="910" y="445" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_inactivar_turno" value="Asentar Fecha de Cierre&#xa;&lt;i&gt;(estadoTurno = 'Cerrado')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="665" y="550" width="165" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- CLUSTER 5: SUPERVISIÓN Y AUDITORÍA CONTABLE (SUPERIOR DERECHA) -->
+        <mxCell id="cu_auditar_rendiciones" value="&lt;b&gt;Auditar Rendiciones&lt;/b&gt;&#xa;&lt;b&gt;y Descuadres de Caja&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="905" y="170" width="175" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_auditar_descuadre" value="Analizar Discrepancia&#xa;&lt;i&gt;(diferencia != 0)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="910" y="80" width="165" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_consultar_historico" value="Consultar Historial&#xa;de Turnos Cerrados" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="665" y="175" width="165" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 5. RELACIONES, ASOCIACIONES Y DEPENDENCIAS               -->
+        <!-- ======================================================== -->
+
+        <!-- Asociaciones de Empleado (Cajero - Lado Izquierdo) -->
+        <mxCell id="rel_cajero_abrir" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_cajero" target="cu_abrir_caja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_cajero_saldo" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_cajero" target="cu_consultar_saldo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_cajero_mov" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_cajero" target="cu_registrar_mov_manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_cajero_cerrar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor_cajero" target="cu_cerrar_caja">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="110" y="375" />
+              <mxPoint x="600" y="375" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Asociaciones de Administrador (Tesorero - Lado Derecho) -->
+        <mxCell id="rel_admin_auditar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_auditar_rendiciones">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<include>> Cluster 1: Apertura -->
+        <mxCell id="rel_include_validar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_abrir_caja" target="cu_validar_turno">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_fondo" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_abrir_caja" target="cu_fondo_inicial">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> Cluster 2: Consulta de Saldo -->
+        <mxCell id="rel_extend_balance" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_calcular_balance" target="cu_consultar_saldo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_listar" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_listar_movimientos" target="cu_consultar_saldo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> y <<include>> Cluster 3: Movimientos Manuales -->
+        <mxCell id="rel_extend_ingreso" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipo == 'Ingreso']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ingreso_extra" target="cu_registrar_mov_manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_egreso" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipo == 'Egreso']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_egreso_extra" target="cu_registrar_mov_manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_justificar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_registrar_mov_manual" target="cu_justificar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<include>> Cluster 4: Cierre y Rendición en Cruz -->
+        <mxCell id="rel_include_declarar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_cerrar_caja" target="cu_declarar_efectivo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_diferencia" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_cerrar_caja" target="cu_calcular_diferencia">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_inactivar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_cerrar_caja" target="cu_inactivar_turno">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> Cluster 5: Auditoría -->
+        <mxCell id="rel_extend_descuadre" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[diferencia != 0]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_auditar_descuadre" target="cu_auditar_rendiciones">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_historico" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_consultar_historico" target="cu_auditar_rendiciones">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

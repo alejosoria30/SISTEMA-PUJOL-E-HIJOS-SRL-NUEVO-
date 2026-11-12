@@ -1,0 +1,260 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T19:25:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_ventas_perfecto_pujol" name="Módulo de Ventas - Pujol e Hijos SRL">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR) -->
+        <mxCell id="boundary" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1020" height="1200" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (CENTRO DEL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Ventas&#xa;(Pujol e Hijos S.R.L.)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="490" y="16" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- 3. ACTORES EXTERNOS -->
+        <!-- Empleado / Cajero (Izquierda) -->
+        <mxCell id="actor_empleado" value="Empleado&#xa;(Vendedor / Cajero)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="240" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Banco / Entidad Externa (Derecha) -->
+        <mxCell id="actor_banco" value="Entidad Bancaria" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="610" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 4. CASOS DE USO (DISTRIBUCIÓN ESPACIOSA SIN CRUCES)       -->
+        <!-- ======================================================== -->
+
+        <!-- NIVEL 1: CATÁLOGO Y PROMOCIONES -->
+        <mxCell id="cu_promociones" value="Consultar Packs&#xa;y Promociones" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="55" width="135" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ver_detalle" value="Ver Detalle de&#xa;Bebida y Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="145" width="135" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ver_catalogo" value="Ver Catálogo de&#xa;Bebidas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="120" y="250" width="135" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_agregar_carrito" value="Agregar Bebida&#xa;al Carrito" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="250" width="135" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_gestionar_carrito" value="Gestionar Carrito&#xa;de Ventas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="250" width="135" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- RAMIFICACIONES DE GESTIONAR CARRITO A LA DERECHA (DESPEJADAS) -->
+        <mxCell id="cu_modificar_cant" value="Modificar Cantidad&#xa;de Bebidas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="900" y="165" width="125" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_eliminar_item" value="Eliminar Bebida&#xa;del Carrito" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="900" y="258" width="125" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_vaciar_carrito" value="Vaciar Carrito" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="900" y="345" width="125" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 2: CHECKOUT Y ASIGNACIÓN DE CLIENTE -->
+        <!-- Asignar Cliente a la izquierda, Checkout en el centro -->
+        <mxCell id="cu_asignar_cliente" value="Asignar Cliente&#xa;Registrado" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="210" y="380" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_iniciar_checkout" value="Iniciar Checkout /&#xa;Cobro" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="380" width="135" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 3: DESCUENTO VIP Y VALIDACIÓN DE STOCK -->
+        <!-- Descuento VIP abajo de Asignar Cliente, Validar Stock en el centro, Sobregiro a la derecha -->
+        <mxCell id="cu_descuento_vip" value="Aplicar Descuento&#xa;Cliente VIP" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="210" y="495" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_validar_stock" value="Validar Disponibilidad&#xa;de Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="495" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_confirmar_sobregiro" value="Confirmar Venta en&#xa;Sobregiro de Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="495" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 4: SELECCIÓN DE MÉTODO DE PAGO -->
+        <mxCell id="cu_metodo_pago" value="Seleccionar Método&#xa;de Pago" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="620" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_pago_transfer" value="Pago por&#xa;Transferencia" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="620" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_validar_transfer" value="Verificar Acreditación&#xa;Bancaria" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="930" y="620" width="135" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 5: PAGO EN EFECTIVO Y CONFIRMACIÓN DE VENTA -->
+        <mxCell id="cu_pago_efectivo" value="Pago en Efectivo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="730" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_confirmar_venta" value="Confirmar Venta&#xa;y Facturación" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="855" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 6: POST-CONDICIONES OBLIGATORIAS (DESPEJADAS Y AMPLIAS) -->
+        <mxCell id="cu_descontar_stock" value="Descontar Stock&#xa;en Inventario" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="230" y="990" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ingreso_caja" value="Registrar Ingreso en&#xa;Caja de Turno" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="990" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_generar_ticket" value="Generar Comprobante&#xa;de Venta" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="990" width="145" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_imprimir_ticket" value="Imprimir Ticket /&#xa;Recibo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="930" y="990" width="135" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_notificar_cliente" value="Notificar al Cliente" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1110" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 5. LÍNEAS DE ASOCIACIÓN DE ACTORES (SIN CRUZAR ÓVALOS)    -->
+        <!-- ======================================================== -->
+        <mxCell id="line_emp_cat" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1;rounded=0;" edge="1" parent="1" source="actor_empleado" target="cu_ver_catalogo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="line_banco_transf" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1;rounded=0;" edge="1" parent="1" source="actor_banco" target="cu_validar_transfer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 6. RELACIONES <<INCLUDE>>: CASO A -> CASO B              -->
+        <!-- Con labelBackgroundColor=#ffffff para no chocar la línea -->
+        <!-- ======================================================== -->
+        <mxCell id="inc_cat_det" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_ver_catalogo" target="cu_ver_detalle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_det_add" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_ver_detalle" target="cu_agregar_carrito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_add_gest" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_agregar_carrito" target="cu_gestionar_carrito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_gest_check" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_gestionar_carrito" target="cu_iniciar_checkout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_check_valstock" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_iniciar_checkout" target="cu_validar_stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_valstock_pago" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_validar_stock" target="cu_metodo_pago">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_pago_efec" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_metodo_pago" target="cu_pago_efectivo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_efec_conf" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_pago_efectivo" target="cu_confirmar_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_transf_valid" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_pago_transfer" target="cu_validar_transfer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_transf_conf" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_pago_transfer" target="cu_confirmar_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_conf_stock" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_confirmar_venta" target="cu_descontar_stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_conf_caja" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_confirmar_venta" target="cu_ingreso_caja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_conf_ticket" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_confirmar_venta" target="cu_generar_ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_conf_notif" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_confirmar_venta" target="cu_notificar_cliente">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="inc_ticket_notif" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_generar_ticket" target="cu_notificar_cliente">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 7. RELACIONES <<EXTEND>>: CASO B EXTENSOR -> CASO A BASE -->
+        <!-- ======================================================== -->
+        <!-- Packs/Promos extiende a Detalle -->
+        <mxCell id="ext_promo_det" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_promociones" target="cu_ver_detalle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Modificar Cantidad extiende a Gestionar Carrito -->
+        <mxCell id="ext_mod_gest" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_modificar_cant" target="cu_gestionar_carrito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Eliminar Item extiende a Gestionar Carrito -->
+        <mxCell id="ext_elim_gest" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_eliminar_item" target="cu_gestionar_carrito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Vaciar Carrito extiende a Gestionar Carrito -->
+        <mxCell id="ext_vac_gest" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_vaciar_carrito" target="cu_gestionar_carrito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Asignar Cliente extiende a Iniciar Checkout (Horizontal despejado) -->
+        <mxCell id="ext_cli_check" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_asignar_cliente" target="cu_iniciar_checkout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Descuento VIP extiende verticalmente a Asignar Cliente (Sin cruzar líneas) -->
+        <mxCell id="ext_vip_cli" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[isVIP == true]" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_descuento_vip" target="cu_asignar_cliente">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Confirmar Sobregiro extiende a Validar Stock (Horizontal despejado a la derecha) -->
+        <mxCell id="ext_sobregiro_val" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[stock &lt; pedido]" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_confirmar_sobregiro" target="cu_validar_stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pago por Transferencia extiende a Seleccionar Método de Pago -->
+        <mxCell id="ext_transf_pago" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_pago_transfer" target="cu_metodo_pago">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Imprimir Ticket extiende a Generar Comprobante -->
+        <mxCell id="ext_print_ticket" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=9;fontColor=#000000;rounded=0;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="cu_imprimir_ticket" target="cu_generar_ticket">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

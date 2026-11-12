@@ -1,0 +1,161 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T20:45:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_comprobantes_pujol" name="Módulo 5 - Comprobantes Fiscales (Pujol e Hijos SRL)">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="940" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================================================== -->
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR)               -->
+        <!-- ======================================================== -->
+        <mxCell id="boundary" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1020" height="860" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (SOBRE EL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Comprobantes Fiscales&#xa;(Pujol e Hijos S.R.L.)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="460" y="16" width="260" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 3. ACTORES EXTERNOS INDEPENDIENTES                        -->
+        <!-- ======================================================== -->
+        <!-- Facturador / Cajero (Superior Izquierda) -->
+        <mxCell id="actor_empleado" value="Empleado&#xa;(Facturador / Cajero)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="220" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Administrador / Auditor (Inferior Izquierda) -->
+        <mxCell id="actor_admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="650" width="40" height="80" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 4. CASOS DE USO - SECCIÓN EMISIÓN FISCAL                  -->
+        <!-- ======================================================== -->
+
+        <!-- Caso Base de Emisión -->
+        <mxCell id="cu_emitir_comp" value="Emitir Comprobante&#xa;Fiscal" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="160" width="165" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Inclusiones Obligatorias -->
+        <mxCell id="cu_validar_no_duplicado" value="Validar No Duplicidad&#xa;de Comprobante" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="80" width="165" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_generar_numero" value="Generar Numeración&#xa;Legal Correlativa" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="165" width="165" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Columna de Tipos Oficiales de Comprobante (Sin Cruces) -->
+        <mxCell id="cu_factura_a" value="Emitir Factura Tipo A&#xa;&lt;i&gt;(Prefijo 'A-0001-')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="60" width="165" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_factura_b" value="Emitir Factura Tipo B&#xa;&lt;i&gt;(Prefijo 'B-0001-')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="130" width="165" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_factura_c" value="Emitir Factura Tipo C&#xa;&lt;i&gt;(Prefijo 'C-0001-')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="200" width="165" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ticket" value="Emitir Ticket de Venta&#xa;&lt;i&gt;(Prefijo 'T-0001-')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="270" width="165" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 5. CASOS DE USO - SECCIÓN CONSULTA E IMPRESIÓN            -->
+        <!-- ======================================================== -->
+
+        <!-- Caso Base de Consulta -->
+        <mxCell id="cu_consultar_comp" value="Consultar Comprobantes&#xa;Emitidos" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="550" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline Secuencial de Previsualización e Impresión -->
+        <mxCell id="cu_ver_detalle" value="Previsualizar Detalle&#xa;de Comprobante / Ticket" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="552" width="165" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_imprimir" value="Imprimir Comprobante&#xa;Físico (Ticket)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="552" width="165" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Auditoría de Correlatividad -->
+        <mxCell id="cu_auditar_correlatividad" value="Auditar Correlatividad&#xa;y Desglose de Ventas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="680" width="165" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 6. RELACIONES Y ASOCIACIONES (100% SIN CRUCES)           -->
+        <!-- ======================================================== -->
+
+        <!-- Asociaciones de Actores -->
+        <mxCell id="rel_empleado_emitir" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_empleado" target="cu_emitir_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_empleado_consultar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_empleado" target="cu_consultar_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_consultar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_consultar_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_auditar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_auditar_correlatividad">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Inclusiones Obligatorias de Emisión -->
+        <mxCell id="rel_include_duplicidad" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_emitir_comp" target="cu_validar_no_duplicado">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_numero" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_emitir_comp" target="cu_generar_numero">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> desde los 4 Tipos hacia Generar Numeración -->
+        <!-- Regla UML: El caso de extensión apunta al caso base -->
+        <mxCell id="rel_extend_fa" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipoComp == 'Factura A']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_factura_a" target="cu_generar_numero">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_fb" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipoComp == 'Factura B']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_factura_b" target="cu_generar_numero">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_fc" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipoComp == 'Factura C']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_factura_c" target="cu_generar_numero">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_tk" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipoComp == 'Ticket']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ticket" target="cu_generar_numero">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> en Sección de Consulta e Impresión -->
+        <mxCell id="rel_extend_ver" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Selección de comprobante]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ver_detalle" target="cu_consultar_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_imprimir" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Acción de impresión]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_imprimir" target="cu_ver_detalle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_auditar" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_auditar_correlatividad" target="cu_consultar_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

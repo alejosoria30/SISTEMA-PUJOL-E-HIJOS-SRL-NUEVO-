@@ -1,0 +1,205 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T19:50:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_productos_stock_pujol" name="Módulo 2 - Productos y Stock (Pujol e Hijos SRL)">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="960" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================================================== -->
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR)               -->
+        <!-- ======================================================== -->
+        <mxCell id="boundary" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1020" height="880" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (SOBRE EL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Productos y Stock&#xa;(Pujol e Hijos S.R.L.)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="480" y="16" width="220" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 3. ACTORES EXTERNOS INDEPENDIENTES                        -->
+        <!-- ======================================================== -->
+        <!-- Empleado / Cajero (Superior Izquierda) -->
+        <mxCell id="actor_empleado" value="Empleado&#xa;(Vendedor / Cajero)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="150" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Administrador (Inferior Izquierda) -->
+        <mxCell id="actor_admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="550" width="40" height="80" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 4. CASOS DE USO CON JERARQUÍA Y PROFUNDIDAD              -->
+        <!-- ======================================================== -->
+
+        <!-- BLOQUE 1: CONSULTA DE CATÁLOGO Y ALERTAS OPERATIVAS -->
+        <!-- Caso Base Destacado -->
+        <mxCell id="cu_consultar_catalogo" value="&lt;b&gt;Consultar Catálogo&lt;/b&gt;&#xa;&lt;b&gt;de Bebidas&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="155" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Extensiones en Abanico (Columna Intermedia) -->
+        <mxCell id="cu_filtrar_cat" value="Filtrar por Categoría&#xa;de Bebida" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="70" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ver_detalle" value="Ver Detalle de&#xa;Bebida y Stock" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="160" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_alerta_stock" value="Notificar Alerta de&#xa;Stock Crítico" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="245" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Extensión Secundaria en Profundidad (Columna Derecha) -->
+        <mxCell id="cu_bloquear_checkout" value="Visualizar Badge de&#xa;Alerta en Terminal POS" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="245" width="165" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- BLOQUE 2: REGISTRO Y PARÁMETROS DE STOCK (ADMIN) -->
+        <!-- Caso Base Destacado -->
+        <mxCell id="cu_crear_producto" value="&lt;b&gt;Registrar Nueva Bebida&lt;/b&gt;&#xa;&lt;i&gt;(Código BEB-XXX)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="390" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Inclusiones Duales de Alta (Columna Intermedia) -->
+        <mxCell id="cu_validar_codigo" value="Validar Unicidad de&#xa;Código de Bebida" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="355" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_stock_minimo" value="Configurar Umbral de&#xa;Stock Mínimo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="430" width="160" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- BLOQUE 3: MODIFICACIÓN Y AJUSTE RÁPIDO DE PRECIOS -->
+        <!-- Caso Base Destacado -->
+        <mxCell id="cu_modificar_producto" value="&lt;b&gt;Modificar Datos&lt;/b&gt;&#xa;&lt;b&gt;de Producto&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="550" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Ajuste Rápido y Sincronización en Profundidad -->
+        <mxCell id="cu_ajustar_precio" value="Ajustar Precio&#xa;Unitario Rápido" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="555" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_actualizar_inventario" value="Sincronizar Precio&#xa;en Catálogo General" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="555" width="165" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- BLOQUE 4: BAJA LÓGICA Y PROTECCIÓN HISTÓRICA -->
+        <!-- Caso Base Destacado -->
+        <mxCell id="cu_baja_producto" value="&lt;b&gt;Dar de Baja Lógica&lt;/b&gt;&#xa;&lt;b&gt;a Producto&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="710" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Verificación e Inactivación (Columna Intermedia) -->
+        <mxCell id="cu_verificar_ventas" value="Verificar Historial en&#xa;Detalle de Venta" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="675" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_soft_delete" value="Ejecutar Inactivación&#xa;&lt;i&gt;(Soft Delete)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="750" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Garantía de Integridad en Profundidad (Columna Derecha) -->
+        <mxCell id="cu_preservar_comprobantes" value="Preservar Integridad&#xa;de Comprobantes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="750" width="165" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 5. RELACIONES, ASOCIACIONES Y DEPENDENCIAS               -->
+        <!-- ======================================================== -->
+
+        <!-- ASOCIACIONES DE ACTORES A CASOS BASE -->
+        <!-- Empleado -> Consultar Catálogo -->
+        <mxCell id="rel_empleado_consultar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_empleado" target="cu_consultar_catalogo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Administrador -> Casos de Gestión -->
+        <mxCell id="rel_admin_crear" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_crear_producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_modificar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_modificar_producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_baja" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_baja_producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- RELACIONES DE BLOQUE 1 (CONSULTA) -->
+        <!-- <<extend>> Filtrar -> Consultar -->
+        <mxCell id="rel_extend_filtrar" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Criterio seleccionado]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_filtrar_cat" target="cu_consultar_catalogo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<extend>> Ver Detalle -> Consultar -->
+        <mxCell id="rel_extend_detalle" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ver_detalle" target="cu_consultar_catalogo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<extend>> Alerta Stock -> Consultar -->
+        <mxCell id="rel_extend_alerta" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[stockActual &amp;lt;= stockMinimo]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_alerta_stock" target="cu_consultar_catalogo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Alerta Stock -> Badge POS -->
+        <mxCell id="rel_include_alerta_pos" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_alerta_stock" target="cu_bloquear_checkout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- RELACIONES DE BLOQUE 2 (REGISTRO) -->
+        <!-- <<include>> Registrar -> Validar Código -->
+        <mxCell id="rel_include_codigo" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_crear_producto" target="cu_validar_codigo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Registrar -> Configurar Stock Mínimo -->
+        <mxCell id="rel_include_stock" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_crear_producto" target="cu_stock_minimo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- RELACIONES DE BLOQUE 3 (MODIFICACIÓN Y PRECIOS) -->
+        <!-- <<extend>> Ajustar Precio -> Modificar Producto -->
+        <mxCell id="rel_extend_precio" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Ajuste modal directo]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ajustar_precio" target="cu_modificar_producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Ajustar Precio -> Sincronizar Catálogo -->
+        <mxCell id="rel_include_sincronizar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ajustar_precio" target="cu_actualizar_inventario">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- RELACIONES DE BLOQUE 4 (BAJA LÓGICA) -->
+        <!-- <<include>> Baja Lógica -> Verificar Ventas Previas -->
+        <mxCell id="rel_include_ventas" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_baja_producto" target="cu_verificar_ventas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<extend>> Soft Delete -> Baja Lógica -->
+        <mxCell id="rel_extend_soft" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Tiene ventas previas]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_soft_delete" target="cu_baja_producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Soft Delete -> Preservar Comprobantes -->
+        <mxCell id="rel_include_preservar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_soft_delete" target="cu_preservar_comprobantes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

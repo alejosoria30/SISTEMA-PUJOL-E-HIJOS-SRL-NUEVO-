@@ -1,0 +1,75 @@
+@startuml 05_modulo_caja_rendiciones
+title Módulo de Caja y Rendiciones - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Empleado\n(Cajero)" as Cajero
+actor "Administrador" as Admin
+
+Admin -up-|> Cajero : "Generalización"
+
+rectangle "Subsistema de Caja y Rendiciones" {
+    usecase "Abrir Turno de Caja" as CU_AbrirTurno
+    usecase "Consultar Saldo en Tiempo Real" as CU_ConsultarSaldo
+    usecase "Registrar Movimiento Manual de Caja" as CU_RegistrarMovCaja
+    usecase "Registrar Ingreso Extraordinario\n(Cobranza / Aporte)" as CU_IngresoExtra
+    usecase "Registrar Egreso de Caja\n(Gastos Operativos / Retiros)" as CU_Egreso
+    usecase "Cerrar Turno de Caja y Rendición" as CU_CerrarTurno
+    usecase "Calcular Diferencia de Arqueo\n(Sobrante / Faltante)" as CU_Arqueo
+    usecase "Auditar Rendición y Diferencias" as CU_AuditarRendicion
+}
+
+Cajero --> CU_AbrirTurno
+Cajero --> CU_ConsultarSaldo
+Cajero --> CU_RegistrarMovCaja
+Cajero --> CU_CerrarTurno
+
+Admin --> CU_AuditarRendicion
+
+' Especialización de movimientos de caja
+CU_IngresoExtra -up-|> CU_RegistrarMovCaja
+CU_Egreso -up-|> CU_RegistrarMovCaja
+
+' Inclusión obligatoria
+CU_CerrarTurno .> CU_Arqueo : "<<include>>"
+
+note right of CU_AbrirTurno
+  <b>Validación de Negocio:</b>
+  Ruta: POST /caja/abrir
+  Controla que no exista un turno previo abierto
+  en la tabla 'caja_turnos' antes de permitir la apertura.
+end note
+
+note right of CU_CerrarTurno
+  <b>Trazabilidad Técnica:</b>
+  • <b>Frontend:</b> CajaComponent (caja.component.ts) -> StateService.cerrarCaja()
+  • <b>Ruta Backend:</b> POST /caja/cerrar
+  • <b>Despachador:</b> api/index.php (Líneas 988-1001)
+  • <b>Campos actualizados:</b> fechaCierre = NOW(),
+    montoFinal, diferencia, estadoTurno = 'Cerrado'
+end note
+
+note bottom of CU_AuditarRendicion
+  El Administrador supervisa las discrepancias
+  entre el efectivo físico ingresado y el saldo
+  teórico calculado por el sistema.
+end note
+
+@enduml

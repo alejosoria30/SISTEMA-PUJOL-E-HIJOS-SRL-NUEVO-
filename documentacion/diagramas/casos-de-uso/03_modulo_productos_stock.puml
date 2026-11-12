@@ -1,0 +1,70 @@
+@startuml 03_modulo_productos_stock
+title Módulo de Productos y Stock - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Administrador" as Admin
+actor "Empleado\n(Vendedor / Cajero)" as Empleado
+
+Admin -up-|> Empleado : "Generalización"
+
+rectangle "Subsistema de Catálogo de Bebidas y Stock" {
+    usecase "Consultar Catálogo de Bebidas" as CU_ConsultarCatalogo
+    usecase "Filtrar por Categoría de Bebida\n(Gaseosas, Aguas, Jugos, Isotónicas)" as CU_FiltrarCat
+    usecase "Registrar Nueva Bebida" as CU_CrearProducto
+    usecase "Modificar Datos de Producto" as CU_ModificarProducto
+    usecase "Ajustar Precio Unitario Rápido" as CU_AjustarPrecio
+    usecase "Dar de Baja Lógica a Producto" as CU_BajaProducto
+    usecase "Configurar Umbral de Stock Mínimo" as CU_StockMinimo
+    usecase "Notificar Alerta de Stock Crítico" as CU_AlertaStock
+}
+
+Empleado --> CU_ConsultarCatalogo
+
+Admin --> CU_CrearProducto
+Admin --> CU_ModificarProducto
+Admin --> CU_AjustarPrecio
+Admin --> CU_BajaProducto
+Admin --> CU_StockMinimo
+
+' Relaciones de Extensión
+CU_FiltrarCat .> CU_ConsultarCatalogo : "<<extend>>\n[Criterio de filtro seleccionado]"
+CU_AlertaStock .> CU_ConsultarCatalogo : "<<extend>>\n[Si stockActual <= stockMinimo]"
+
+' Inclusiones
+CU_CrearProducto .> CU_StockMinimo : "<<include>>"
+
+note right of CU_CrearProducto
+  <b>Trazabilidad Técnica:</b>
+  • <b>Frontend:</b> CatalogoComponent (catalogo.component.ts) -> StateService.saveStockItem()
+  • <b>Ruta Backend:</b> POST /productos
+  • <b>Despachador:</b> api/index.php (Líneas 520-566)
+  • <b>Tablas afectadas:</b> productos, inventario
+  • <b>Validación:</b> Nombre obligatorio, transaccionalidad PDO
+end note
+
+note left of CU_BajaProducto
+  <b>Regla de Integridad Referencial:</b>
+  Si el producto registra ventas previas en 'detalle_venta',
+  se protege la integridad histórica ejecutando Soft Delete:
+  UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?
+end note
+
+@enduml

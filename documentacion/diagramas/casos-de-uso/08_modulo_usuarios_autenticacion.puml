@@ -1,0 +1,97 @@
+@startuml 08_modulo_usuarios_autenticacion
+title Módulo de Usuarios, Seguridad y Autenticación - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Usuario / Cliente" as Usuario
+actor "Administrador" as Admin
+actor "Google OAuth 2.0 API\n<<Sistema Externo>>" as GoogleAuth <<External>>
+
+Admin -up-|> Usuario : "Generalización"
+
+rectangle "Subsistema de Autenticación y Control de Accesos (RBAC)" {
+    ' Track de Autenticación y Perfil
+    usecase "Iniciar Sesión Tradicional\n(Email/Usuario y Contraseña)" as CU_Login
+    usecase "Iniciar Sesión con Google OAuth" as CU_LoginGoogle
+    usecase "Verificar Credencial con\nGoogle UserInfo API" as CU_ValidarGoogle
+    usecase "Emitir Token de Sesión JWT\n(verify_token)" as CU_EmitirJWT
+    usecase "Consultar Perfil Autenticado\n(JWT)" as CU_GetProfile
+    usecase "Validar Firma y Expiración\n(Authorization Bearer)" as CU_ValidarBearer
+    
+    ' Track de Registro Seguro
+    usecase "Registrar Nueva Cuenta\n(Validación 14-105 años)" as CU_Registro
+    usecase "Validar Requisitos de Seguridad y Edad" as CU_ValidarSeguridad
+    usecase "Hashear Contraseña con BCRYPT" as CU_HashBcrypt
+    
+    ' Track de Administración RBAC
+    usecase "Administrar Usuarios del Sistema\n(Alta y Edición)" as CU_AdminUsuarios
+    usecase "Desactivar Cuenta de Usuario\n(estadoUsu = 'Inactivo')" as CU_BajaUsuario
+    usecase "Sincronizar Datos Fiscales\n(Tabla persona / Trigger)" as CU_SincronizarPersona
+    usecase "Administrar Roles del Sistema (RBAC)" as CU_AdminRoles
+    usecase "Configurar Permisos Granulares\n(Ver, Crear, Modificar, Borrar)" as CU_ConfigPermisos
+    usecase "Sincronizar Matriz en\nTabla rol_permiso" as CU_SincronizarMatriz
+}
+
+' Asociaciones de Usuario
+Usuario --> CU_Login
+Usuario --> CU_LoginGoogle
+Usuario --> CU_GetProfile
+Usuario --> CU_Registro
+
+' Inclusiones de Autenticación
+CU_Login .> CU_EmitirJWT : "<<include>>"
+CU_LoginGoogle .> CU_EmitirJWT : "<<include>>"
+CU_LoginGoogle .> CU_ValidarGoogle : "<<include>>"
+CU_ValidarGoogle -- GoogleAuth
+CU_GetProfile .> CU_ValidarBearer : "<<include>>"
+
+' Inclusiones de Registro
+CU_Registro .> CU_ValidarSeguridad : "<<include>>"
+CU_Registro .> CU_HashBcrypt : "<<include>>"
+
+' Asociaciones de Administrador
+Admin --> CU_AdminUsuarios
+Admin --> CU_AdminRoles
+
+' Extensiones e Inclusiones de Administración
+CU_BajaUsuario .> CU_AdminUsuarios : "<<extend>>\n[Solicitud de baja]"
+CU_AdminUsuarios .> CU_SincronizarPersona : "<<include>>"
+CU_AdminRoles .> CU_ConfigPermisos : "<<include>>"
+CU_ConfigPermisos .> CU_SincronizarMatriz : "<<include>>"
+
+note right of CU_Registro
+  <b>RESPUESTA CLAVE PARA EL EXAMEN (RegisteredUserController):</b>
+  En este proyecto <b>NO existe RegisteredUserController</b> de Laravel Breeze.
+  El registro fue programado <b>íntegramente por el equipo</b> en:
+  • <b>Backend:</b> api/index.php (bloque POST /auth/register, líneas 101-197)
+  • <b>Frontend:</b> RegistrationComponent -> AuthHTTPService.createUser()
+  • <b>Seguridad:</b> password_hash($password, PASSWORD_DEFAULT)
+  • <b>Tablas afectadas:</b> usuario + persona (sincronizada vía trigger MySQL)
+end note
+
+note bottom of GoogleAuth
+  <b>Detalle del Servicio Externo:</b>
+  Endpoint Google: https://www.googleapis.com/oauth2/v3/userinfo
+  Envía: accessToken en header Authorization: Bearer
+  Retorna: email, given_name, family_name, email_verified
+  Manejo: Si no existe el usuario en la BD de Pujol, se crea automáticamente.
+end note
+
+@enduml

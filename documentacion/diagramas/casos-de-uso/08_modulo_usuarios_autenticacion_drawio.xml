@@ -1,0 +1,211 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T21:10:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_usuarios_autenticacion_pujol" name="Módulo 7 - Seguridad, Usuarios y RBAC (Pujol e Hijos SRL)">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="880" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================================================== -->
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR)               -->
+        <!-- ======================================================== -->
+        <mxCell id="boundary" value="" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="90" y="30" width="940" height="800" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (SOBRE EL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Seguridad, Usuarios y RBAC&#xa;(Pujol e Hijos S.R.L.)" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="410" y="16" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 3. ACTORES (BILATERALES: HUMANOS A LA IZQ / GOOGLE A DER)-->
+        <!-- ======================================================== -->
+        <!-- Usuario / Cliente (Autoservicio) -->
+        <mxCell id="actor_usuario" value="Usuario / Cliente&#xa;(Autoservicio)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="195" width="45" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Administrador RBAC -->
+        <mxCell id="actor_admin" value="Administrador&#xa;(Gestión RBAC)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="625" width="45" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Google OAuth 2.0 API (Sistema Externo - Derecha) -->
+        <mxCell id="actor_google" value="Google OAuth 2.0 API&#xa;&amp;lt;&amp;lt;Sistema Externo&amp;gt;&amp;gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="145" width="50" height="85" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 4. PISTA SUPERIOR: AUTENTICACIÓN Y PERFIL                 -->
+        <!-- ======================================================== -->
+        <!-- Iniciar Sesión Tradicional -->
+        <mxCell id="cu_login_tradicional" value="Iniciar Sesión Tradicional&#xa;&lt;i&gt;(Email / Contraseña)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="60" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Emisión Centralizada de Token JWT -->
+        <mxCell id="cu_emitir_jwt" value="Emitir Token de Sesión JWT&#xa;&lt;i&gt;(verify_token)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="60" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Iniciar Sesión con Google OAuth -->
+        <mxCell id="cu_login_google" value="Iniciar Sesión&#xa;con Google OAuth" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="160" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Validación Externa de Token Google -->
+        <mxCell id="cu_validar_google" value="Verificar Credencial con&#xa;Google UserInfo API" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="160" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Perfil Autenticado -->
+        <mxCell id="cu_get_profile" value="Consultar Perfil&#xa;Autenticado (JWT)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="260" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Validación Bearer Token -->
+        <mxCell id="cu_validar_bearer" value="Validar Firma y Expiración&#xa;&lt;i&gt;(Authorization Bearer)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="260" width="180" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 5. PISTA MEDIA: REGISTRO PÚBLICO Y SEGURIDAD              -->
+        <!-- ======================================================== -->
+        <!-- Registrar Nueva Cuenta -->
+        <mxCell id="cu_registro" value="&lt;b&gt;Registrar Nueva Cuenta&lt;/b&gt;&#xa;&lt;i&gt;(Validación 14-105 años)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="375" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Inclusiones de Registro Seguro -->
+        <mxCell id="cu_validar_seguridad" value="Validar Edad, CUIL&#xa;y Unicidad de Correo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="345" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_hash_bcrypt" value="Hashear Contraseña&#xa;&lt;i&gt;(password_hash BCRYPT)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="420" width="180" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 6. PISTA INFERIOR: GESTIÓN DE USUARIOS Y ROLES RBAC       -->
+        <!-- ======================================================== -->
+        <!-- Caso Base: Administrar Usuarios -->
+        <mxCell id="cu_admin_usuarios" value="&lt;b&gt;Administrar Usuarios&lt;/b&gt;&#xa;&lt;i&gt;(Alta / Modificación)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="540" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Ramificación Superior: Baja Lógica -->
+        <mxCell id="cu_baja_usuario" value="Desactivar Cuenta&#xa;&lt;i&gt;(estadoUsu = 'Inactivo')&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="500" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Ramificación Inferior: Sincronización Fiscal -->
+        <mxCell id="cu_sincronizar_persona" value="Sincronizar Datos Fiscales&#xa;&lt;i&gt;(Tabla persona / Trigger)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="580" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Caso Base: Administrar Roles RBAC -->
+        <mxCell id="cu_admin_roles" value="&lt;b&gt;Administrar Roles&lt;/b&gt;&#xa;&lt;b&gt;del Sistema (RBAC)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="695" width="170" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Configuración de Permisos Granulares -->
+        <mxCell id="cu_config_permisos" value="Configurar Permisos Granulares&#xa;&lt;i&gt;(Ver, Crear, Editar, Borrar)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="700" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Sincronización de Matriz -->
+        <mxCell id="cu_sincronizar_matriz" value="Sincronizar Matriz en&#xa;Tabla rol_permiso" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="700" y="700" width="180" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 7. RELACIONES Y ASOCIACIONES (100% SIN CRUCES)           -->
+        <!-- ======================================================== -->
+
+        <!-- Asociaciones de Usuario / Cliente -->
+        <mxCell id="rel_usuario_login" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_usuario" target="cu_login_tradicional">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_usuario_google" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_usuario" target="cu_login_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_usuario_profile" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_usuario" target="cu_get_profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_usuario_registro" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_usuario" target="cu_registro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<include>> Inicios de Sesión hacia Emitir JWT -->
+        <mxCell id="rel_include_jwt_trad" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_login_tradicional" target="cu_emitir_jwt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_jwt_google" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_login_google" target="cu_emitir_jwt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Validación Externa Google -->
+        <mxCell id="rel_include_validar_google" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_login_google" target="cu_validar_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Asociación con Google OAuth 2.0 API (Línea Sólida Estándar UML 2.x, Sin Flecha) -->
+        <mxCell id="rel_google_delegate" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="cu_validar_google" target="actor_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Perfil Autenticado -->
+        <mxCell id="rel_include_bearer" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_get_profile" target="cu_validar_bearer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> Registro Seguro (Bifurcación Limpia) -->
+        <mxCell id="rel_include_validar_seg" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_registro" target="cu_validar_seguridad">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_hash" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_registro" target="cu_hash_bcrypt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Asociaciones de Administrador RBAC -->
+        <mxCell id="rel_admin_usuarios" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_admin_usuarios">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_roles" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_admin_roles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<extend>> y <<include>> en Gestión de Usuarios (Bifurcación en V, CERO cruces) -->
+        <mxCell id="rel_extend_baja" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Solicitud de baja]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_baja_usuario" target="cu_admin_usuarios">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_persona" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_admin_usuarios" target="cu_sincronizar_persona">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- <<include>> en Gestión de Roles RBAC (Pipeline Horizontal) -->
+        <mxCell id="rel_include_permisos" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_admin_roles" target="cu_config_permisos">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_matriz" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_config_permisos" target="cu_sincronizar_matriz">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

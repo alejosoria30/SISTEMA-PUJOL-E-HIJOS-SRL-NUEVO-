@@ -1,0 +1,267 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T18:45:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="diagrama_general_pujol" name="01 - Diagrama General Pujol e Hijos">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1750" pageHeight="1250" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- LÍMITE DEL SISTEMA (SYSTEM BOUNDARY) -->
+        <mxCell id="boundary" value="Sistema de Gestión &quot;Pujol e Hijos S.R.L.&quot; (Distribuidora Mayorista de Bebidas)" style="swimlane;startSize=35;fillColor=#F8FAFC;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=14;fontFamily=Segoe UI;rounded=1;arcSize=4;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="340" y="60" width="1020" height="1100" as="geometry" />
+        </mxCell>
+
+        <!-- SUB-PAQUETES VISUALES DENTRO DEL SISTEMA -->
+        <!-- 1. Seguridad y Accesos -->
+        <mxCell id="grp_sec" value="Módulo de Seguridad, Autenticación y RBAC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;strokeWidth=1;arcSize=6;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=11;fontColor=#475569;" vertex="1" parent="boundary">
+          <mxGeometry x="30" y="50" width="960" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Catálogo y Stock -->
+        <mxCell id="grp_stock" value="Módulo de Productos, Catálogo de Bebidas y Stock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;strokeWidth=1;arcSize=6;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=11;fontColor=#475569;" vertex="1" parent="boundary">
+          <mxGeometry x="30" y="230" width="960" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Ventas y Facturación -->
+        <mxCell id="grp_ventas" value="Módulo de Ventas y Facturación Mostrador" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;strokeWidth=1;arcSize=6;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=11;fontColor=#475569;" vertex="1" parent="boundary">
+          <mxGeometry x="30" y="480" width="960" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Caja y Tesorería -->
+        <mxCell id="grp_caja" value="Módulo de Caja, Movimientos y Rendiciones (Arqueo)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;strokeWidth=1;arcSize=6;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=11;fontColor=#475569;" vertex="1" parent="boundary">
+          <mxGeometry x="30" y="710" width="960" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Comprobantes y Reportes -->
+        <mxCell id="grp_comp" value="Módulo de Comprobantes Fiscales y Reportes de Auditoría" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#CBD5E1;strokeWidth=1;arcSize=6;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=11;fontColor=#475569;" vertex="1" parent="boundary">
+          <mxGeometry x="30" y="910" width="960" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- CASOS DE USO (ÓVALOS) -->
+        <!-- Módulo Seguridad -->
+        <mxCell id="cu_login" value="Iniciar Sesión con&#xa;Credenciales" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="90" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_login_google" value="Iniciar Sesión con&#xa;Google OAuth" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="240" y="90" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_registro" value="Registrar Cuenta&#xa;de Usuario" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="148" width="160" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_admin_usr" value="Administrar Usuarios&#xa;(Alta / Edición / Baja)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="540" y="90" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_admin_roles" value="Administrar Roles&#xa;y Permisos (RBAC)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="750" y="90" width="180" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Módulo Productos y Stock -->
+        <mxCell id="cu_consultar_cat" value="Consultar Catálogo&#xa;de Bebidas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="270" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_filtrar_cat" value="Filtrar por Categoría&#xa;(Gaseosas, Aguas, etc.)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="270" y="270" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_gestionar_prod" value="Gestionar Bebidas&#xa;(Alta/Baja/Precios)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="540" y="270" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_mov_stock" value="Registrar Movimiento&#xa;de Stock (Entrada/Salida)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="370" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_impactar_inv" value="Actualizar Saldo&#xa;en Inventario" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="320" y="370" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_auditar_mov" value="Consultar Auditoría&#xa;de Movimientos" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="540" y="370" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Módulo Ventas -->
+        <mxCell id="cu_venta" value="Registrar Venta&#xa;de Bebidas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2.5;fontColor=#0F172A;fontStyle=1;fontSize=12;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="530" width="180" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_desc_vip" value="Aplicar Descuento&#xa;Cliente VIP" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="320" y="515" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_desc_stock" value="Descontar Stock&#xa;Automáticamente" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="320" y="605" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_ingreso_caja" value="Registrar Ingreso&#xa;en Caja Abierta" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="540" y="605" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Módulo Caja y Tesorería -->
+        <mxCell id="cu_abrir_caja" value="Abrir Turno de Caja&#xa;(Fondo Inicial)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="750" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_mov_caja_manual" value="Registrar Movimiento&#xa;Extraordinario Caja" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="260" y="750" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_cerrar_caja" value="Cerrar Turno de Caja&#xa;y Rendición" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="820" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_auditar_arqueo" value="Auditar Diferencias&#xa;de Arqueo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="290" y="820" width="160" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Módulo Comprobantes y Reportes -->
+        <mxCell id="cu_emitir_comp" value="Emitir Comprobante&#xa;(Factura A/B/C/Ticket)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="950" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_imprimir_ticket" value="Previsualizar /&#xa;Imprimir Ticket" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;fontColor=#334155;fontStyle=0;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="270" y="950" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_historial_ventas" value="Consultar Historial&#xa;de Ventas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="1008" width="180" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_metricas" value="Generar Reportes de&#xa;Recaudación por Medio" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#00A3FF;strokeWidth=2;fontColor=#0F172A;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="boundary">
+          <mxGeometry x="540" y="970" width="190" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ACTORES DEL NEGOCIO (FUERA DEL SISTEMA, IZQUIERDA) -->
+        <mxCell id="actor_cliente" value="Cliente" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#E1F5FE;strokeColor=#0288D1;strokeWidth=2;fontColor=#01579B;fontStyle=1;fontSize=12;fontFamily=Segoe UI;" vertex="1" parent="1">
+          <mxGeometry x="110" y="170" width="55" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_empleado" value="Empleado&#xa;(Vendedor / Cajero)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#E1F5FE;strokeColor=#0288D1;strokeWidth=2;fontColor=#01579B;fontStyle=1;fontSize=12;fontFamily=Segoe UI;" vertex="1" parent="1">
+          <mxGeometry x="110" y="550" width="55" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_admin" value="Administrador" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#E1F5FE;strokeColor=#0288D1;strokeWidth=2;fontColor=#01579B;fontStyle=1;fontSize=12;fontFamily=Segoe UI;" vertex="1" parent="1">
+          <mxGeometry x="110" y="930" width="55" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- SISTEMA EXTERNO (DERECHA) -->
+        <mxCell id="actor_google" value="&lt;&lt;Sistema Externo&gt;&gt;&#xa;Google OAuth 2.0 API" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFF3E0;strokeColor=#FB8C00;strokeWidth=2;fontColor=#E65100;fontStyle=1;fontSize=11;fontFamily=Segoe UI;" vertex="1" parent="1">
+          <mxGeometry x="1440" y="170" width="60" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- HERENCIA / GENERALIZACIÓN ENTRE ACTORES -->
+        <mxCell id="gen_emp_cli" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#0288D1;strokeWidth=2;" edge="1" parent="1" source="actor_empleado" target="actor_cliente">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gen_adm_emp" value="" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#0288D1;strokeWidth=2;" edge="1" parent="1" source="actor_admin" target="actor_empleado">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ASOCIACIONES: CLIENTE -->
+        <mxCell id="rel_cli_login" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_cliente" target="cu_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_cli_google" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_cliente" target="cu_login_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_cli_reg" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_cliente" target="cu_registro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_cli_cat" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_cliente" target="cu_consultar_cat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ASOCIACIONES: EMPLEADO -->
+        <mxCell id="rel_emp_cat" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_consultar_cat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_mov" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_mov_stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_venta" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=2;" edge="1" parent="1" source="actor_empleado" target="cu_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_abrir" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_abrir_caja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_cerrar" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_cerrar_caja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_movcaj" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_mov_caja_manual">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_emitir" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_emitir_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_emp_hist" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_empleado" target="cu_historial_ventas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ASOCIACIONES: ADMINISTRADOR -->
+        <mxCell id="rel_adm_usr" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_admin_usr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="960" />
+              <mxPoint x="220" y="220" />
+              <mxPoint x="630" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_adm_roles" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_admin_roles">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="980" />
+              <mxPoint x="200" y="190" />
+              <mxPoint x="840" y="190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_adm_gestprod" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_gestionar_prod">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_adm_auditmov" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_auditar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_adm_arqueo" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_auditar_arqueo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_adm_rep" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="actor_admin" target="cu_metricas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ASOCIACIÓN CON SISTEMA EXTERNO: GOOGLE OAUTH (LÍNEA SÓLIDA ESTÁNDAR UML) -->
+        <mxCell id="rel_google_login" value="" style="endArrow=none;html=1;strokeColor=#334155;strokeWidth=1.5;" edge="1" parent="1" source="cu_login_google" target="actor_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELACIONES <<INCLUDE>>: OBLIGATORIAS (Del Caso A al Caso B) -->
+        <!-- 1. Registrar Movimiento -> Actualizar Inventario -->
+        <mxCell id="inc_mov_inv" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_mov_stock" target="cu_impactar_inv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Registrar Venta -> Descontar Stock -->
+        <mxCell id="inc_venta_stock" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_venta" target="cu_desc_stock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Registrar Venta -> Registrar Ingreso en Caja -->
+        <mxCell id="inc_venta_caja" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_venta" target="cu_ingreso_caja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Cerrar Caja -> Auditar Diferencias -->
+        <mxCell id="inc_cierre_arqueo" value="&lt;&lt;include&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_cerrar_caja" target="cu_auditar_arqueo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RELACIONES <<EXTEND>>: CONDICIONALES (Del Caso B extensor al Caso A base) -->
+        <!-- 1. Descuento VIP extiende a Registrar Venta (Flecha de Descuento VIP a Venta) -->
+        <mxCell id="ext_vip_venta" value="&lt;&lt;extend&gt;&gt;&#xa;[Cliente es VIP]" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_desc_vip" target="cu_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Filtrar Categoría extiende a Consultar Catálogo (Flecha de Filtro a Catálogo) -->
+        <mxCell id="ext_filtro_cat" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_filtrar_cat" target="cu_consultar_cat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Imprimir Ticket extiende a Emitir Comprobante (Flecha de Imprimir a Emitir) -->
+        <mxCell id="ext_print_comp" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;endArrow=open;endSize=8;html=1;strokeColor=#475569;strokeWidth=1.5;fontColor=#475569;fontSize=10;fontStyle=2;" edge="1" parent="boundary" source="cu_imprimir_ticket" target="cu_emitir_comp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- NOTA EXPLICATIVA DE ARQUITECTURA -->
+        <mxCell id="nota_limite" value="&lt;b&gt;REGLA DE MODELADO UML 2.x (OMG):&lt;/b&gt;&#xa;• Los frameworks internos (Angular, Metronic, PHP) residen DENTRO del límite del sistema y no son actores.&#xa;• &lt;b&gt;Google OAuth 2.0 API&lt;/b&gt; es un sistema externo real que valida credenciales fuera del límite.&#xa;• Regla de flechas cumplida estrictamente:&#xa;   - &lt;b&gt;&amp;lt;&amp;lt;include&amp;gt;&amp;gt;:&lt;/b&gt; Del Caso Base al Caso Incluido.&#xa;   - &lt;b&gt;&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;:&lt;/b&gt; Del Caso Extensor al Caso Base." style="shape=note;whiteSpace=wrap;html=1;size=14;verticalAlign=top;align=left;spacingLeft=8;spacingTop=6;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#5D4037;fontSize=10;fontFamily=Segoe UI;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="930" width="310" height="150" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

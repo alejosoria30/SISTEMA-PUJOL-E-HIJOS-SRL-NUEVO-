@@ -41,19 +41,21 @@ export class AppComponent implements OnInit {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
-    // Alt + Key shortcuts to navigate sections rapidly in the kitchen
+    // Alt + Key shortcuts to navigate sections rapidly in Pujol e Hijos
     if (event.altKey) {
       let targetRoute = '';
       switch (event.key.toLowerCase()) {
         case 'd': targetRoute = '/dashboard'; break;
         case 's': targetRoute = '/stock'; break;
-        case 'r': targetRoute = '/recetas'; break;
-        case 'e': targetRoute = '/pedidos'; break;
+        case 'c': targetRoute = '/catalogo'; break;
+        case 'p': targetRoute = '/pedidos'; break;
         case 'v': targetRoute = '/ventas'; break;
-        case 'c': targetRoute = '/clientes'; break;
-        case 'm': targetRoute = '/menu-semanal'; break;
-        case 'o': targetRoute = '/recetario-costes'; break;
-        case 'u': targetRoute = '/empleados'; break;
+        case 'j': targetRoute = '/caja'; break;
+        case 'f': targetRoute = '/comprobantes'; break;
+        case 'h': targetRoute = '/historial-ventas'; break;
+        case 'l': targetRoute = '/clientes'; break;
+        case 'e': targetRoute = '/empleados'; break;
+        case 'u': targetRoute = '/apps/users'; break;
       }
       if (targetRoute) {
         event.preventDefault();

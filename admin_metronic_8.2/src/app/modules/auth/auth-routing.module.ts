@@ -19,19 +19,23 @@ const routes: Routes = [
       {
         path: 'login',
         component: LoginComponent,
+        title: 'Iniciar Sesión',
         data: { returnUrl: window.location.pathname },
       },
       {
         path: 'registration',
         component: RegistrationComponent,
+        title: 'Registro',
       },
       {
         path: 'forgot-password',
         component: ForgotPasswordComponent,
+        title: 'Recuperar Contraseña',
       },
       {
         path: 'logout',
         component: LogoutComponent,
+        title: 'Cerrar Sesión',
       },
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: '**', redirectTo: 'login', pathMatch: 'full' },

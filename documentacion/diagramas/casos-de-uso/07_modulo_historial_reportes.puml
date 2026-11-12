@@ -1,0 +1,68 @@
+@startuml 07_modulo_historial_reportes
+title Módulo de Consultas y Reportes - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Administrador" as Admin
+actor "Empleado\n(Supervisor / Vendedor)" as Empleado
+
+Admin -up-|> Empleado : "Generalización"
+
+rectangle "Subsistema de Consultas, Historial y Reportes" {
+    usecase "Consultar Historial de Ventas" as CU_Historial
+    usecase "Filtrar Ventas por Criterios Múltiples" as CU_FiltrarVentas
+    usecase "Visualizar Desglose de Productos Vendidos" as CU_VerDetalleVenta
+    usecase "Calcular Métricas de Recaudación" as CU_Metricas
+    usecase "Calcular Total Facturado Global" as CU_TotalGlobal
+    usecase "Discriminar Recaudación por Medio de Pago\n(Efectivo vs. Transferencia)" as CU_MedioPago
+    usecase "Imprimir Reporte Comercial" as CU_ImprimirReporte
+}
+
+Empleado --> CU_Historial
+Empleado --> CU_VerDetalleVenta
+
+Admin --> CU_Metricas
+Admin --> CU_ImprimirReporte
+
+' Extensiones condicionales
+CU_FiltrarVentas .> CU_Historial : "<<extend>>\n[Búsqueda por texto, fecha, canal o medio de pago]"
+CU_VerDetalleVenta .> CU_Historial : "<<extend>>\n[Selección de registro de venta]"
+CU_ImprimirReporte .> CU_Historial : "<<extend>>\n[Acción de exportación / impresión]"
+
+' Inclusiones analíticas
+CU_Metricas .> CU_TotalGlobal : "<<include>>"
+CU_Metricas .> CU_MedioPago : "<<include>>"
+
+note right of CU_Historial
+  <b>Trazabilidad Técnica:</b>
+  • <b>Frontend:</b> HistorialVentasComponent (historial-ventas.component.ts)
+  • <b>Ruta Backend:</b> GET /ventas
+  • <b>Despachador:</b> api/index.php (Líneas 866-895)
+  • <b>Tablas MySQL:</b> ventas (JOIN detalle_venta, productos, usuario)
+end note
+
+note bottom of CU_Metricas
+  Métricas en memoria calculadas de forma reactiva:
+  - getTotalRevenue(): Sumatoria totalVenta
+  - getTotalCash(): Ventas método 'Efectivo'
+  - getTotalTransfer(): Ventas método 'Transferencia'
+end note
+
+@enduml

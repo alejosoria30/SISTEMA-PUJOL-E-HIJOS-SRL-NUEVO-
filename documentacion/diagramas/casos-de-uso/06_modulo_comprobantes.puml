@@ -1,0 +1,73 @@
+@startuml 06_modulo_comprobantes
+title Módulo de Comprobantes Fiscales - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Empleado\n(Facturador / Vendedor)" as Empleado
+actor "Administrador" as Admin
+
+Admin -up-|> Empleado : "Generalización"
+
+rectangle "Subsistema de Comprobantes Fiscales" {
+    usecase "Emitir Comprobante Fiscal" as CU_EmitirComp
+    usecase "Emitir Factura Tipo A" as CU_FacturaA
+    usecase "Emitir Factura Tipo B" as CU_FacturaB
+    usecase "Emitir Factura Tipo C" as CU_FacturaC
+    usecase "Emitir Ticket de Mostrador" as CU_Ticket
+    usecase "Generar Numeración Legal Única" as CU_GenerarNumero
+    usecase "Consultar Comprobantes Emitidos" as CU_ConsultarComp
+    usecase "Previsualizar Comprobante" as CU_VerDetalle
+    usecase "Imprimir Comprobante Físico" as CU_ImprimirComp
+}
+
+Empleado --> CU_EmitirComp
+Empleado --> CU_ConsultarComp
+
+' Especializaciones por tipo de documento fiscal
+CU_FacturaA -up-|> CU_EmitirComp
+CU_FacturaB -up-|> CU_EmitirComp
+CU_FacturaC -up-|> CU_EmitirComp
+CU_Ticket -up-|> CU_EmitirComp
+
+' Inclusiones obligatorias
+CU_EmitirComp .> CU_GenerarNumero : "<<include>>"
+
+' Extensiones
+CU_VerDetalle .> CU_ConsultarComp : "<<extend>>\n[Selección de comprobante de la lista]"
+CU_ImprimirComp .> CU_VerDetalle : "<<extend>>\n[Acción de impresión solicitada]"
+
+note right of CU_GenerarNumero
+  <b>Regla de Formato en Backend (api/index.php):</b>
+  Prefijos automáticos según tipoComp:
+  • Factura A: 'A-0001-' + idVenta (8 dígitos)
+  • Factura B: 'B-0001-' + idVenta (8 dígitos)
+  • Factura C: 'C-0001-' + idVenta (8 dígitos)
+  • Ticket: 'T-0001-' + idVenta (8 dígitos)
+  Garantiza unicidad de 'numeroComp' en base de datos.
+end note
+
+note bottom of CU_EmitirComp
+  <b>Trazabilidad Técnica:</b>
+  • <b>Frontend:</b> ComprobantesComponent (comprobantes.component.ts)
+  • <b>Ruta Backend:</b> POST /comprobantes
+  • <b>Tabla MySQL:</b> comprobantes (idComp, tipoComp, numeroComp, fechaEmision, idVenta, totalComp)
+end note
+
+@enduml

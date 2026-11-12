@@ -1,0 +1,168 @@
+<mxfile host="app.diagrams.net" modified="2026-10-20T20:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="modulo_movimientos_stock_pujol" name="Módulo 3 - Movimientos de Stock (Pujol e Hijos SRL)">
+    <mxGraphModel dx="1420" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="960" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================================================== -->
+        <!-- 1. LÍMITE DEL SISTEMA (RECTÁNGULO EXTERIOR)               -->
+        <!-- ======================================================== -->
+        <mxCell id="boundary" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="1020" height="880" as="geometry" />
+        </mxCell>
+
+        <!-- 2. CAJETÍN DE TÍTULO SUPERIOR (SOBRE EL BORDE) -->
+        <mxCell id="title_box" value="Sistema de Movimientos de Stock&#xa;(Pujol e Hijos S.R.L.)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="470" y="16" width="240" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ======================================================== -->
+        <!-- 3. ACTORES EXTERNOS INDEPENDIENTES                        -->
+        <!-- ======================================================== -->
+        <!-- Administrador / Auditor (Superior Izquierda) -->
+        <mxCell id="actor_admin" value="Administrador&#xa;(Auditoría / Control)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="150" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Empleado de Depósito (Inferior Izquierda) -->
+        <mxCell id="actor_empleado" value="Empleado&#xa;(Encargado de Depósito)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="15" y="520" width="40" height="80" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 4. CASOS DE USO (DISTRIBUCIÓN Y ESTRUCTURA PROPIA)        -->
+        <!-- ======================================================== -->
+
+        <!-- SECCIÓN SUPERIOR: AUDITORÍA Y TRAZABILIDAD DE MOVIMIENTOS -->
+        <!-- Caso Base Destacado -->
+        <mxCell id="cu_consultar_movs" value="&lt;b&gt;Consultar Auditoría&lt;/b&gt;&#xa;&lt;b&gt;de Movimientos&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="155" width="180" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Extensiones en Abanico de Consulta -->
+        <mxCell id="cu_filtrar_tipo" value="Filtrar por Tipo&#xa;&lt;i&gt;(Entrada / Salida / Ajuste)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="80" width="175" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ver_observaciones" value="Visualizar Detalle y&#xa;Usuario Responsable" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="160" width="175" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_exportar_reporte" value="Exportar Registro de&#xa;Movimientos de Depósito" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="240" width="175" height="55" as="geometry" />
+        </mxCell>
+
+
+        <!-- SECCIÓN INFERIOR: OPERATORIA Y TRANSACCIONES DE STOCK -->
+        <!-- Caso Base Principal de Operatoria -->
+        <mxCell id="cu_registrar_mov" value="&lt;b&gt;Registrar Movimiento&lt;/b&gt;&#xa;&lt;b&gt;de Stock&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="170" y="525" width="180" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Tipos de Movimiento Específicos (Columna Intermedia) -->
+        <mxCell id="cu_entrada" value="Registrar Entrada&#xa;de Mercadería&#xa;&lt;i&gt;(Recepción de Packs)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="380" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_salida" value="Registrar Salida&#xa;de Mercadería&#xa;&lt;i&gt;(Mermas / Roturas)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="475" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_ajuste" value="Registrar Ajuste&#xa;de Inventario&#xa;&lt;i&gt;(Auditoría Física)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="570" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Inclusión Central de Impacto -->
+        <mxCell id="cu_impactar_inventario" value="&lt;b&gt;Actualizar Saldo&lt;/b&gt;&#xa;&lt;b&gt;en Inventario&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="460" y="685" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Casos Técnicos en Profundidad (Columna Derecha) -->
+        <mxCell id="cu_validar_disponible" value="Validar Existencia&#xa;de Stock Disponible" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="475" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_transaccion_pdo" value="Ejecutar Transacción ACID&#xa;&lt;i&gt;(Commit / Rollback PDO)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="685" width="175" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu_asentar_auditoria" value="Asentar Auditoría con&#xa;ID Usuario Responsable" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="775" width="175" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ======================================================== -->
+        <!-- 5. RELACIONES, ASOCIACIONES Y DEPENDENCIAS               -->
+        <!-- ======================================================== -->
+
+        <!-- Asociaciones de Actores -->
+        <mxCell id="rel_admin_consultar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_consultar_movs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_empleado_registrar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_empleado" target="cu_registrar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_admin_registrar" value="" style="endArrow=none;strokeColor=#000000;strokeWidth=1;html=1;" edge="1" parent="1" source="actor_admin" target="cu_registrar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> hacia Consultar Auditoría -->
+        <mxCell id="rel_extend_filtrar" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Filtro seleccionado]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_filtrar_tipo" target="cu_consultar_movs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_obs" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ver_observaciones" target="cu_consultar_movs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_exportar" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[Solicitud de reporte]" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_exportar_reporte" target="cu_consultar_movs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<extend>> desde Tipos de Movimiento hacia Registrar Movimiento -->
+        <!-- Regla UML: El caso que extiende apunta hacia el caso base -->
+        <mxCell id="rel_extend_entrada" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipo == 'Entrada']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_entrada" target="cu_registrar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_salida" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipo == 'Salida']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_salida" target="cu_registrar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_extend_ajuste" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;&#xa;[tipo == 'Ajuste']" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_ajuste" target="cu_registrar_mov">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<include>> desde Salida hacia Validar Existencia de Stock -->
+        <mxCell id="rel_include_validar" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_salida" target="cu_validar_disponible">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- <<include>> desde Registrar Movimiento hacia Actualizar Saldo en Inventario -->
+        <!-- Regla UML: Apunta del caso base al caso incluido -->
+        <mxCell id="rel_include_saldo" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_registrar_mov" target="cu_impactar_inventario">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Inclusiones Técnicas desde Actualizar Saldo en Inventario -->
+        <mxCell id="rel_include_pdo" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_impactar_inventario" target="cu_transaccion_pdo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_include_auditoria" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;endFill=0;dashed=1;strokeColor=#000000;strokeWidth=1;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="cu_impactar_inventario" target="cu_asentar_auditoria">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

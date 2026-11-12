@@ -1,0 +1,70 @@
+@startuml 02_modulo_ventas
+title Módulo de Ventas - Pujol e Hijos S.R.L.
+subtitle Diagrama de Casos de Uso UML 2.x
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+
+skinparam actor {
+    BackgroundColor #E1F5FE
+    BorderColor #0288D1
+    FontColor #01579B
+}
+
+skinparam usecase {
+    BackgroundColor #F1F8E9
+    BorderColor #558B2F
+    FontColor #1B5E20
+    ArrowColor #37474F
+}
+
+actor "Empleado\n(Vendedor / Cajero)" as Empleado
+actor "Administrador" as Admin
+
+Admin -up-|> Empleado : "Generalización"
+
+rectangle "Subsistema de Ventas" {
+    usecase "Registrar Venta de Bebidas" as CU_Venta
+    usecase "Seleccionar Productos de Bebidas" as CU_SeleccionarProd
+    usecase "Armar Carrito de Venta" as CU_Carrito
+    usecase "Asignar Cliente" as CU_AsignarCliente
+    usecase "Aplicar Descuento Cliente VIP" as CU_DescuentoVIP
+    usecase "Validar Disponibilidad de Stock" as CU_ValidarStock
+    usecase "Descontar Stock en Inventario" as CU_DescontarStock
+    usecase "Registrar Ingreso Automático en Caja" as CU_IngresoCaja
+    usecase "Previsualizar / Imprimir Ticket" as CU_ImprimirTicket
+}
+
+Empleado --> CU_Venta
+
+' Inclusiones obligatorias del flujo transaccional
+CU_Venta .> CU_SeleccionarProd : "<<include>>"
+CU_Venta .> CU_Carrito : "<<include>>"
+CU_Venta .> CU_ValidarStock : "<<include>>"
+CU_Venta .> CU_DescontarStock : "<<include>>"
+CU_Venta .> CU_IngresoCaja : "<<include>>"
+
+' Extensiones condicionales
+CU_AsignarCliente .> CU_Venta : "<<extend>>\n[Venta nominada a cliente registrado]"
+CU_DescuentoVIP .> CU_AsignarCliente : "<<extend>>\n[Cliente con condición isVIP activa]"
+CU_ImprimirTicket .> CU_Venta : "<<extend>>\n[Finalizada la venta]"
+
+note right of CU_Venta
+  <b>Trazabilidad Técnica:</b>
+  • <b>Frontend:</b> VentasComponent (ventas.component.ts) -> StateService.saveVenta()
+  • <b>Ruta Backend:</b> POST /ventas
+  • <b>Despachador:</b> api/index.php (Líneas 897-945)
+  • <b>Tablas afectadas:</b> ventas, detalle_venta, inventario, movimientos_caja
+  • <b>Transacción:</b> PDO ACID con beginTransaction(), commit() y rollBack()
+end note
+
+note bottom of CU_IngresoCaja
+  <b>Regla de Negocio:</b>
+  Si existe un turno de caja abierto en 'caja_turnos',
+  se genera automáticamente un 'movimientos_caja' con
+  tipo 'Ingreso' y concepto 'Venta #[idVenta]'.
+end note
+
+@enduml
