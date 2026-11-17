@@ -182,8 +182,12 @@ export class CatalogoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.stateService.saveStockItem(this.currentItem);
-    this.closeModal();
+    this.stateService.saveStockItem(this.currentItem, (success) => {
+      if (success) {
+        this.closeModal();
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   // Eliminar Bebida

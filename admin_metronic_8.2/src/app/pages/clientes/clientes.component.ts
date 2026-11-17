@@ -107,8 +107,12 @@ export class ClientesComponent implements OnInit, OnDestroy {
       vipDiscount: this.formIsVIP ? this.formVIPDiscount : 0,
     };
 
-    this.stateService.saveClient(client);
-    this.isModalOpen = false;
+    this.stateService.saveClient(client, (success) => {
+      if (success) {
+        this.isModalOpen = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   viewOrderHistory(client: Client) {

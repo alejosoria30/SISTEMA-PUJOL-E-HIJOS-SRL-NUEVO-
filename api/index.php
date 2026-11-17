@@ -532,9 +532,9 @@ if ($route === '/productos') {
         $input = json_decode(file_get_contents('php://input'), true);
         
         $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $code = $input['code'] ?? null;
-        $name = $input['name'] ?? '';
-        $description = $input['description'] ?? '';
+        $code = !empty($input['code']) ? trim($input['code']) : null;
+        $name = trim($input['name'] ?? '');
+        $description = trim($input['description'] ?? '');
         $price = isset($input['price']) ? (float)$input['price'] : 0.0;
         $quantity = isset($input['quantity']) ? (int)$input['quantity'] : 0;
         $minThreshold = isset($input['minThreshold']) ? (int)$input['minThreshold'] : 0;
@@ -563,6 +563,11 @@ if ($route === '/productos') {
                 $stmt = $pdo->prepare("INSERT INTO productos (codigoProd, nombreProd, descripcionProd, precioUnitario, estadoProd) VALUES (?, ?, ?, ?, 'Activo')");
                 $stmt->execute([$code, $name, $description, $price]);
                 $id = $pdo->lastInsertId();
+
+                if (empty($code)) {
+                    $autoCode = 'BEB-' . str_pad($id, 3, '0', STR_PAD_LEFT);
+                    $pdo->prepare("UPDATE productos SET codigoProd = ? WHERE idProd = ?")->execute([$autoCode, $id]);
+                }
                 
                 $stmtInv = $pdo->prepare("INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)");
                 $stmtInv->execute([$id, $quantity, $minThreshold]);
@@ -583,19 +588,6 @@ if ($route === '/productos') {
         }
         
         try {
-            // Validate if product is used in active sales
-            $stmtCheck = $pdo->prepare("SELECT d.idDetalle FROM detalle_venta d JOIN ventas v ON d.idVenta = v.idVenta WHERE d.idProd = ? AND v.estadoVenta = 'Completada'");
-            $stmtCheck->execute([$id]);
-            
-            if ($stmtCheck->fetch()) {
-                send_response([
-                    "success" => false, 
-                    "message" => "No se puede eliminar el producto porque tiene un historial de ventas asociado. Su estado será cambiado a Inactivo."
-                ], 400); // we could soft-delete but for simplicity we return error and tell them we can't
-                // Or better, just soft delete:
-                // $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?")->execute([$id]);
-            }
-            
             $pdo->beginTransaction();
             $stmt = $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?");
             $stmt->execute([$id]);
@@ -1635,6 +1627,149 @@ if (strpos($route, '/comprobantes') === 0) {
         } catch (Exception $e) {
             $pdo->rollBack();
             send_response(["success" => false, "message" => "Error al emitir comprobante: " . $e->getMessage()], 500);
+        }
+    }
+}
+
+// =============================================================
+// CRUD /clientes (Gestión de Clientes y Fidelización)
+// =============================================================
+if ($route === '/clientes') {
+    if ($method === 'GET') {
+        try {
+            $stmt = $pdo->query("
+                SELECT u.idUsu as id, u.nombreUsu as name, u.apellidoUsu as lastname,
+                       u.correoUsu as email, u.telefonoUsu as phone, u.estadoUsu as status,
+                       p.direccionFiscalPers as extra
+                FROM usuario u
+                LEFT JOIN persona p ON u.idUsu = p.idUsuarioPers
+                WHERE (u.rolUsu = 'Cliente' OR u.idUsu IN (SELECT ur.idUsu FROM usuario_rol ur WHERE ur.idRol = 3))
+                  AND u.estadoUsu = 'Activo'
+                ORDER BY u.idUsu ASC
+            ");
+            $clients = $stmt->fetchAll();
+            $result = [];
+            foreach ($clients as $c) {
+                $extraData = [];
+                if (!empty($c['extra'])) {
+                    $decoded = json_decode($c['extra'], true);
+                    if (is_array($decoded)) {
+                        $extraData = $decoded;
+                    }
+                }
+                $result[] = [
+                    'id' => (int)$c['id'],
+                    'name' => $c['name'],
+                    'lastname' => ($c['lastname'] && $c['lastname'] !== '-') ? $c['lastname'] : '',
+                    'email' => $c['email'],
+                    'phone' => $c['phone'] ?? '',
+                    'points' => isset($extraData['points']) ? (int)$extraData['points'] : 100,
+                    'isVIP' => !empty($extraData['isVIP']),
+                    'vipDiscount' => isset($extraData['vipDiscount']) ? (int)$extraData['vipDiscount'] : 0,
+                    'status' => $c['status']
+                ];
+            }
+            send_response($result);
+        } catch (Exception $e) {
+            send_response(["success" => false, "message" => "Error al consultar clientes: " . $e->getMessage()], 500);
+        }
+    }
+
+    if ($method === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = isset($input['id']) ? (int)$input['id'] : 0;
+        $name = trim($input['name'] ?? '');
+        $lastname = trim($input['lastname'] ?? '');
+        $email = trim($input['email'] ?? '');
+        $phone = trim($input['phone'] ?? '');
+        $points = isset($input['points']) ? (int)$input['points'] : 0;
+        $isVIP = !empty($input['isVIP']);
+        $vipDiscount = isset($input['vipDiscount']) ? (int)$input['vipDiscount'] : 0;
+
+        if (empty($name) || empty($email)) {
+            send_response(["success" => false, "message" => "Nombre y correo son obligatorios"], 400);
+        }
+
+        $extra = json_encode([
+            'points' => $points,
+            'isVIP' => $isVIP,
+            'vipDiscount' => $vipDiscount
+        ]);
+
+        try {
+            $pdo->beginTransaction();
+
+            if ($id > 0) {
+                $stmt = $pdo->prepare("UPDATE usuario SET nombreUsu = ?, apellidoUsu = ?, correoUsu = ?, telefonoUsu = ?, estadoUsu = 'Activo' WHERE idUsu = ?");
+                $stmt->execute([$name, $lastname ?: '-', $email, $phone, $id]);
+
+                $checkP = $pdo->prepare("SELECT idPers FROM persona WHERE idUsuarioPers = ?");
+                $checkP->execute([$id]);
+                if ($checkP->fetch()) {
+                    $stmtP = $pdo->prepare("UPDATE persona SET direccionFiscalPers = ? WHERE idUsuarioPers = ?");
+                    $stmtP->execute([$extra, $id]);
+                } else {
+                    $stmtP = $pdo->prepare("INSERT INTO persona (idUsuarioPers, direccionFiscalPers) VALUES (?, ?)");
+                    $stmtP->execute([$id, $extra]);
+                }
+            } else {
+                $username = preg_replace('/[^a-zA-Z0-9_\.]/', '', explode('@', $email)[0]);
+                $base = $username;
+                $counter = 1;
+                do {
+                    $stmtCheck = $pdo->prepare("SELECT idUsu FROM usuario WHERE usuarioUsu = ?");
+                    $stmtCheck->execute([$username]);
+                    if ($stmtCheck->fetch()) {
+                        $username = $base . $counter++;
+                    } else {
+                        break;
+                    }
+                } while (true);
+
+                $hashedPassword = password_hash('Pujol2026!', PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, 'Activo', 'Cliente')");
+                $stmt->execute([$name, $lastname ?: '-', $email, $username, $hashedPassword, $phone]);
+                $id = (int)$pdo->lastInsertId();
+
+                $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, 3)")->execute([$id]);
+
+                $checkP = $pdo->prepare("SELECT idPers FROM persona WHERE idUsuarioPers = ?");
+                $checkP->execute([$id]);
+                if ($checkP->fetch()) {
+                    $stmtP = $pdo->prepare("UPDATE persona SET direccionFiscalPers = ? WHERE idUsuarioPers = ?");
+                    $stmtP->execute([$extra, $id]);
+                } else {
+                    $stmtP = $pdo->prepare("INSERT INTO persona (idUsuarioPers, direccionFiscalPers) VALUES (?, ?)");
+                    $stmtP->execute([$id, $extra]);
+                }
+            }
+
+            $pdo->commit();
+            send_response(["success" => true, "id" => $id]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            send_response(["success" => false, "message" => "Error al guardar el cliente: " . $e->getMessage()], 500);
+        }
+    }
+
+    if ($method === 'DELETE') {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            send_response(["success" => false, "message" => "ID no proporcionado"], 400);
+        }
+
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare("UPDATE usuario SET estadoUsu = 'Inactivo' WHERE idUsu = ?");
+            $stmt->execute([$id]);
+            $pdo->commit();
+
+            send_response(["success" => true]);
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            send_response(["success" => false, "message" => "Error al eliminar el cliente: " . $e->getMessage()], 500);
         }
     }
 }

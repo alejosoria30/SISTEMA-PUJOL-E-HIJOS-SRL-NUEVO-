@@ -209,6 +209,7 @@ export class StateService {
     this.fetchVentas();
     this.fetchCajaTurno();
     this.fetchComprobantes();
+    this.loadClients();
 
     // 4. Fetch users, roles, permissions from database
     this.loadPermissions();
@@ -430,7 +431,7 @@ export class StateService {
   }
 
   // --- STOCK CRUD ---
-  public saveStockItem(item: StockItem) {
+  public saveStockItem(item: StockItem, callback?: (success: boolean) => void) {
     this.http.post<any>(`${this.API_URL}/productos`, item).subscribe({
       next: (res) => {
         if (res.success) {
@@ -443,28 +444,38 @@ export class StateService {
             list.push(item);
           }
           this.stock$.next(list);
+          if (callback) callback(true);
+        } else {
+          alert('Error: ' + res.message);
+          if (callback) callback(false);
         }
       },
       error: (e) => {
         console.error('Error saving stock item:', e);
-        const errMsg = e.error && e.error.message ? e.error.message : 'Error al guardar el insumo.';
+        const errMsg = e.error && e.error.message ? e.error.message : 'Error al guardar el producto.';
         alert(errMsg);
+        if (callback) callback(false);
       }
     });
   }
 
-  public deleteStockItem(id: number) {
+  public deleteStockItem(id: number, callback?: (success: boolean) => void) {
     this.http.delete<any>(`${this.API_URL}/productos?id=${id}`).subscribe({
       next: (res) => {
         if (res.success) {
           const list = this.stock$.value.filter(s => s.id !== id);
           this.stock$.next(list);
+          if (callback) callback(true);
+        } else {
+          alert('Error: ' + res.message);
+          if (callback) callback(false);
         }
       },
       error: (e) => {
         console.error('Error deleting stock item:', e);
-        const errMsg = e.error && e.error.message ? e.error.message : 'Error al eliminar el insumo.';
+        const errMsg = e.error && e.error.message ? e.error.message : 'Error al eliminar el producto.';
         alert(errMsg);
+        if (callback) callback(false);
       }
     });
   }
@@ -546,28 +557,66 @@ export class StateService {
   }
 
   // --- CLIENTS CRUD ---
-  public saveClient(client: Client) {
-    const list = [...this.clients$.value];
-    if (client.id > 0) {
-      const idx = list.findIndex(c => c.id === client.id);
-      if (idx !== -1) list[idx] = client;
-    } else {
-      client.id = list.length > 0 ? Math.max(...list.map(c => c.id)) + 1 : 1;
-      list.push(client);
-    }
-    this.clients$.next(list);
-    this.saveToStorage();
+  public loadClients() {
+    this.http.get<Client[]>(`${this.API_URL}/clientes`).subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this.clients$.next(data);
+        }
+      },
+      error: (e) => console.error('Error loading clients from DB:', e)
+    });
   }
 
-  public deleteClientLogical(id: number) {
-    const list = [...this.clients$.value];
-    const idx = list.findIndex(c => c.id === id);
-    if (idx !== -1) {
-      // Soft Delete simulation - VIP removed / Points reset, flag deleted
-      list.splice(idx, 1); // For client demo CRUD, we can delete or add soft delete status
-      this.clients$.next(list);
-      this.saveToStorage();
-    }
+  public saveClient(client: Client, callback?: (success: boolean) => void) {
+    this.http.post<any>(`${this.API_URL}/clientes`, client).subscribe({
+      next: (res) => {
+        if (res.success) {
+          client.id = res.id;
+          const list = [...this.clients$.value];
+          const idx = list.findIndex(c => c.id === client.id);
+          if (idx !== -1) {
+            list[idx] = client;
+          } else {
+            list.push(client);
+          }
+          this.clients$.next(list);
+          this.saveToStorage();
+          if (callback) callback(true);
+        } else {
+          alert('Error: ' + res.message);
+          if (callback) callback(false);
+        }
+      },
+      error: (e) => {
+        console.error('Error saving client:', e);
+        const errMsg = e.error && e.error.message ? e.error.message : 'Error al guardar el cliente.';
+        alert(errMsg);
+        if (callback) callback(false);
+      }
+    });
+  }
+
+  public deleteClientLogical(id: number, callback?: (success: boolean) => void) {
+    this.http.delete<any>(`${this.API_URL}/clientes?id=${id}`).subscribe({
+      next: (res) => {
+        if (res.success) {
+          const list = this.clients$.value.filter(c => c.id !== id);
+          this.clients$.next(list);
+          this.saveToStorage();
+          if (callback) callback(true);
+        } else {
+          alert('Error: ' + res.message);
+          if (callback) callback(false);
+        }
+      },
+      error: (e) => {
+        console.error('Error deleting client:', e);
+        const errMsg = e.error && e.error.message ? e.error.message : 'Error al eliminar el cliente.';
+        alert(errMsg);
+        if (callback) callback(false);
+      }
+    });
   }
 
   // --- ORDERS CRUD ---
