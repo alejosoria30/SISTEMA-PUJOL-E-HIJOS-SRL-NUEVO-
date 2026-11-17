@@ -160,6 +160,17 @@
             <span class="text-gray-500 fs-8 fw-bold">{{ item.code || 'S/C' }}</span>
           </div>
 
+          <!-- Imagen del Producto / Packshot Fotorealista -->
+          <div class="text-center py-3 mb-3 rounded-3 d-flex align-items-center justify-content-center pujol-product-img-box" style="background: #F8FAFC; min-height: 170px;">
+            <img
+              [src]="getProductImage(item)"
+              [alt]="item.name"
+              class="h-150px max-w-100 object-fit-contain transition-all hover-scale"
+              (error)="onImageError($event)"
+              loading="lazy"
+            />
+          </div>
+
           <h3 class="fs-5 fw-bold text-gray-900 mb-1">{{ item.name }}</h3>
           <p class="fs-8 text-muted mb-4" style="min-height: 32px;">
             {{ item.description || 'Presentación mayorista estándar de distribuidora' }}
@@ -233,9 +244,14 @@
           <tr *ngFor="let item of filteredStock">
             <td class="ps-6 fw-bold text-gray-700 fs-7">{{ item.code || '-' }}</td>
             <td>
-              <div class="d-flex flex-column">
-                <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
-                <span class="text-muted fs-8">{{ item.description || '-' }}</span>
+              <div class="d-flex align-items-center gap-3">
+                <div class="symbol symbol-45px symbol-2by3 flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200">
+                  <img [src]="getProductImage(item)" [alt]="item.name" class="object-fit-contain w-100 h-100" (error)="onImageError($event)" loading="lazy" />
+                </div>
+                <div class="d-flex flex-column">
+                  <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
+                  <span class="text-muted fs-8">{{ item.description || '-' }}</span>
+                </div>
               </div>
             </td>
             <td>
@@ -303,6 +319,13 @@
           <div class="col-12">
             <label class="form-label fs-7 fw-bold text-gray-700">Descripción / Presentación</label>
             <input type="text" class="form-control form-control-solid" [(ngModel)]="currentItem.description" placeholder="Ej. Pack x 8 unidades, envase vidrio retornable" />
+          </div>
+
+          <div class="col-12 text-center" *ngIf="currentItem.name">
+            <div class="d-inline-flex align-items-center gap-3 p-2 bg-light rounded-2 border">
+              <img [src]="getProductImage(currentItem)" [alt]="currentItem.name" class="h-50px object-fit-contain" (error)="onImageError($event)" />
+              <span class="fs-8 text-muted">Packshot comercial asignado automáticamente</span>
+            </div>
           </div>
 
           <div class="col-md-4">

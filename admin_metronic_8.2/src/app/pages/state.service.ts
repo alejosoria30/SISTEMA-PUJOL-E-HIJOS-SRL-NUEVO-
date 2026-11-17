@@ -35,6 +35,7 @@ export interface StockItem {
   status?: string;
   quantity: number;
   minThreshold: number;
+  image?: string;
 }
 
 export interface RecipeIngredient {
@@ -188,7 +189,7 @@ export class StateService {
       },
       error: (e) => console.error('Error loading stock items:', e)
     });
-    
+
     this.loadMovimientosStock();
 
     // 2. Fetch suppliers from database
@@ -672,7 +673,7 @@ export class StateService {
   // --- CAJA ---
   public cajaTurno$ = new BehaviorSubject<any>(null);
   public cajaMovimientos$ = new BehaviorSubject<any[]>([]);
-  
+
   // --- COMPROBANTES ---
   public comprobantes$ = new BehaviorSubject<any[]>([]);
 
@@ -758,7 +759,7 @@ export class StateService {
     });
   }
 
-  public registrarMovimientoCaja(idTurno: number, tipo: 'Ingreso'|'Egreso', concepto: string, monto: number, callback?: (success: boolean) => void) {
+  public registrarMovimientoCaja(idTurno: number, tipo: 'Ingreso' | 'Egreso', concepto: string, monto: number, callback?: (success: boolean) => void) {
     this.http.post<any>(`${this.API_URL}/caja/movimiento`, { idTurno, tipoMovimiento: tipo, concepto, monto }).subscribe({
       next: (res) => {
         if (res.success) {
@@ -782,7 +783,46 @@ export class StateService {
 
   // Deduct inventory ingredients when a production or sale is registered
   public deductIngredientsForRecipe(productId: number, scaleQty: number) {
-     // Not used in Pujol e Hijos
+    // Not used in Pujol e Hijos
+  }
+
+  // Get matching photorealistic image for a product/beverage
+  public getProductImage(product: StockItem | any | string | null | undefined): string {
+    if (!product) return './assets/media/products/beverages/coca-cola-225.jpg';
+
+    if (typeof product === 'object' && product.image) {
+      return product.image;
+    }
+
+    const name = (
+      typeof product === 'string'
+        ? product
+        : (product.name || product.productName || '')
+    ).toLowerCase();
+
+    const code = (
+      typeof product === 'object'
+        ? (product.code || product.productCode || '')
+        : ''
+    ).toLowerCase();
+
+    if (name.includes('coca') || code.includes('beb-001')) {
+      return './assets/media/products/beverages/coca-cola-225.jpg';
+    }
+    if (name.includes('sprite') || code.includes('beb-002')) {
+      return './assets/media/products/beverages/sprite-225.jpg';
+    }
+    if (name.includes('kin') || name.includes('agua') || code.includes('beb-003')) {
+      return './assets/media/products/beverages/agua-kin-15.jpg';
+    }
+    if (name.includes('cepita') || name.includes('naranja') || name.includes('jugo') || code.includes('beb-004')) {
+      return './assets/media/products/beverages/cepita-naranja-1l.jpg';
+    }
+    if (name.includes('powerade') || name.includes('blast') || name.includes('isoton') || code.includes('beb-005')) {
+      return './assets/media/products/beverages/powerade-azul-500.jpg';
+    }
+
+    return './assets/media/products/beverages/coca-cola-225.jpg';
   }
 }
 

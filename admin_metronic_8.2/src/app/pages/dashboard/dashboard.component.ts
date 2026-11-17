@@ -154,6 +154,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  getProductImage(item: StockItem | any | string): string {
+    return this.stateService.getProductImage(item);
+  }
+
+  onImageError(event: any): void {
+    event.target.src = './assets/media/products/beverages/coca-cola-225.jpg';
+  }
+
   // --- Chart Initializations ---
   
   initSalesChart(labels: string[], data: number[]) {

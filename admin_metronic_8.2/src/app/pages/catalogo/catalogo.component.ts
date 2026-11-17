@@ -217,4 +217,12 @@ export class CatalogoComponent implements OnInit, OnDestroy {
     this.stateService.saveStockItem(updated);
     this.closeQuickPriceModal();
   }
+
+  getProductImage(item: StockItem): string {
+    return this.stateService.getProductImage(item);
+  }
+
+  onImageError(event: any): void {
+    event.target.src = './assets/media/products/beverages/coca-cola-225.jpg';
+  }
 }

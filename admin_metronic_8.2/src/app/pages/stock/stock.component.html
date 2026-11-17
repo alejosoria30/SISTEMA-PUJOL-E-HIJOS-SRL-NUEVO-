@@ -39,7 +39,17 @@
           <tbody>
             <tr *ngFor="let item of stock">
               <td><span class="text-gray-900 fw-bold fs-6">{{ item.code || '-' }}</span></td>
-              <td><span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span></td>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="symbol symbol-45px symbol-2by3 flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200">
+                    <img [src]="getProductImage(item)" [alt]="item.name" class="object-fit-contain w-100 h-100" (error)="onImageError($event)" loading="lazy" />
+                  </div>
+                  <div class="d-flex flex-column">
+                    <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
+                    <span class="text-muted fs-8">{{ item.description || '' }}</span>
+                  </div>
+                </div>
+              </td>
               <td class="text-end text-gray-900 fw-bold fs-6">{{ item.quantity }}</td>
               <td class="text-center">
                 <span *ngIf="item.quantity < item.minThreshold" class="badge badge-light-danger fs-7 fw-bold">
@@ -81,8 +91,15 @@
             <tr *ngFor="let mov of movimientos">
               <td><span class="text-gray-900 fs-6">{{ mov.date | date:'dd/MM/yyyy HH:mm' }}</span></td>
               <td>
-                <span class="text-gray-900 fw-bold fs-6">{{ mov.productName }}</span>
-                <span class="text-muted fs-7 d-block">{{ mov.productCode }}</span>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="symbol symbol-40px symbol-2by3 flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200">
+                    <img [src]="getProductImage(mov)" [alt]="mov.productName" class="object-fit-contain w-100 h-100" (error)="onImageError($event)" loading="lazy" />
+                  </div>
+                  <div>
+                    <span class="text-gray-900 fw-bold fs-6 d-block">{{ mov.productName }}</span>
+                    <span class="text-muted fs-8">{{ mov.productCode || '-' }}</span>
+                  </div>
+                </div>
               </td>
               <td class="text-center">
                 <span class="badge fs-7 fw-bold" 

@@ -171,4 +171,12 @@ export class VentasComponent implements OnInit {
   printAction() {
     window.print();
   }
+
+  getProductImage(product: any): string {
+    return this.stateService.getProductImage(product);
+  }
+
+  onImageError(event: any): void {
+    event.target.src = './assets/media/products/beverages/coca-cola-225.jpg';
+  }
 }
