@@ -420,8 +420,8 @@
 
                   <td class="fw-bold text-gray-800 fs-7">
                     <div class="d-flex align-items-center gap-2">
-                      <div class="symbol symbol-35px symbol-2by3 flex-shrink-0 bg-light p-1 rounded border border-gray-200">
-                        <img [src]="getProductImage(item)" [alt]="item.name" class="object-fit-contain w-100 h-100" (error)="onImageError($event)" loading="lazy" />
+                      <div class="flex-shrink-0 bg-light p-1 rounded border border-gray-200 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px; max-width: 36px; overflow: hidden;">
+                        <img [src]="getProductImage(item)" [alt]="item.name" style="max-width: 100%; max-height: 100%; object-fit: contain;" (error)="onImageError($event)" loading="lazy" />
                       </div>
                       <span>{{ item.name }}</span>
                     </div>
