@@ -154,6 +154,9 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.hasError = true;
         }
       },
+      error_callback: (err: any) => {
+        console.warn('Google Auth callback warning:', err);
+      }
     });
     client.requestAccessToken();
   }

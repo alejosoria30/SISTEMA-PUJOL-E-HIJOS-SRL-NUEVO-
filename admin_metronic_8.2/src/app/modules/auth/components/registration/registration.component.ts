@@ -218,6 +218,9 @@ export class RegistrationComponent implements OnInit, OnDestroy {
           this.errorMessage = 'Acceso cancelado o fallido con Google.';
         }
       },
+      error_callback: (err: any) => {
+        console.warn('Google Auth callback warning:', err);
+      }
     });
     client.requestAccessToken();
   }
