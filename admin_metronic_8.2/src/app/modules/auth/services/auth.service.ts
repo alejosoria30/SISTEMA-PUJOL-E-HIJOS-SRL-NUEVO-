@@ -198,7 +198,25 @@ export class AuthService implements OnDestroy {
       return true;
     }
 
-    const nombres: Record<number,string> = {1:'Acceder al Dashboard',2:'Gestionar Stock',3:'Caja presencial',4:'Comprobantes presenciales',5:'Gestionar Ventas',8:'Ver Historial de Ventas',9:'Modificar Mi Perfil',12:'Catálogo de productos',13:'Clasificación de productos',14:'Cobros QR'};
+    const nombres: Record<number,string> = {
+      1: 'Acceder al Dashboard',
+      2: 'Gestionar Stock',
+      3: 'Caja presencial',
+      4: 'Comprobantes presenciales',
+      5: 'Gestionar Ventas',
+      8: 'Ver Historial de Ventas',
+      9: 'Modificar Mi Perfil',
+      10: 'Caja presencial',
+      11: 'Comprobantes presenciales',
+      12: 'Catálogo de productos',
+      13: 'Clasificación de productos',
+      14: 'Cobros QR',
+      15: 'Ajustar cantidad de stock',
+      16: 'Ver movimientos de stock',
+      17: 'Registrar entradas de stock',
+      18: 'Registrar salidas de stock',
+      19: 'Ver historial de caja'
+    };
     const acciones = {read:'visualizar',create:'crear',update:'modificar',delete:'anular'};
     return Number((user as any).permisos?.[nombres[permissionId]]?.[acciones[action]]) === 1;
   }
