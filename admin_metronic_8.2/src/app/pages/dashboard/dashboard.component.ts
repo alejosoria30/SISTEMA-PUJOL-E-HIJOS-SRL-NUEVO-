@@ -18,6 +18,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   hasta = '';
   cargando = false;
   private consulta?: Subscription;
+  private subs: Subscription[] = [];
 
   constructor(
     private http: HttpClient,
@@ -26,11 +27,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.cargar();
+    const authSub = this.auth.currentUser$.subscribe(user => {
+      if (user && this.auth.hasAction(1)) {
+        this.cargar();
+      }
+    });
+    this.subs.push(authSub);
+
+    if (this.auth.currentUserValue && this.auth.hasAction(1)) {
+      this.cargar();
+    }
   }
 
   ngOnDestroy(): void {
     this.consulta?.unsubscribe();
+    this.subs.forEach(s => s.unsubscribe());
   }
 
   get currentUserFullname(): string {
@@ -42,14 +53,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.auth.hasAction(1);
   }
 
+  onPeriodoChange(nuevoPeriodo: string): void {
+    this.periodo = nuevoPeriodo;
+    if (this.periodo !== 'personalizado') {
+      this.cargar();
+    }
+  }
+
+  onAgruparChange(nuevaAgrupacion: string): void {
+    this.agrupar = nuevaAgrupacion;
+    this.cargar();
+  }
+
+  onFechaChange(): void {
+    if (this.periodo === 'personalizado' && this.desde && this.hasta) {
+      this.cargar();
+    }
+  }
+
   cargar(): void {
+    if (!this.auth.currentUserValue) {
+      return;
+    }
     if (!this.auth.hasAction(1)) {
       this.mensaje = 'Seleccione un módulo habilitado.';
+      this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
     this.consulta?.unsubscribe();
-    this.cargando = true;
-    this.cdr.detectChanges();
 
     if (this.periodo === 'personalizado' && (!this.desde || !this.hasta)) {
       this.mensaje = 'Seleccione las fechas de inicio y fin.';
@@ -58,8 +90,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.cargando = true;
     this.mensaje = '';
-    const params = { periodo: this.periodo, agrupar: this.agrupar, desde: this.desde, hasta: this.hasta };
+    this.cdr.detectChanges();
+
+    const params: any = {
+      periodo: this.periodo,
+      agrupar: this.agrupar
+    };
+    if (this.periodo === 'personalizado') {
+      params.desde = this.desde;
+      params.hasta = this.hasta;
+    }
+
     this.consulta = this.http.get(environment.apiUrl + '/dashboard', { params }).subscribe({
       next: (datos: any) => {
         this.datos = datos;

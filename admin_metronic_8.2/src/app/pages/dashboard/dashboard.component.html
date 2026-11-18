@@ -77,7 +77,10 @@
 </div>
 
 <!-- BARRA DE FILTROS Y PERÍODO -->
-<div class="card mb-8 shadow-sm">
+<div class="card mb-8 shadow-sm position-relative overflow-hidden">
+  <div *ngIf="cargando && datos" class="progress h-3px w-100 position-absolute top-0 start-0">
+    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary w-100"></div>
+  </div>
   <div class="card-body py-4 px-6">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
       <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -85,7 +88,7 @@
           <label class="fs-7 fw-bold text-gray-700 text-nowrap mb-0">
             <app-keenicon name="calendar-8" class="fs-5 text-primary me-1"></app-keenicon>Período:
           </label>
-          <select class="form-select form-select-sm form-select-solid w-175px" [(ngModel)]="periodo" (change)="cargar()">
+          <select class="form-select form-select-sm form-select-solid w-175px" [(ngModel)]="periodo" (ngModelChange)="onPeriodoChange($event)">
             <option value="hoy">Hoy</option>
             <option value="semana">Últimos 7 días</option>
             <option value="treinta">Últimos 30 días</option>
@@ -97,15 +100,15 @@
         <ng-container *ngIf="periodo === 'personalizado'">
           <div class="d-flex align-items-center gap-2">
             <label class="fs-8 text-muted mb-0">Desde:</label>
-            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="desde" (change)="cargar()">
+            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="desde" (ngModelChange)="desde = $event; onFechaChange()">
             <label class="fs-8 text-muted mb-0">Hasta:</label>
-            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="hasta" (change)="cargar()">
+            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="hasta" (ngModelChange)="hasta = $event; onFechaChange()">
           </div>
         </ng-container>
 
         <div class="d-flex align-items-center gap-2">
           <label class="fs-7 fw-bold text-gray-700 text-nowrap mb-0">Agrupar:</label>
-          <select class="form-select form-select-sm form-select-solid w-120px" [(ngModel)]="agrupar" (change)="cargar()">
+          <select class="form-select form-select-sm form-select-solid w-120px" [(ngModel)]="agrupar" (ngModelChange)="onAgruparChange($event)">
             <option value="dia">Por Día</option>
             <option value="semana">Por Semana</option>
             <option value="mes">Por Mes</option>
@@ -122,7 +125,7 @@
   </div>
 </div>
 
-<!-- MENSAJE DE ESTADO / CARGANDO -->
+<!-- MENSAJE DE ESTADO -->
 <div *ngIf="mensaje" class="alert alert-dismissible bg-light-info border border-info border-dashed d-flex flex-column flex-sm-row p-5 mb-8" role="status">
   <app-keenicon name="information-5" class="fs-2hx text-info me-4 mb-5 mb-sm-0"></app-keenicon>
   <div class="d-flex flex-column pe-0 pe-sm-10 justify-content-center">
@@ -130,7 +133,8 @@
   </div>
 </div>
 
-<div *ngIf="cargando" class="text-center py-10">
+<!-- CARGANDO INICIAL -->
+<div *ngIf="cargando && !datos" class="text-center py-10">
   <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
     <span class="visually-hidden">Consultando datos...</span>
   </div>
@@ -138,7 +142,7 @@
 </div>
 
 <!-- CONTENIDO PRINCIPAL DEL DASHBOARD -->
-<ng-container *ngIf="datos && !cargando">
+<ng-container *ngIf="datos">
   <!-- TARJETAS DE INDICADORES CLAVE (KPIS) -->
   <div class="row g-5 g-xl-6 mb-8">
     <!-- FACTURACIÓN TOTAL -->
