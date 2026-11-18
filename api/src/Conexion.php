@@ -7,7 +7,7 @@ final class Conexion {
         $password = getenv('PUJOL_DB_PASSWORD') !== false ? (string)getenv('PUJOL_DB_PASSWORD') : '';
         $host = getenv('PUJOL_DB_HOST') ?: '127.0.0.1';
         $specifiedPort = getenv('PUJOL_DB_PORT') ? (int)getenv('PUJOL_DB_PORT') : null;
-        $ports = $specifiedPort ? [$specifiedPort] : [3307, 3306, 3305];
+        $ports = $specifiedPort ? [$specifiedPort] : [3305, 3307, 3306];
 
         $db = null;
         $lastException = null;
