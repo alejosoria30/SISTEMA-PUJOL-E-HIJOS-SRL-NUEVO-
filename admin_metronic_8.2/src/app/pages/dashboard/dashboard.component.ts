@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -19,7 +19,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   cargando = false;
   private consulta?: Subscription;
 
-  constructor(private http: HttpClient, public auth: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    public auth: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -45,11 +49,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     this.consulta?.unsubscribe();
     this.cargando = true;
+    this.cdr.detectChanges();
+
     if (this.periodo === 'personalizado' && (!this.desde || !this.hasta)) {
       this.mensaje = 'Seleccione las fechas de inicio y fin.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
+
     this.mensaje = '';
     const params = { periodo: this.periodo, agrupar: this.agrupar, desde: this.desde, hasta: this.hasta };
     this.consulta = this.http.get(environment.apiUrl + '/dashboard', { params }).subscribe({
@@ -57,10 +65,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.datos = datos;
         this.mensaje = '';
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: error => {
-        this.mensaje = error.error?.message || 'No se pudieron cargar los indicadores.';
+        this.mensaje = error?.error?.message || 'No se pudieron cargar los indicadores.';
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }
