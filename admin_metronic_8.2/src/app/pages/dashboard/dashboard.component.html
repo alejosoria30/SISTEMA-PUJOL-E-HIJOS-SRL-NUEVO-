@@ -1,16 +1,366 @@
-<header class="d-flex align-items-center flex-wrap gap-3 mb-5"><h1 class="me-auto mb-0">Resumen del comercio</h1>
-<label>Período<select class="form-select form-select-sm" [(ngModel)]="periodo" (change)="cargar()"><option value="hoy">Hoy</option><option value="semana">Últimos 7 días</option><option value="treinta">Últimos 30 días</option><option value="mes">Mes actual</option><option value="personalizado">Rango personalizado</option></select></label>
-<ng-container *ngIf="periodo==='personalizado'"><label>Desde<input class="form-control" type="date" [(ngModel)]="desde" (change)="cargar()"></label><label>Hasta<input class="form-control" type="date" [(ngModel)]="hasta" (change)="cargar()"></label></ng-container>
-<label>Agrupar ventas<select class="form-select form-select-sm" [(ngModel)]="agrupar" (change)="cargar()"><option value="dia">Día</option><option value="semana">Semana</option><option value="mes">Mes</option></select></label></header>
-<p *ngIf="mensaje" role="status">{{mensaje}}</p>
-<ng-container *ngIf="datos"><p class="text-muted">{{datos.desde}} — {{datos.hasta}} · {{datos.zona}}</p>
-<div class="row g-4 mb-4">
-<div class="col-md-4"><article class="card card-body h-100"><h3>Facturación</h3><strong class="fs-2">{{datos.ventas.importe | currency:'ARS'}}</strong><span>Ticket promedio {{datos.ventas.promedio | currency:'ARS'}}</span></article></div>
-<div class="col-md-4"><article class="card card-body h-100"><h3>Operaciones completadas</h3><strong class="fs-2">{{datos.ventas.cantidad}}</strong><span>{{datos.ventas.mayoristas}} mayoristas · {{datos.ventas.minoristas}} minoristas</span></article></div>
-<div class="col-md-4"><article class="card card-body h-100"><h3>Inventario actual</h3><strong class="fs-2">{{datos.stock.activos}} activos</strong><span>{{datos.stock.bajos}} con stock bajo · {{datos.stock.agotados}} agotados</span></article></div>
-<div class="col-lg-6" *ngFor="let g of datos.graficos"><article class="card card-body h-100"><h3>{{g.titulo}}</h3><p *ngIf="!g.filas.length" class="text-muted">Sin operaciones en el período.</p>
-<div style="max-height:22rem;overflow:auto"><div *ngFor="let fila of g.filas" class="mb-3"><div class="d-flex justify-content-between gap-2"><span>{{fila.etiqueta}}</span><strong>{{g.monetario ? (fila.valor | currency:'ARS') : (fila.valor | number:'1.0-3')}}</strong></div><div class="progress h-5px"><div class="progress-bar bg-primary" [style.width.%]="100*fila.valor/g.maximo"></div></div></div></div></article></div>
-<div class="col-lg-6"><article class="card card-body h-100"><h3>Últimas ventas</h3><p *ngFor="let v of datos.ultimas">#{{v.idVenta}} · {{v.fechaVenta}} · {{v.totalVenta | currency:'ARS'}}</p><p *ngIf="!datos.ultimas.length">Sin ventas en el período.</p><a routerLink="/ventas" *ngIf="auth.hasAction(5)">Ir al sistema de ventas</a></article></div>
-<div class="col-lg-6"><article class="card card-body h-100"><h3>Alertas de stock</h3><p *ngFor="let a of datos.alertas">{{a.nombreProd}} · {{a.stockActual | number:'1.0-3'}}</p><p *ngIf="!datos.alertas.length">Sin alertas de stock.</p><a routerLink="/stock" *ngIf="auth.hasAction(2)">Consultar inventario</a></article></div>
-<div class="col-lg-6" *ngIf="auth.hasAction(3)"><article class="card card-body h-100"><h3>{{datos.turno ? 'Caja abierta · Turno #'+datos.turno : 'Caja cerrada'}}</h3><p *ngFor="let m of datos.movimientos">{{m.tipoMovimiento}} · {{m.concepto}} · {{m.monto | currency:'ARS'}}</p><p *ngIf="!datos.movimientos.length">Sin movimientos en el período.</p><a routerLink="/caja">Ir a caja</a></article></div>
-</div></ng-container>
+<!-- ========================================= -->
+<!-- PUJOL E HIJOS - DASHBOARD COMERCIAL       -->
+<!-- Modo Claro & Modo Oscuro Optimizado       -->
+<!-- ========================================= -->
+
+<!-- ENCABEZADO Y SALUDO -->
+<div class="d-flex flex-stack flex-wrap gap-4 mb-8">
+  <div class="d-flex flex-column">
+    <h1 class="text-brand-title fw-bolder fs-2x mb-1">
+      Bienvenido de nuevo, {{ currentUserFullname }}.
+    </h1>
+    <div class="text-muted fw-semibold fs-6">
+      Esto es lo que está sucediendo en <span class="fw-bold text-gray-800">Pujol e Hijos S.R.L.</span> hoy.
+    </div>
+  </div>
+
+  <!-- Estado del sistema -->
+  <div class="d-flex align-items-center gap-2 dashboard-status-badge px-4 py-2 shadow-xs rounded-pill bg-body border">
+    <span class="bullet bullet-dot bg-success h-8px w-8px animate-pulse"></span>
+    <span class="fs-8 fw-bold text-gray-700">Estado del Sistema</span>
+    <span class="badge badge-light-success fs-9 px-2">Activo</span>
+  </div>
+</div>
+
+<!-- ACCIONES RÁPIDAS (ACCESOS DIRECTOS DESTACADOS) -->
+<div class="row g-5 g-xl-6 mb-8">
+  <!-- NUEVA VENTA -->
+  <div class="col-md-4" *ngIf="auth.hasAction(5)">
+    <a routerLink="/ventas"
+       class="card hover-elevate-up pulse-card pujol-primary-action shadow-sm border-0 h-100 min-h-100px d-flex flex-row align-items-center p-5 text-decoration-none">
+      <div class="d-flex align-items-center gap-4">
+        <div class="symbol symbol-45px bg-white bg-opacity-20 d-flex align-items-center justify-content-center pulse-icon"
+             style="width: 48px; height: 48px; border-radius: 12px;">
+          <app-keenicon name="plus" class="fs-1 text-white"></app-keenicon>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-5 fw-bolder text-white">Nueva Venta</span>
+          <span class="fs-8 text-white text-opacity-80">Terminal de cobro inmediato</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- CONTROL DE STOCK -->
+  <div class="col-md-4" *ngIf="auth.hasAction(2)">
+    <a routerLink="/stock"
+       class="card card-brand-warm hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-5 text-decoration-none pujol-action-card-stock">
+      <div class="d-flex align-items-center gap-4">
+        <div class="symbol symbol-45px d-flex align-items-center justify-content-center pujol-action-badge-stock"
+             style="width: 48px; height: 48px; border-radius: 12px;">
+          <app-keenicon name="parcel" class="fs-1 text-primary"></app-keenicon>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-5 fw-bolder pujol-action-title">Control de Stock</span>
+          <span class="fs-8 pujol-action-sub">Consultar existencias y movimientos</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- CATÁLOGO DE BEBIDAS -->
+  <div class="col-md-4" *ngIf="auth.hasAction(12)">
+    <a routerLink="/catalogo"
+       class="card card-brand-warm hover-elevate-up shadow-sm h-100 min-h-100px d-flex flex-row align-items-center p-5 text-decoration-none pujol-action-card-catalog">
+      <div class="d-flex align-items-center gap-4">
+        <div class="symbol symbol-45px d-flex align-items-center justify-content-center pujol-action-badge-catalog"
+             style="width: 48px; height: 48px; border-radius: 12px;">
+          <app-keenicon name="scroll" class="fs-1 text-success"></app-keenicon>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="fs-5 fw-bolder pujol-action-title">Catálogo de Bebidas</span>
+          <span class="fs-8 pujol-action-sub">Precios mayoristas y minoristas</span>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- BARRA DE FILTROS Y PERÍODO -->
+<div class="card mb-8 shadow-sm">
+  <div class="card-body py-4 px-6">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+          <label class="fs-7 fw-bold text-gray-700 text-nowrap mb-0">
+            <app-keenicon name="calendar-8" class="fs-5 text-primary me-1"></app-keenicon>Período:
+          </label>
+          <select class="form-select form-select-sm form-select-solid w-175px" [(ngModel)]="periodo" (change)="cargar()">
+            <option value="hoy">Hoy</option>
+            <option value="semana">Últimos 7 días</option>
+            <option value="treinta">Últimos 30 días</option>
+            <option value="mes">Mes actual</option>
+            <option value="personalizado">Rango personalizado</option>
+          </select>
+        </div>
+
+        <ng-container *ngIf="periodo === 'personalizado'">
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-8 text-muted mb-0">Desde:</label>
+            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="desde" (change)="cargar()">
+            <label class="fs-8 text-muted mb-0">Hasta:</label>
+            <input class="form-control form-control-sm form-control-solid w-130px" type="date" [(ngModel)]="hasta" (change)="cargar()">
+          </div>
+        </ng-container>
+
+        <div class="d-flex align-items-center gap-2">
+          <label class="fs-7 fw-bold text-gray-700 text-nowrap mb-0">Agrupar:</label>
+          <select class="form-select form-select-sm form-select-solid w-120px" [(ngModel)]="agrupar" (change)="cargar()">
+            <option value="dia">Por Día</option>
+            <option value="semana">Por Semana</option>
+            <option value="mes">Por Mes</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="datos" class="badge badge-light-primary fs-7 py-2 px-4 d-flex align-items-center gap-2">
+        <app-keenicon name="time" class="fs-5 text-primary"></app-keenicon>
+        <span>{{ datos.desde }} al {{ datos.hasta }}</span>
+        <span class="text-muted">· {{ datos.zona }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MENSAJE DE ESTADO / CARGANDO -->
+<div *ngIf="mensaje" class="alert alert-dismissible bg-light-info border border-info border-dashed d-flex flex-column flex-sm-row p-5 mb-8" role="status">
+  <app-keenicon name="information-5" class="fs-2hx text-info me-4 mb-5 mb-sm-0"></app-keenicon>
+  <div class="d-flex flex-column pe-0 pe-sm-10 justify-content-center">
+    <span class="fw-semibold text-gray-800">{{ mensaje }}</span>
+  </div>
+</div>
+
+<div *ngIf="cargando" class="text-center py-10">
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+    <span class="visually-hidden">Consultando datos...</span>
+  </div>
+  <div class="text-muted fw-semibold mt-3">Actualizando indicadores del comercio...</div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL DEL DASHBOARD -->
+<ng-container *ngIf="datos && !cargando">
+  <!-- TARJETAS DE INDICADORES CLAVE (KPIS) -->
+  <div class="row g-5 g-xl-6 mb-8">
+    <!-- FACTURACIÓN TOTAL -->
+    <div class="col-md-4">
+      <div class="card card-flush h-100 pujol-kpi-card pujol-kpi-sales shadow-sm hover-elevate-up">
+        <div class="card-header pt-5">
+          <div class="card-title d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between w-100">
+              <span class="fs-6 fw-bold pujol-kpi-label">Facturación Total</span>
+              <div class="pujol-kpi-icon-pill pujol-kpi-icon-sales">
+                <app-keenicon name="wallet" class="fs-2 text-success"></app-keenicon>
+              </div>
+            </div>
+            <span class="fs-2hx fw-bolder text-gray-900 mt-2">{{ datos.ventas.importe | currency:'ARS' }}</span>
+          </div>
+        </div>
+        <div class="card-body pt-0 pb-5">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge badge-light-success fs-8 fw-bold">Ticket promedio</span>
+            <span class="fs-7 fw-semibold text-gray-600">{{ datos.ventas.promedio | currency:'ARS' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPERACIONES COMPLETADAS -->
+    <div class="col-md-4">
+      <div class="card card-flush h-100 pujol-kpi-card pujol-kpi-vip shadow-sm hover-elevate-up">
+        <div class="card-header pt-5">
+          <div class="card-title d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between w-100">
+              <span class="fs-6 fw-bold pujol-kpi-label">Ventas Concretadas</span>
+              <div class="pujol-kpi-icon-pill pujol-kpi-icon-vip">
+                <app-keenicon name="basket" class="fs-2 text-primary"></app-keenicon>
+              </div>
+            </div>
+            <span class="fs-2hx fw-bolder text-gray-900 mt-2">{{ datos.ventas.cantidad }}</span>
+          </div>
+        </div>
+        <div class="card-body pt-0 pb-5">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge badge-light-primary fs-8 fw-semibold">{{ datos.ventas.mayoristas }} mayoristas</span>
+            <span class="badge badge-light-secondary fs-8 fw-semibold">{{ datos.ventas.minoristas }} minoristas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTARIO ACTUAL -->
+    <div class="col-md-4">
+      <div class="card card-flush h-100 pujol-kpi-card pujol-kpi-stock shadow-sm hover-elevate-up">
+        <div class="card-header pt-5">
+          <div class="card-title d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between w-100">
+              <span class="fs-6 fw-bold pujol-kpi-label">Salud del Inventario</span>
+              <div class="pujol-kpi-icon-pill pujol-kpi-icon-stock">
+                <app-keenicon name="parcel" class="fs-2 text-warning"></app-keenicon>
+              </div>
+            </div>
+            <span class="fs-2hx fw-bolder text-gray-900 mt-2">{{ datos.stock.activos }} activos</span>
+          </div>
+        </div>
+        <div class="card-body pt-0 pb-5">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge badge-light-warning fs-8 fw-semibold" *ngIf="datos.stock.bajos > 0">
+              {{ datos.stock.bajos }} con stock bajo
+            </span>
+            <span class="badge badge-light-danger fs-8 fw-semibold" *ngIf="datos.stock.agotados > 0">
+              {{ datos.stock.agotados }} agotados
+            </span>
+            <span class="badge badge-light-success fs-8 fw-semibold" *ngIf="datos.stock.bajos == 0 && datos.stock.agotados == 0">
+              Inventario en nivel óptimo
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS Y DESGLOSES DE RENDIMIENTO -->
+  <div class="row g-5 g-xl-6 mb-8">
+    <div class="col-lg-6" *ngFor="let g of datos.graficos">
+      <div class="card card-flush h-100 shadow-sm">
+        <div class="card-header pt-5">
+          <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold text-gray-900 fs-5">{{ g.titulo }}</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">Distribución en el período seleccionado</span>
+          </h3>
+        </div>
+        <div class="card-body pt-2">
+          <p *ngIf="!g.filas.length" class="text-muted text-center py-8">
+            <app-keenicon name="chart-simple" class="fs-3x text-muted d-block mb-2"></app-keenicon>
+            Sin operaciones registradas en el período.
+          </p>
+
+          <div *ngIf="g.filas.length" style="max-height: 22rem; overflow-y: auto;" class="pe-2">
+            <div *ngFor="let fila of g.filas" class="mb-4">
+              <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                <span class="fs-7 fw-semibold text-gray-800">{{ fila.etiqueta }}</span>
+                <span class="fs-7 fw-bold text-gray-900">
+                  {{ g.monetario ? (fila.valor | currency:'ARS') : (fila.valor | number:'1.0-3') }}
+                </span>
+              </div>
+              <div class="progress h-6px bg-light-primary rounded">
+                <div class="progress-bar bg-primary"
+                     role="progressbar"
+                     [style.width.%]="100 * fila.valor / g.maximo"
+                     [attr.aria-valuenow]="fila.valor"
+                     aria-valuemin="0"
+                     [attr.aria-valuemax]="g.maximo">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN OPERATIVA: ÚLTIMAS VENTAS, ALERTAS DE STOCK Y CAJA -->
+  <div class="row g-5 g-xl-6">
+    <!-- ÚLTIMAS VENTAS -->
+    <div class="col-lg-4">
+      <div class="card card-flush h-100 shadow-sm">
+        <div class="card-header pt-5">
+          <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold text-gray-900 fs-5">Últimas Ventas</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">Despachos recientes de mostrador</span>
+          </h3>
+        </div>
+        <div class="card-body pt-2">
+          <div *ngIf="!datos.ultimas.length" class="text-muted text-center py-6">
+            Sin ventas en el período.
+          </div>
+          <div *ngIf="datos.ultimas.length" class="d-flex flex-column gap-3">
+            <div *ngFor="let v of datos.ultimas" class="d-flex justify-content-between align-items-center p-3 rounded bg-light">
+              <div class="d-flex align-items-center gap-3">
+                <div class="symbol symbol-35px bg-light-primary d-flex align-items-center justify-content-center">
+                  <app-keenicon name="document" class="fs-4 text-primary"></app-keenicon>
+                </div>
+                <div class="d-flex flex-column">
+                  <span class="fs-7 fw-bold text-gray-900">Venta #{{ v.idVenta }}</span>
+                  <span class="fs-8 text-muted">{{ v.fechaVenta }}</span>
+                </div>
+              </div>
+              <span class="badge badge-light-success fs-7 fw-bold">{{ v.totalVenta | currency:'ARS' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer pt-0 border-0" *ngIf="auth.hasAction(5)">
+          <a routerLink="/ventas" class="btn btn-sm btn-light-primary w-100">
+            Ir al sistema de ventas <app-keenicon name="arrow-right" class="fs-5 ms-1"></app-keenicon>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTAS DE STOCK CRÍTICO -->
+    <div class="col-lg-4">
+      <div class="card card-flush h-100 shadow-sm">
+        <div class="card-header pt-5">
+          <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold text-gray-900 fs-5">Alertas de Stock</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">Productos por debajo del mínimo</span>
+          </h3>
+        </div>
+        <div class="card-body pt-2">
+          <div *ngIf="!datos.alertas.length" class="text-success text-center py-6">
+            <app-keenicon name="check-circle" class="fs-2hx text-success d-block mb-2"></app-keenicon>
+            Sin alertas de stock. Niveles estables.
+          </div>
+          <div *ngIf="datos.alertas.length" class="d-flex flex-column gap-3">
+            <div *ngFor="let a of datos.alertas" class="d-flex justify-content-between align-items-center p-3 rounded bg-light-warning">
+              <div class="d-flex align-items-center gap-2">
+                <app-keenicon name="information-5" class="fs-4 text-warning"></app-keenicon>
+                <span class="fs-7 fw-semibold text-gray-800 text-truncate" style="max-width: 170px;">{{ a.nombreProd }}</span>
+              </div>
+              <span class="badge badge-light-danger fs-8 fw-bold">{{ a.stockActual | number:'1.0-3' }} disp.</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer pt-0 border-0" *ngIf="auth.hasAction(2)">
+          <a routerLink="/stock" class="btn btn-sm btn-light-warning w-100">
+            Consultar inventario <app-keenicon name="arrow-right" class="fs-5 ms-1"></app-keenicon>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAJA Y RENDICIÓN -->
+    <div class="col-lg-4" *ngIf="auth.hasAction(3)">
+      <div class="card card-flush h-100 shadow-sm">
+        <div class="card-header pt-5">
+          <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold text-gray-900 fs-5">Estado de Caja</span>
+            <span class="mt-1 fw-bold fs-7" [ngClass]="datos.turno ? 'text-success' : 'text-muted'">
+              {{ datos.turno ? 'Turno Abierto #' + datos.turno : 'Caja Cerrada' }}
+            </span>
+          </h3>
+        </div>
+        <div class="card-body pt-2">
+          <div *ngIf="!datos.movimientos.length" class="text-muted text-center py-6">
+            Sin movimientos en el período.
+          </div>
+          <div *ngIf="datos.movimientos.length" class="d-flex flex-column gap-3">
+            <div *ngFor="let m of datos.movimientos" class="d-flex justify-content-between align-items-center p-3 rounded bg-light">
+              <div class="d-flex flex-column">
+                <span class="fs-7 fw-bold text-gray-900">{{ m.concepto || m.tipoMovimiento }}</span>
+                <span class="fs-8 text-muted">{{ m.tipoMovimiento }}</span>
+              </div>
+              <span class="badge fs-7 fw-bold" [ngClass]="m.tipoMovimiento === 'Ingreso' ? 'badge-light-success' : 'badge-light-danger'">
+                {{ m.tipoMovimiento === 'Egreso' ? '-' : '+' }}{{ m.monto | currency:'ARS' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer pt-0 border-0">
+          <a routerLink="/caja" class="btn btn-sm btn-light-success w-100">
+            Ir al módulo de caja <app-keenicon name="arrow-right" class="fs-5 ms-1"></app-keenicon>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

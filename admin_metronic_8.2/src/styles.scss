@@ -505,6 +505,94 @@ html[data-bs-theme="dark"] {
     background-color: rgba(249, 115, 22, 0.15) !important;
     border: 1px solid #F97316 !important;
   }
+
+  /* Containers & Badges Contrast in Dark Mode */
+  .bg-light {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+  .bg-light-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  }
+  .bg-light-primary {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  }
+  .bg-light-success {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  }
+  .bg-light-danger {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  }
+
+  /* Typography Contrast in Dark Mode */
+  .text-gray-900, .text-gray-800 {
+    color: #F8FAFC !important;
+  }
+  .text-gray-700, .text-gray-600 {
+    color: #CBD5E1 !important;
+  }
+  .text-gray-500, .text-muted {
+    color: #94A3B8 !important;
+  }
+
+  /* Form Controls in Dark Mode */
+  .form-control, .form-select {
+    background-color: #1E293B !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #F8FAFC !important;
+    &:focus {
+      border-color: #FB923C !important;
+      box-shadow: 0 0 0 0.25rem rgba(251, 146, 60, 0.25) !important;
+    }
+  }
+  .form-control-solid, .form-select-solid {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: transparent !important;
+    color: #F8FAFC !important;
+    &:focus {
+      background-color: #1E293B !important;
+      border-color: #FB923C !important;
+    }
+  }
+
+  /* Modals in Dark Mode */
+  .modal-content {
+    background-color: #1E293B !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+    color: #F8FAFC !important;
+    .modal-header, .modal-footer {
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  /* Tables in Dark Mode */
+  .table {
+    color: #E2E8F0 !important;
+    th {
+      color: #94A3B8 !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    td {
+      border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+    }
+    tbody tr:hover {
+      background-color: rgba(251, 146, 60, 0.06) !important;
+    }
+  }
+}
+
+/* Hover Elevate Animation Enhancement */
+.hover-elevate-up {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  &:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15) !important;
+  }
 }
 
 /* Global Buttons Redesign */
