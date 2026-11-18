@@ -536,33 +536,164 @@ function save_base64_image($base64_string) {
     return '';
 }
 
-// Handle CRUD for /productos
+// =============================================================
+// IMAGENES DE PRODUCTOS - PUJOL E HIJOS S.R.L.
+// Las fotos se almacenan en /uploads/productos y en MySQL se guarda
+// solamente la ruta relativa en la columna productos.imagenProd.
+// =============================================================
+function pujol_product_image_url($storedPath, $idProd = 0) {
+    $storedPath = trim((string)$storedPath);
+    $idProd = (int)$idProd;
+    if ($storedPath === '') return '';
+
+    // La imagen se obtiene mediante la misma API que consulta los productos.
+    // Esto evita rutas rotas al servir archivos desde XAMPP.
+    if ($idProd > 0 && preg_match('#^uploads/productos/[a-f0-9]{32}\.(jpg|png|webp)$#', $storedPath)) {
+        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+        if (!preg_match('/^[a-zA-Z0-9.\-]+(?::[0-9]{1,5})?$/', $host)) {
+            $host = 'localhost';
+        }
+        $https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+        $scheme = $https ? 'https' : 'http';
+        $apiPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/api/index.php'));
+        $apiPath = $apiPath === '/' || $apiPath === '.' ? '' : rtrim($apiPath, '/');
+        return $scheme . '://' . $host . $apiPath . '/productos/imagen?id=' . $idProd;
+    }
+
+    // Compatibilidad con URLs antiguas guardadas en la BD.
+    if (preg_match('#^https?://#i', $storedPath)) return $storedPath;
+    return '';
+}
+function pujol_save_product_image($dataUrl) {
+    if (!is_string($dataUrl) || !preg_match('#^data:image/(jpeg|png|webp);base64,#i', $dataUrl)) {
+        throw new InvalidArgumentException('La imagen debe ser JPG, PNG o WebP.');
+    }
+
+    $comma = strpos($dataUrl, ',');
+    $encoded = substr($dataUrl, $comma + 1);
+    if (strlen($encoded) > 3 * 1024 * 1024) {
+        throw new InvalidArgumentException('La imagen es demasiado grande.');
+    }
+
+    $bytes = base64_decode($encoded, true);
+    if ($bytes === false || $bytes === '' || strlen($bytes) > 2 * 1024 * 1024) {
+        throw new InvalidArgumentException('La imagen no es valida o supera 2 MB.');
+    }
+
+    $info = @getimagesizefromstring($bytes);
+    if ($info === false || empty($info[2])) {
+        throw new InvalidArgumentException('El archivo no es una imagen valida.');
+    }
+    $extensions = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp'];
+    if (!isset($extensions[$info[2]])) {
+        throw new InvalidArgumentException('Formato de imagen no permitido.');
+    }
+    if ($info[0] > 4096 || $info[1] > 4096) {
+        throw new InvalidArgumentException('La imagen tiene dimensiones demasiado grandes.');
+    }
+
+    $dir = dirname(__DIR__) . '/uploads/productos';
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        throw new RuntimeException('No se pudo crear la carpeta de imagenes de productos.');
+    }
+    $fileName = bin2hex(random_bytes(16)) . '.' . $extensions[$info[2]];
+    $relativePath = 'uploads/productos/' . $fileName;
+    if (file_put_contents($dir . '/' . $fileName, $bytes, LOCK_EX) === false) {
+        throw new RuntimeException('No se pudo guardar la imagen en el servidor.');
+    }
+    return $relativePath;
+}
+
+// =============================================================
+// DESCARGA DE IMAGENES DE PRODUCTOS
+// =============================================================
+if ($route === '/productos/imagen' && $method === 'GET') {
+    $idProd = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+    if (!$idProd || $idProd < 1) {
+        send_response(['success' => false, 'message' => 'Producto invalido.'], 400);
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT imagenProd FROM productos WHERE idProd = ? LIMIT 1');
+        $stmt->execute([$idProd]);
+        $storedPath = trim((string)$stmt->fetchColumn());
+
+        if (!preg_match('#^uploads/productos/[a-f0-9]{32}\.(jpg|png|webp)$#', $storedPath)) {
+            send_response(['success' => false, 'message' => 'Imagen no encontrada.'], 404);
+        }
+
+        $base = realpath(dirname(__DIR__) . '/uploads/productos');
+        $file = realpath(dirname(__DIR__) . '/' . $storedPath);
+        if (!$base || !$file || strpos($file, $base . DIRECTORY_SEPARATOR) !== 0 || !is_file($file)) {
+            send_response(['success' => false, 'message' => 'Archivo de imagen no encontrado.'], 404);
+        }
+
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $types = ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];
+        if (!isset($types[$extension])) {
+            send_response(['success' => false, 'message' => 'Formato no admitido.'], 415);
+        }
+
+        header('Content-Type: ' . $types[$extension]);
+        header('Cache-Control: private, no-store');
+        header('X-Content-Type-Options: nosniff');
+        readfile($file);
+        exit;
+    } catch (Throwable $e) {
+        error_log('Error consultando imagen de producto: ' . $e->getMessage());
+        send_response(['success' => false, 'message' => 'No se pudo cargar la imagen.'], 500);
+    }
+}
+
+// =============================================================
+// CRUD /productos: consulta, alta, modificacion y baja logica.
+// =============================================================
 if ($route === '/productos') {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT p.idProd as id, p.codigoProd as code, p.nombreProd as name, 
-                                    p.descripcionProd as description, p.precioUnitario as price, 
-                                    p.estadoProd as status, inv.stockActual as quantity, inv.stockMinimo as minThreshold 
-                             FROM productos p 
-                             LEFT JOIN inventario inv ON p.idProd = inv.idProd 
-                             WHERE p.estadoProd = 'Activo'");
-        $items = $stmt->fetchAll();
-        
-        foreach ($items as &$item) {
-            $item['id'] = (int)$item['id'];
-            $item['quantity'] = $item['quantity'] !== null ? (int)$item['quantity'] : 0;
-            $item['minThreshold'] = $item['minThreshold'] !== null ? (int)$item['minThreshold'] : 0;
-            $item['price'] = (float)$item['price'];
+        try {
+            $stmt = $pdo->query("
+                SELECT
+                    p.idProd AS id,
+                    p.codigoProd AS code,
+                    p.nombreProd AS name,
+                    p.descripcionProd AS description,
+                    p.categoriaProd AS category,
+                    p.imagenProd AS image,
+                    p.precioUnitario AS price,
+                    p.estadoProd AS status,
+                    inv.stockActual AS quantity,
+                    inv.stockMinimo AS minThreshold
+                FROM productos p
+                LEFT JOIN inventario inv ON inv.idProd = p.idProd
+                WHERE p.estadoProd = 'Activo'
+            ");
+            $items = $stmt->fetchAll();
+            foreach ($items as &$item) {
+                $item['id'] = (int)$item['id'];
+                $item['quantity'] = $item['quantity'] !== null ? (int)$item['quantity'] : 0;
+                $item['minThreshold'] = $item['minThreshold'] !== null ? (int)$item['minThreshold'] : 0;
+                $item['price'] = (float)$item['price'];
+                $item['category'] = !empty($item['category']) ? $item['category'] : 'Otros';
+                $item['image'] = pujol_product_image_url($item['image'], $item['id']);
+            }
+            unset($item);
+            send_response($items);
+        } catch (Throwable $e) {
+            error_log('Error consultando productos: ' . $e->getMessage());
+            send_response(['success' => false, 'message' => 'No se pudieron consultar los productos. Compruebe las columnas categoriaProd e imagenProd.'], 500);
         }
-        send_response($items);
     }
-    
+
     if ($method === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
-        
+        if (!is_array($input)) {
+            send_response(['success' => false, 'message' => 'Los datos del producto no son validos.'], 400);
+        }
+
         $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $code = !empty($input['code']) ? trim($input['code']) : null;
-        $name = trim($input['name'] ?? '');
-        $description = trim($input['description'] ?? '');
+        $code = $input['code'] ?? null;
+        $name = $input['name'] ?? '';
+        $description = $input['description'] ?? '';
         $price = isset($input['price']) ? (float)$input['price'] : 0.0;
         $quantity = isset($input['quantity']) ? (int)$input['quantity'] : 0;
         $minThreshold = isset($input['minThreshold']) ? (int)$input['minThreshold'] : 0;
@@ -571,62 +702,122 @@ if ($route === '/productos') {
             send_response(["success" => false, "message" => "El nombre es obligatorio"], 400);
         }
 
+        $price = (float)$price;
+        $quantity = (int)$quantity;
+        $minThreshold = (int)$minThreshold;
+        $newImagePath = null;
+
         try {
             $pdo->beginTransaction();
-            
+
+            // Si la imagen no viene en la solicitud, mantener la anterior.
+            // Si viene vacia, quitarla. Si es un data URL, guardar una nueva.
             if ($id > 0) {
-                $stmt = $pdo->prepare("UPDATE productos SET codigoProd = ?, nombreProd = ?, descripcionProd = ?, precioUnitario = ? WHERE idProd = ?");
-                $stmt->execute([$code, $name, $description, $price, $id]);
-                
-                $stmtCheck = $pdo->prepare("SELECT idInv FROM inventario WHERE idProd = ?");
+                $check = $pdo->prepare('SELECT imagenProd FROM productos WHERE idProd = ? FOR UPDATE');
+                $check->execute([$id]);
+                $previous = $check->fetch();
+                if (!$previous) {
+                    $pdo->rollBack();
+                    send_response(['success' => false, 'message' => 'Producto no encontrado.'], 404);
+                }
+                $imagePath = $previous['imagenProd'];
+            } else {
+                $imagePath = null;
+            }
+
+            if (array_key_exists('image', $input)) {
+                $imageInput = $input['image'];
+                if ($imageInput === null || $imageInput === '') {
+                    $imagePath = null;
+                } elseif (is_string($imageInput) && strncmp($imageInput, 'data:image/', 11) === 0) {
+                    $newImagePath = pujol_save_product_image($imageInput);
+                    $imagePath = $newImagePath;
+                } elseif ($id > 0 && is_string($imageInput)) {
+                    // La URL devuelta por GET es de solo lectura:
+                    // mantener la ruta que ya consta en la BD.
+                } else {
+                    throw new InvalidArgumentException('La imagen proporcionada no es valida.');
+                }
+            }
+
+            if ($id > 0) {
+                $stmt = $pdo->prepare("
+                    UPDATE productos
+                    SET codigoProd = ?, nombreProd = ?, descripcionProd = ?,
+                        precioUnitario = ?, categoriaProd = COALESCE(?, categoriaProd),
+                        imagenProd = ?
+                    WHERE idProd = ?
+                ");
+                $stmt->execute([$code, $name, $description, $price, $category, $imagePath, $id]);
+
+                $stmtCheck = $pdo->prepare('SELECT idInv FROM inventario WHERE idProd = ?');
                 $stmtCheck->execute([$id]);
                 if ($stmtCheck->fetch()) {
-                    $stmtInv = $pdo->prepare("UPDATE inventario SET stockActual = ?, stockMinimo = ? WHERE idProd = ?");
+                    $stmtInv = $pdo->prepare('UPDATE inventario SET stockActual = ?, stockMinimo = ? WHERE idProd = ?');
                     $stmtInv->execute([$quantity, $minThreshold, $id]);
                 } else {
-                    $stmtInv = $pdo->prepare("INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)");
+                    $stmtInv = $pdo->prepare('INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)');
                     $stmtInv->execute([$id, $quantity, $minThreshold]);
                 }
             } else {
                 $stmt = $pdo->prepare("INSERT INTO productos (codigoProd, nombreProd, descripcionProd, precioUnitario, estadoProd) VALUES (?, ?, ?, ?, 'Activo')");
                 $stmt->execute([$code, $name, $description, $price]);
                 $id = $pdo->lastInsertId();
-
-                if (empty($code)) {
-                    $autoCode = 'BEB-' . str_pad($id, 3, '0', STR_PAD_LEFT);
-                    $pdo->prepare("UPDATE productos SET codigoProd = ? WHERE idProd = ?")->execute([$autoCode, $id]);
-                }
                 
                 $stmtInv = $pdo->prepare("INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)");
                 $stmtInv->execute([$id, $quantity, $minThreshold]);
             }
-            
+
             $pdo->commit();
-            send_response(["success" => true, "id" => (int)$id]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            send_response(["success" => false, "message" => "Error al guardar el producto: " . $e->getMessage()], 500);
+            send_response([
+                'success' => true,
+                'id' => (int)$id,
+                'image' => pujol_product_image_url($imagePath, $id),
+                'message' => 'Producto guardado correctamente.'
+            ]);
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($newImagePath !== null) {
+                $file = dirname(__DIR__) . '/' . $newImagePath;
+                if (is_file($file)) @unlink($file);
+            }
+            error_log('Error guardando producto: ' . $e->getMessage());
+            $status = $e instanceof InvalidArgumentException ? 400 : 500;
+            send_response([
+                'success' => false,
+                'message' => $status === 400 ? $e->getMessage() : 'No se pudo guardar el producto.'
+            ], $status);
         }
     }
-    
+
     if ($method === 'DELETE') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id <= 0) {
-            send_response(["success" => false, "message" => "ID no proporcionado"], 400);
+            send_response(['success' => false, 'message' => 'ID de producto no proporcionado.'], 400);
         }
-        
         try {
+            // Validate if product is used in active sales
+            $stmtCheck = $pdo->prepare("SELECT d.idDetalle FROM detalle_venta d JOIN ventas v ON d.idVenta = v.idVenta WHERE d.idProd = ? AND v.estadoVenta = 'Completada'");
+            $stmtCheck->execute([$id]);
+            
+            if ($stmtCheck->fetch()) {
+                send_response([
+                    "success" => false, 
+                    "message" => "No se puede eliminar el producto porque tiene un historial de ventas asociado. Su estado será cambiado a Inactivo."
+                ], 400); // we could soft-delete but for simplicity we return error and tell them we can't
+                // Or better, just soft delete:
+                // $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?")->execute([$id]);
+            }
+            
             $pdo->beginTransaction();
             $stmt = $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?");
             $stmt->execute([$id]);
             $pdo->commit();
-            
-            send_response(["success" => true]);
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            send_response(["success" => false, "message" => "Error al eliminar el producto: " . $e->getMessage()], 500);
+            send_response(['success' => true, 'message' => 'Producto dado de baja correctamente.']);
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            error_log('Error eliminando producto: ' . $e->getMessage());
+            send_response(['success' => false, 'message' => 'No se pudo eliminar el producto.'], 500);
         }
     }
 }
