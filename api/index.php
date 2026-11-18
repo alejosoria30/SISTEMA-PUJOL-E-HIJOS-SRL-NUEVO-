@@ -185,11 +185,6 @@ if ($route === '/auth/register' && $method === 'POST') {
         // Insert into usuario (default to Empleado so user can access dashboard)
         $defaultRole = 'Empleado';
         $defaultRoleId = 2;
-        $lowerEmail = strtolower($email);
-        if (strpos($lowerEmail, 'admin') !== false || strpos($lowerEmail, 'pujol') !== false || strpos($lowerEmail, 'alejosoria') !== false || strpos($lowerEmail, 'franco') !== false) {
-            $defaultRole = 'Administrador';
-            $defaultRoleId = 1;
-        }
 
         $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, ?, 'Activo', ?)");
         $stmt->execute([$firstname, $lastname, $email, $username, $hashedPassword, $cuil, $phone, $defaultRole]);
@@ -345,14 +340,9 @@ if ($route === '/auth/google' && $method === 'POST') {
         $phone = '';
         $address = '';
 
-        // Determine role: admin if email matches owners/developers, otherwise Empleado
+        // Determine role: default to Empleado for staff access to dashboard
         $defaultRole = 'Empleado';
         $defaultRoleId = 2;
-        $lowerEmail = strtolower($email);
-        if (strpos($lowerEmail, 'alejosoria') !== false || strpos($lowerEmail, 'admin') !== false || strpos($lowerEmail, 'pujol') !== false || strpos($lowerEmail, 'franco') !== false) {
-            $defaultRole = 'Administrador';
-            $defaultRoleId = 1;
-        }
 
         try {
             $pdo->beginTransaction();
@@ -382,8 +372,8 @@ if ($route === '/auth/google' && $method === 'POST') {
             $stmtCheckRole = $pdo->prepare("SELECT COUNT(*) FROM usuario_rol WHERE idUsu = ? AND idRol IN (1, 2)");
             $stmtCheckRole->execute([$user['idUsu']]);
             if ((int)$stmtCheckRole->fetchColumn() === 0) {
-                $targetRole = (strpos(strtolower($email), 'alejosoria') !== false || strpos(strtolower($email), 'admin') !== false) ? 1 : 2;
-                $targetRoleName = ($targetRole === 1) ? 'Administrador' : 'Empleado';
+                $targetRole = 2;
+                $targetRoleName = 'Empleado';
                 $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, ?)")->execute([$user['idUsu'], $targetRole]);
                 $pdo->prepare("UPDATE usuario SET rolUsu = ? WHERE idUsu = ?")->execute([$targetRoleName, $user['idUsu']]);
                 $user['rolUsu'] = $targetRoleName;
