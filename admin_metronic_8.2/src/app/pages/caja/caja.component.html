@@ -1,3 +1,4 @@
+<ng-container *ngIf="hasAction('read') && !router.url.startsWith('/historial-caja')">
 <div class="row g-6">
   <!-- Columna Izquierda: Estado de la Caja -->
   <div class="col-xl-4">
@@ -16,11 +17,28 @@
           <app-keenicon name="wallet" class="fs-4x text-muted mb-4 d-block"></app-keenicon>
           <h4 class="text-gray-600 mb-6">No hay un turno activo</h4>
           <div class="mb-5 text-start px-4">
-            <label class="form-label required">Fondo Fijo / Monto Inicial ($)</label>
-            <input type="number" class="form-control form-control-solid form-control-lg" [(ngModel)]="montoInicial">
+            <label for="monto-inicial-caja" class="form-label required">Fondo Fijo / Monto Inicial ($)</label>
+            <input id="monto-inicial-caja"
+              name="montoInicialCaja"
+              type="number"
+              class="form-control form-control-solid form-control-lg"
+              [class.is-invalid]="(campoMontoInicial.dirty || campoMontoInicial.touched) && !esMontoInicialValido()"
+              [(ngModel)]="montoInicial"
+              #campoMontoInicial="ngModel"
+              min="0.01" max="99999999.99" step="0.01" required
+              placeholder="Ej.: 10000.00"
+              [disabled]="guardandoApertura || !hasAction('create')"
+              aria-describedby="ayuda-monto-inicial error-monto-inicial">
+            <div id="ayuda-monto-inicial" class="form-text">Ingresá un importe mayor que $0, con hasta dos decimales.</div>
+            <div id="error-monto-inicial" class="invalid-feedback d-block"
+              role="alert"
+              *ngIf="(campoMontoInicial.dirty || campoMontoInicial.touched) && !esMontoInicialValido()">
+              El monto inicial es obligatorio y debe ser positivo, válido y con hasta dos decimales.
+            </div>
           </div>
-          <button class="btn btn-primary w-100" (click)="abrirCaja()" *ngIf="hasAction('create')">
-            Abrir Caja
+          <button type="button" class="btn btn-primary w-100" (click)="abrirCaja()"
+            *ngIf="hasAction('create')" [disabled]="guardandoApertura || !esMontoInicialValido()">
+            {{ guardandoApertura ? 'Abriendo caja...' : 'Abrir Caja' }}
           </button>
         </div>
 
@@ -104,10 +122,11 @@
   </div>
 </div>
 
+</ng-container>
 <!-- HISTORIAL DE CAJA - PUJOL E HIJOS -->
-<div class="card card-flush shadow-sm mt-8 mb-8">
+<div class="card card-flush shadow-sm mt-8 mb-8" *ngIf="esVistaHistorialCaja() && puedeVerHistorialCaja()">
 
-  <div class="card-header pt-6">
+  <div id="historial" class="card-header pt-6">
     <div class="card-title align-items-start flex-column">
       <h3 class="fw-bold text-gray-900 mb-2">
         Historial de Caja
@@ -219,9 +238,9 @@
 <!-- DETALLE DE UN TURNO CERRADO -->
 <div
   class="card card-flush shadow-sm mb-8"
-  *ngIf="mostrarDetalleHistorial && turnoSeleccionado">
+  *ngIf="esVistaHistorialCaja() && puedeVerHistorialCaja() && mostrarDetalleHistorial && turnoSeleccionado">
 
-  <div class="card-header pt-6">
+  <div id="historial" class="card-header pt-6">
     <div class="card-title align-items-start flex-column">
       <h3 class="fw-bold text-gray-900 mb-2">
         Detalle del Turno #{{ turnoSeleccionado.idTurno }}
@@ -242,6 +261,10 @@
   </div>
 
   <div class="card-body">
+    <section *ngIf="turnoSeleccionado.billetes" class="mb-5"><h4>Arqueo de {{turnoSeleccionado.responsable}}</h4>
+    <span class="me-4" *ngFor="let v of denominaciones">{{v | currency:'ARS':'symbol-narrow':'1.0-0'}} × {{turnoSeleccionado.billetes[v] || 0}}</span>
+    <p>Otros importes {{turnoSeleccionado.otros | currency:'ARS'}} · {{turnoSeleccionado.observaciones}}</p></section>
+
 
     <div class="row g-4 mb-7">
 
@@ -366,10 +389,14 @@
           </div>
         </div>
         <div class="mb-3">
-          <label class="form-label required">Dinero Real Físico en Caja ($)</label>
-          <input type="number" class="form-control form-control-lg form-control-solid" [(ngModel)]="montoFinalReal">
+          <p>Fondo inicial {{turnoActual?.montoInicial | currency:'ARS'}} <span *ngFor="let m of turnoActual?.movimientosPorTipo"> · {{m.tipoMovimiento}} {{m.total | currency:'ARS'}}</span></p>
+          <p *ngFor="let m of turnoActual?.electronicos">{{m.medio}} (electrónico) · {{m.total | currency:'ARS'}}</p>
+          <table class="table align-middle"><thead><tr><th>Billete</th><th>Cantidad</th><th class="text-end">Subtotal</th></tr></thead><tbody><tr *ngFor="let valor of denominaciones"><td>{{valor | currency:'ARS':'symbol-narrow':'1.0-0'}}</td><td><input class="form-control form-control-sm" type="number" min="0" step="1" [(ngModel)]="billetes[valor]" [attr.aria-label]="'Billetes de '+valor"></td><td class="text-end">{{valor * billetes[valor] | currency:'ARS'}}</td></tr></tbody></table>
+          <label>Monedas y otros importes en efectivo<input class="form-control" type="number" min="0" step="0.01" [(ngModel)]="otros"></label>
+          <label class="d-block my-2">Observaciones<textarea class="form-control" maxlength="500" [(ngModel)]="observaciones"></textarea></label>
+          <strong>Efectivo contado {{montoFinalReal | currency:'ARS'}}</strong>
           <div class="form-text mt-2">
-            <strong>Diferencia: </strong> 
+            <strong>{{ getDiferenciaCaja() < 0 ? 'Faltante' : (getDiferenciaCaja() > 0 ? 'Sobrante' : 'Sin diferencia') }} </strong> 
             <span [ngClass]="{'text-success': (montoFinalReal - turnoActual?.saldoActual) >= 0, 'text-danger': (montoFinalReal - turnoActual?.saldoActual) < 0}">
               ${{ (montoFinalReal - turnoActual?.saldoActual) | number:'1.2-2' }}
             </span>

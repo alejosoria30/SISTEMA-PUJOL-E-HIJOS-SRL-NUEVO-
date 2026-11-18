@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { StateService } from '../../pages/state.service';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, timeout } from 'rxjs/operators';
 
 export interface DataTablesResponse {
   draw?: number;
@@ -46,17 +46,18 @@ export class PermissionService {
         draw: draw.toString(),
         search: search
       }
-    });
+    }).pipe(timeout(15000));
   }
 
   getPermission(id: number): Observable<IPermissionModel> {
     return this.http.get<IPermissionModel>(`${environment.apiUrl}/permisos`, {
       params: { id: id.toString() }
-    });
+    }).pipe(timeout(15000));
   }
 
   createPermission(permission: IPermissionModel): Observable<IPermissionModel> {
     return this.http.post<any>(`${environment.apiUrl}/permisos`, permission).pipe(
+      timeout(15000),
       tap((res) => {
         if (res.success) {
           this.stateService.loadPermissions();
@@ -74,6 +75,7 @@ export class PermissionService {
   updatePermission(id: number, permission: IPermissionModel): Observable<IPermissionModel> {
     const body = { ...permission, id: +id };
     return this.http.post<any>(`${environment.apiUrl}/permisos`, body).pipe(
+      timeout(15000),
       tap((res) => {
         if (res.success) {
           this.stateService.loadPermissions();
@@ -87,6 +89,7 @@ export class PermissionService {
     return this.http.delete<any>(`${environment.apiUrl}/permisos`, {
       params: { id: id.toString() }
     }).pipe(
+      timeout(15000),
       tap((res) => {
         if (res.success) {
           this.stateService.loadPermissions();

@@ -29,7 +29,8 @@ export class AuthService implements OnDestroy {
   }
 
   set currentUserValue(user: UserType) {
-    this.currentUserSubject.next(user);
+    if (!this.currentUserValue) this.stateService.configurarAcceso(user);
+          this.currentUserSubject.next(user);
   }
 
   private inactivityTimer: any;
@@ -59,53 +60,10 @@ export class AuthService implements OnDestroy {
   }
 
   // public methods
-  login(username: string, password: string): Observable<UserType> {
+  login(username: string, password: string, claveNueva = ''): Observable<UserType> {
     this.isLoadingSubject.next(true);
 
-    if (environment.isMockEnabled) {
-      const users = this.stateService.systemUsers$.value;
-      const foundUser = users.find(
-        (u: any) =>
-          (u.username.toLowerCase() === username.toLowerCase() ||
-           u.email.toLowerCase() === username.toLowerCase()) &&
-          u.password === password
-      );
-
-      if (foundUser) {
-        const auth = new AuthModel();
-        auth.authToken = `local-auth-token-${foundUser.id}`;
-        auth.refreshToken = `local-auth-token-${foundUser.id}`;
-        auth.expiresIn = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000);
-
-        this.setAuthFromLocalStorage(auth);
-
-        // Map roles
-        const roles = this.stateService.systemRoles$.value;
-        const userRoles = roles.filter((r: any) => foundUser.roleIds.includes(r.id));
-
-        const userModel = new UserModel();
-        userModel.id = foundUser.id;
-        userModel.username = foundUser.username;
-        userModel.fullname = foundUser.name;
-        userModel.email = foundUser.email;
-        userModel.roles = foundUser.roleIds;
-        userModel.role = userRoles.map((r: any) => r.name).join(', ');
-        userModel.phone = foundUser.phone || '';
-        const nameParts = (foundUser.name || '').split(' ');
-        userModel.firstname = foundUser.firstname || nameParts[0] || '';
-        userModel.lastname = foundUser.lastname || nameParts.slice(1).join(' ') || '';
-        userModel.pic = foundUser.id === 1 ? './assets/media/avatars/300-1.jpg' : foundUser.id === 2 ? './assets/media/avatars/300-6.jpg' : './assets/media/avatars/300-20.jpg';
-
-        this.currentUserSubject.next(userModel);
-        this.resetInactivity();
-        this.isLoadingSubject.next(false);
-        return of(userModel);
-      } else {
-        this.isLoadingSubject.next(false);
-        return of(undefined);
-      }
-    } else {
-      return this.authHttpService.login(username, password).pipe(
+      return this.authHttpService.login(username, password, claveNueva).pipe(
         map((auth: any) => {
           if (auth && auth.authToken) {
             this.setAuthFromLocalStorage(auth);
@@ -121,89 +79,20 @@ export class AuthService implements OnDestroy {
         }),
       catchError((err) => {
           console.error('login err', err);
-          if (err?.status === 403) {
+          if ([403,409,429].includes(err?.status)) {
             return throwError(() => err);
           }
           return of(undefined);
         }),
         finalize(() => this.isLoadingSubject.next(false))
       );
-    }
-  }
-
-  loginWithGoogle(accessToken: string): Observable<UserType> {
-    this.isLoadingSubject.next(true);
-
-    if (environment.isMockEnabled) {
-      const users = this.stateService.systemUsers$.value;
-      let foundUser = users.find((u: any) => u.email.toLowerCase() === 'google@demo.com');
-
-      if (!foundUser) {
-        foundUser = {
-          id: users.length > 0 ? Math.max(...users.map((u: any) => u.id)) + 1 : 1,
-          name: 'Google User',
-          username: 'googleuser',
-          email: 'google@demo.com',
-          password: 'Password123!',
-          roleIds: [3],
-          created_at: new Date().toISOString()
-        };
-        this.stateService.saveSystemUser(foundUser);
-      }
-
-      const auth = new AuthModel();
-      auth.authToken = `local-auth-token-${foundUser.id}`;
-      auth.refreshToken = `local-auth-token-${foundUser.id}`;
-      auth.expiresIn = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000);
-
-      this.setAuthFromLocalStorage(auth);
-
-      const roles = this.stateService.systemRoles$.value;
-      const userRoles = roles.filter((r: any) => foundUser.roleIds.includes(r.id));
-
-      const userModel = new UserModel();
-      userModel.id = foundUser.id;
-      userModel.username = foundUser.username;
-      userModel.fullname = foundUser.name;
-      userModel.email = foundUser.email;
-      userModel.roles = foundUser.roleIds;
-      userModel.role = userRoles.map((r: any) => r.name).join(', ');
-      userModel.pic = './assets/media/avatars/300-20.jpg';
-
-      this.currentUserSubject.next(userModel);
-      this.resetInactivity();
-      this.isLoadingSubject.next(false);
-      return of(userModel);
-    } else {
-      return this.authHttpService.loginWithGoogle(accessToken).pipe(
-        map((auth: any) => {
-          if (auth && auth.authToken) {
-            this.setAuthFromLocalStorage(auth);
-            return auth;
-          }
-          return undefined;
-        }),
-        switchMap((auth) => {
-          if (auth) {
-            return this.getUserByToken();
-          }
-          return of(undefined);
-        }),
-        catchError((err) => {
-          console.error('google login err', err);
-          if (err?.status === 403) {
-            return throwError(() => err);
-          }
-          return of(undefined);
-        }),
-        finalize(() => this.isLoadingSubject.next(false))
-      );
-    }
   }
 
   logout() {
+    if (this.getAuthFromLocalStorage()) this.authHttpService.salir().subscribe({error: () => {}});
     this.stopInactivityTimer();
     sessionStorage.removeItem(this.authLocalStorageToken);
+    this.stateService.limpiarSesion();
     this.currentUserSubject.next(undefined);
     this.router.navigate(['/auth/login'], {
       queryParams: {},
@@ -236,33 +125,6 @@ export class AuthService implements OnDestroy {
       return of(undefined);
     }
 
-    const token = auth.authToken;
-    if (token.startsWith('local-auth-token-')) {
-      const id = parseInt(token.replace('local-auth-token-', ''));
-      const users = this.stateService.systemUsers$.value;
-      const foundUser = users.find((u: any) => u.id === id);
-      if (foundUser) {
-        const roles = this.stateService.systemRoles$.value;
-        const userRoles = roles.filter((r: any) => foundUser.roleIds.includes(r.id));
-
-        const userModel = new UserModel();
-        userModel.id = foundUser.id;
-        userModel.username = foundUser.username;
-        userModel.fullname = foundUser.name;
-        userModel.email = foundUser.email;
-        userModel.roles = foundUser.roleIds;
-        userModel.role = userRoles.map((r: any) => r.name).join(', ');
-        userModel.phone = foundUser.phone || '';
-        const nameParts = (foundUser.name || '').split(' ');
-        userModel.firstname = foundUser.firstname || nameParts[0] || '';
-        userModel.lastname = foundUser.lastname || nameParts.slice(1).join(' ') || '';
-        userModel.pic = foundUser.id === 1 ? './assets/media/avatars/300-1.jpg' : foundUser.id === 2 ? './assets/media/avatars/300-6.jpg' : './assets/media/avatars/300-20.jpg';
-
-        this.currentUserSubject.next(userModel);
-        return of(userModel);
-      }
-    }
-
     this.isLoadingSubject.next(true);
     return this.authHttpService.getUserByToken(auth.authToken).pipe(
       map((user: UserType) => {
@@ -272,6 +134,7 @@ export class AuthService implements OnDestroy {
             if (!user.firstname) user.firstname = parts[0] || '';
             if (!user.lastname) user.lastname = parts.slice(1).join(' ') || '';
           }
+          if (!this.currentUserValue) this.stateService.configurarAcceso(user);
           this.currentUserSubject.next(user);
         } else {
           this.logout();
@@ -284,29 +147,6 @@ export class AuthService implements OnDestroy {
       }),
       finalize(() => this.isLoadingSubject.next(false))
     );
-  }
-
-  // need create new user then login
-  registration(user: any): Observable<any> {
-    this.isLoadingSubject.next(true);
-    if (environment.isMockEnabled) {
-      const mockUser = {
-        id: 0,
-        name: user.firstname + ' ' + user.lastname,
-        username: user.email.split('@')[0],
-        email: user.email,
-        password: user.password,
-        roleIds: [3], // Cliente role
-      };
-      this.stateService.saveSystemUser(mockUser);
-      this.isLoadingSubject.next(false);
-      return this.login(user.email, user.password);
-    } else {
-      return this.authHttpService.createUser(user).pipe(
-        switchMap(() => this.login(user.email, user.password)),
-        finalize(() => this.isLoadingSubject.next(false))
-      );
-    }
   }
 
   forgotPassword(email: string): Observable<boolean> {
@@ -341,6 +181,14 @@ export class AuthService implements OnDestroy {
     }
   }
 
+  hasPermission(nombrePermiso: string, action: 'read' | 'create' | 'update' | 'delete' = 'read'): boolean {
+    const user = this.currentUserValue;
+    if (!user) return false;
+    if (user.roles?.includes(1)) return true;
+    const acciones = {read: 'visualizar', create: 'crear', update: 'modificar', delete: 'anular'};
+    return Number((user as any).permisos?.[nombrePermiso]?.[acciones[action]]) === 1;
+  }
+
   hasAction(permissionId: number, action: 'read' | 'create' | 'update' | 'delete' = 'read'): boolean {
     const user = this.currentUserValue;
     if (!user) return false;
@@ -350,57 +198,13 @@ export class AuthService implements OnDestroy {
       return true;
     }
 
-    const systemUsers = this.stateService.systemUsers$.value;
-    const foundUser = systemUsers.find(u => u.id === user.id);
-    if (!foundUser) return false;
-
-    const roles = this.stateService.systemRoles$.value;
-    const userRoles = roles.filter(r => foundUser.roleIds.includes(r.id));
-
-    let hasAccess = false;
-    userRoles.forEach(r => {
-      if (r.permissions) {
-        const perm = r.permissions.find((p: any) => p.id === permissionId);
-        if (perm) {
-          if (action === 'read' && perm.can_read) hasAccess = true;
-          if (action === 'create' && perm.can_create) hasAccess = true;
-          if (action === 'update' && perm.can_update) hasAccess = true;
-          if (action === 'delete' && perm.can_delete) hasAccess = true;
-        }
-      }
-    });
-
-    return hasAccess;
+    const nombres: Record<number,string> = {1:'Acceder al Dashboard',2:'Gestionar Stock',3:'Caja presencial',4:'Comprobantes presenciales',5:'Gestionar Ventas',8:'Ver Historial de Ventas',9:'Modificar Mi Perfil',12:'Catálogo de productos',13:'Clasificación de productos',14:'Cobros QR'};
+    const acciones = {read:'visualizar',create:'crear',update:'modificar',delete:'anular'};
+    return Number((user as any).permisos?.[nombres[permissionId]]?.[acciones[action]]) === 1;
   }
-
   hasAnyPermission(): boolean {
-    const user = this.currentUserValue;
-    if (!user) return false;
-
-    // Admin (role ID 1) has all permissions
-    if (user.roles && user.roles.includes(1)) {
-      return true;
-    }
-
-    const systemUsers = this.stateService.systemUsers$.value;
-    const foundUser = systemUsers.find(u => u.id === user.id);
-    if (!foundUser) return false;
-
-    const roles = this.stateService.systemRoles$.value;
-    const userRoles = roles.filter(r => foundUser.roleIds.includes(r.id));
-
-    let hasAny = false;
-    userRoles.forEach(r => {
-      if (r.permissions && r.permissions.length > 0) {
-        // Only count if they have at least one 'can_read' action enabled somewhere
-        const hasActivePerm = r.permissions.some((p: any) => p.can_read || p.can_create || p.can_update || p.can_delete);
-        if (hasActivePerm) hasAny = true;
-      }
-    });
-
-    return hasAny;
+    return [1,2,3,4,5,8,9,12,13,14].some(id => this.hasAction(id));
   }
-
   ngOnDestroy() {
     this.unsubscribe.forEach((sb) => sb.unsubscribe());
   }

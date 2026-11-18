@@ -1,454 +1,132 @@
-
-<!-- ==========================================
-     PUJOL E HIJOS S.R.L.
-     FORMULARIO DE INICIO DE SESIÓN
-========================================== -->
-
-<form
-  class="form w-100"
-  [formGroup]="loginForm"
-  novalidate="novalidate"
-  id="kt_login_signin_form"
-  (ngSubmit)="submit()"
->
-
-  <!-- ========================================
-       LOGOTIPO
-  ======================================== -->
-
+<!--begin::Form-->
+<form class="form w-100" [formGroup]="loginForm" novalidate="novalidate" id="kt_login_signin_form"
+  (ngSubmit)="submit()">
+  <!--begin::Logo-->
   <div class="text-start mb-6">
-    <img
-      alt="Logo Pujol e Hijos"
-      src="./assets/media/logos/pujol-icono.png"
-      class="h-70px object-fit-contain"
-    />
+    <img alt="Logo Pujol" src="./assets/media/logos/pujol-icono.png" class="h-70px object-fit-contain" />
   </div>
-
-  <!-- ========================================
-       ENCABEZADO
-  ======================================== -->
-
+  <!--end::Logo-->
+  <!--begin::Heading-->
   <div class="text-start mb-9">
-
     <h1 class="text-gray-900 fw-bolder mb-3">
-      Iniciar sesión
+      {{ esEmpleado ? "Acceso de empleados" : "Acceso de administración" }}
     </h1>
-
+    <!--begin::Subtitle-->
     <div class="text-gray-500 fw-semibold fs-6">
       Sistema de Gestión Comercial Pujol e Hijos S.R.L.
     </div>
+    <!--end::Subtitle--->
 
   </div>
+  <!--end::Heading-->
 
-  <!-- ========================================
-       MENSAJES DE ERROR DE AUTENTICACIÓN
-  ======================================== -->
 
+  <!-- begin::Alert error-->
   <ng-container *ngIf="hasError">
-
     <div class="mb-lg-15 alert alert-danger">
-
-      <div
-        class="alert-text font-weight-bold"
-        *ngIf="errorType === 'no_permission'"
-      >
-
-        <span class="d-block fw-bold mb-1">
-          Acceso denegado
-        </span>
-
-        Tienes acceso denegado al sistema.
-        Tu cuenta se encuentra inactiva o
-        no cuenta con los permisos necesarios.
-
+      <div class="alert-text font-weight-bold" *ngIf="errorType === 'no_permission'">
+        <span class="d-block fw-bold mb-1">Acceso denegado</span>
+        Tienes acceso denegado al sistema. Tu cuenta se encuentra inactiva o no cuenta con los permisos necesarios.
       </div>
-
-      <div
-        class="alert-text font-weight-bold"
-        *ngIf="errorType !== 'no_permission'"
-      >
-
-        El usuario y/o la contraseña son incorrectos
-        o no cumplen las políticas de seguridad.
-
+      <div class="alert-text font-weight-bold" *ngIf="errorType !== 'no_permission'">
+        El usuario y/o la contraseña son incorrectos o no cumplen las políticas de seguridad.
       </div>
-
     </div>
-
   </ng-container>
+  <!-- end::Alert error-->
 
-  <!-- ========================================
-       CAMPO USUARIO O CORREO ELECTRÓNICO
-  ======================================== -->
-
+  <!--begin::Form group-->
   <div class="fv-row mb-8">
-
-    <label
-      class="form-label fs-6 fw-bolder text-gray-900"
-      for="pujol-login-username"
-    >
-      Usuario o Correo electrónico
-    </label>
-
-    <input
-      id="pujol-login-username"
-      class="form-control bg-transparent"
-      type="text"
-      name="username"
-      formControlName="username"
-      autocomplete="username"
+    <label class="form-label fs-6 fw-bolder text-gray-900">Usuario o Correo electrónico</label>
+    <input class="form-control bg-transparent" type="text" name="username" formControlName="username" autocomplete="off"
       [ngClass]="{
-        'is-invalid':
-          loginForm.controls['username'].invalid &&
-          (
-            loginForm.controls['username'].dirty ||
-            loginForm.controls['username'].touched
-          ),
-
-        'is-valid':
-          loginForm.controls['username'].valid &&
-          (
-            loginForm.controls['username'].dirty ||
-            loginForm.controls['username'].touched
-          )
-      }"
-    />
-
-    <!-- Usuario obligatorio -->
-
-    <ng-container
-      [ngTemplateOutlet]="formError"
-      [ngTemplateOutletContext]="{
+        'is-invalid': loginForm.controls['username'].invalid && (loginForm.controls['username'].dirty || loginForm.controls['username'].touched),
+        'is-valid': loginForm.controls['username'].valid && (loginForm.controls['username'].dirty || loginForm.controls['username'].touched)
+      }" />
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
         validation: 'required',
         message: 'El usuario o correo electrónico es obligatorio.',
         control: loginForm.controls['username']
-      }"
-    ></ng-container>
-
-    <!-- Longitud mínima -->
-
-    <ng-container
-      [ngTemplateOutlet]="formError"
-      [ngTemplateOutletContext]="{
+      }"></ng-container>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
         validation: 'minlength',
         message: 'El usuario o correo electrónico debe tener al menos 3 caracteres.',
         control: loginForm.controls['username']
-      }"
-    ></ng-container>
-
-    <!-- Longitud máxima -->
-
-    <ng-container
-      [ngTemplateOutlet]="formError"
-      [ngTemplateOutletContext]="{
+      }"></ng-container>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
         validation: 'maxlength',
         message: 'El usuario o correo electrónico no debe superar los 100 caracteres.',
         control: loginForm.controls['username']
-      }"
-    ></ng-container>
-
+      }"></ng-container>
   </div>
+  <!--end::Form group-->
 
-  <!-- ========================================
-       CAMPO CONTRASEÑA CON OJITO
-  ======================================== -->
-
+  <!--begin::Form group-->
   <div class="fv-row mb-3">
-
-    <label
-      class="form-label fw-bolder text-gray-900 fs-6 mb-0"
-      for="pujol-login-password"
-    >
-      Contraseña
-    </label>
-
-    <!-- Contenedor del campo y botón -->
-
-    <div class="pujol-password-field">
-
-      <!-- Campo de contraseña -->
-
-      <input
-        id="pujol-login-password"
-        class="form-control bg-transparent"
-        [type]="showPassword ? 'text' : 'password'"
-        name="password"
-        formControlName="password"
-        autocomplete="current-password"
-        [ngClass]="{
-          'is-invalid':
-            loginForm.controls['password'].invalid &&
-            (
-              loginForm.controls['password'].dirty ||
-              loginForm.controls['password'].touched
-            ),
-
-          'is-valid':
-            loginForm.controls['password'].valid &&
-            (
-              loginForm.controls['password'].dirty ||
-              loginForm.controls['password'].touched
-            )
-        }"
-      />
-
-      <!-- Botón para mostrar u ocultar contraseña -->
-
-      <button
-        type="button"
-        class="pujol-password-toggle"
-        (click)="togglePasswordVisibility()"
-        [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-        [attr.aria-pressed]="showPassword"
-        [attr.title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-      >
-
-        <!-- Ojo abierto: mostrar contraseña -->
-
-        <svg
-          *ngIf="!showPassword"
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-
-          <path
-            d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"
-          />
-
-          <circle
-            cx="12"
-            cy="12"
-            r="3"
-          />
-
-        </svg>
-
-        <!-- Ojo tachado: ocultar contraseña -->
-
-        <svg
-          *ngIf="showPassword"
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-
-          <path d="M3 3l18 18"/>
-
-          <path
-            d="M10.6 5.1A11 11 0 0 1 12 5c6.4 0 10 7 10 7a13 13 0 0 1-3.1 3.8"
-          />
-
-          <path
-            d="M6.1 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 5-1.3"
-          />
-
-          <path
-            d="M10 10a3 3 0 0 0 4 4"
-          />
-
-        </svg>
-
-      </button>
-
-    </div>
-
-    <!-- Contraseña obligatoria -->
-
-    <ng-container
-      [ngTemplateOutlet]="formError"
-      [ngTemplateOutletContext]="{
+    <label class="form-label fw-bolder text-gray-900 fs-6 mb-0">Contraseña</label>
+    <input class="form-control bg-transparent" type="password" name="password" autocomplete="off"
+      formControlName="password" [ngClass]="{
+        'is-invalid': loginForm.controls['password'].invalid && (loginForm.controls['password'].dirty || loginForm.controls['password'].touched),
+        'is-valid': loginForm.controls['password'].valid && (loginForm.controls['password'].dirty || loginForm.controls['password'].touched)
+      }" />
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
         validation: 'required',
         message: 'La contraseña es obligatoria.',
         control: loginForm.controls['password']
-      }"
-    ></ng-container>
-
-    <!-- Validación de seguridad -->
-
-    <ng-container
-      [ngTemplateOutlet]="formError"
-      [ngTemplateOutletContext]="{
+      }"></ng-container>
+    <ng-container [ngTemplateOutlet]="formError" [ngTemplateOutletContext]="{
         validation: 'pattern',
         message: 'La contraseña debe tener al menos 8 caracteres (sin espacios) e incluir letras, números y caracteres especiales.',
         control: loginForm.controls['password']
-      }"
-    ></ng-container>
-
+      }"></ng-container>
   </div>
+  <!--end::Form group-->
 
-  <!-- ========================================
-       RECORDAR USUARIO Y RECUPERAR CONTRASEÑA
-  ======================================== -->
-
-  <div
-    class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8"
-  >
-
-    <!-- Recordar usuario -->
-
-    <label
-      class="form-check form-check-custom form-check-solid cursor-pointer"
-    >
-
-      <input
-        class="form-check-input"
-        type="checkbox"
-        name="rememberMe"
-        formControlName="rememberMe"
-      />
-
-      <span class="form-check-label text-gray-700 fs-6">
-        Recuérdame
-      </span>
-
+  <div *ngIf="mensaje" class="alert alert-info">{{mensaje}}</div>
+  <label *ngIf="cambio" class="form-label">Nueva contraseña (12 caracteres como mínimo)
+    <input type="password" class="form-control" autocomplete="new-password" formControlName="claveNueva">
+  </label>
+  <!--begin::Wrapper-->
+  <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
+    <label class="form-check form-check-custom form-check-solid cursor-pointer">
+      <input class="form-check-input" type="checkbox" name="rememberMe" formControlName="rememberMe"/>
+      <span class="form-check-label text-gray-700 fs-6">Recuérdame</span>
     </label>
 
-    <!-- Recuperar contraseña -->
+    <!--begin::Link-->
 
-    <a
-      routerLink="/auth/forgot-password"
-      class="link-primary"
-    >
-      ¿Olvidaste tu contraseña?
-    </a>
-
+    <!--end::Link-->
   </div>
+  <!--end::Wrapper-->
 
-  <!-- ========================================
-       BOTÓN INICIAR SESIÓN
-  ======================================== -->
-
+  <!--begin::Action-->
   <div class="d-grid mb-5">
-
-    <button
-      type="submit"
-      id="kt_sign_in_submit"
-      class="btn btn-primary"
-      [disabled]="loginForm.invalid"
-    >
-
-      <!-- Estado de carga -->
-
+    <button type="submit" id="kt_sign_in_submit" class="btn btn-primary" [disabled]="loginForm.invalid">
       <ng-container *ngIf="isLoading$ | async">
-
-        <span
-          class="indicator-progress"
-          [style.display]="'block'"
-        >
-
+        <span class="indicator-progress" [style.display]="'block'">
           Espere por favor...
-
-          <span
-            class="spinner-border spinner-border-sm align-middle ms-2"
-          ></span>
-
+          <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
         </span>
-
       </ng-container>
-
-      <!-- Texto normal -->
-
       <ng-container *ngIf="(isLoading$ | async) === false">
-
-        <span class="indicator-label">
-          Iniciar sesión
-        </span>
-
+        <span class="indicator-label">Iniciar sesión</span>
       </ng-container>
-
     </button>
-
   </div>
 
-  <!-- ========================================
-       INICIO DE SESIÓN CON GOOGLE
-  ======================================== -->
 
-  <div class="d-grid mb-5">
 
-    <a
-      href="#"
-      (click)="loginWithGoogle($event)"
-      class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100"
-    >
-
-      <img
-        alt="Google"
-        src="./assets/media/svg/brand-logos/google-icon.svg"
-        class="h-15px me-3"
-      />
-
-      Iniciar sesión con Google
-
-    </a>
-
-  </div>
-
-  <!-- ========================================
-       REGISTRO DE NUEVOS USUARIOS
-  ======================================== -->
-
-  <div
-    class="text-gray-500 text-center fw-semibold fs-6"
-  >
-
-    ¿No estás registrado aún?
-
-    <a
-      routerLink="/auth/registration"
-      class="link-primary"
-    >
-      Registrate
-    </a>
-
-  </div>
-
+  <a class="link-primary" [routerLink]="esEmpleado ? '/auth/login' : '/auth/empleados'">{{ esEmpleado ? 'Acceso de administración' : 'Acceso de empleados' }}</a>
+  <!--end::Action-->
 </form>
+<!--end::Form-->
 
-<!-- ==========================================
-     PLANTILLA DE VALIDACIÓN DE ERRORES
-========================================== -->
-
-<ng-template
-  #formError
-  let-control="control"
-  let-message="message"
-  let-validation="validation"
->
-
-  <ng-container
-    *ngIf="
-      control.hasError(validation) &&
-      (
-        control.dirty ||
-        control.touched
-      )
-    "
-  >
-
+<ng-template #formError let-control="control" let-message="message" let-validation="validation">
+  <ng-container *ngIf="control.hasError(validation) && (control.dirty || control.touched)">
     <div class="fv-plugins-message-container">
-
       <span role="alert">
         {{ message }}
       </span>
-
     </div>
-
   </ng-container>
-
 </ng-template>

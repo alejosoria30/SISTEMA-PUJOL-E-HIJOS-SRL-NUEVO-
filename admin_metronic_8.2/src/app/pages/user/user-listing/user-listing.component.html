@@ -5,16 +5,15 @@
       <!--begin::Search-->
       <div class="d-flex align-items-center position-relative my-1">
         <app-keenicon name="magnifier" class="fs-3 position-absolute ms-5"></app-keenicon>
-        <input type="text" data-action="filter" class="form-control form-control-solid w-250px ps-12" placeholder="Buscar Usuarios">
+        <input type="text" data-action="filter" class="form-control form-control-solid w-250px ps-12" placeholder="Buscar empleados">
       </div>
       <!--end::Search-->
       <!--begin::Filter Role-->
       <div class="d-flex align-items-center position-relative my-1 ms-5">
         <select class="form-select form-select-solid w-150px" (change)="filterRole($event)">
-          <option value="">Todos los Roles</option>
+          <option value="">Todos los perfiles</option>
           <option value="Administrador">Administrador</option>
           <option value="Empleado">Empleado</option>
-          <option value="Cliente">Cliente</option>
         </select>
       </div>
       <!--end::Filter Role-->
@@ -27,7 +26,7 @@
       <div class="d-flex justify-content-end">
         <!--begin::Add user-->
         <button type="button" class="btn btn-primary" data-action="create">
-          Agregar Usuario
+          Agregar empleado
         </button>
         <!--end::Add user-->
       </div>
@@ -37,7 +36,7 @@
   </div>
 
   <div class="card-body pt-0">
-    <app-crud [datatableConfig]="datatableConfig" route="/apps/users" (deleteEvent)="delete($event)" (editEvent)="edit($event)" (createEvent)="create()" [reload]="reloadEvent" [modal]="formModal"></app-crud>
+    <app-crud [datatableConfig]="datatableConfig" route="/personal/empleados" (deleteEvent)="delete($event)" (editEvent)="edit($event)" (createEvent)="create()" [reload]="reloadEvent" [modal]="formModal"></app-crud>
   </div>
 </div>
 
@@ -47,7 +46,7 @@
 <ng-template #formModal let-modal>
   <form #myForm="ngForm" (ngSubmit)="onSubmit($event, myForm)">
     <div class="modal-header">
-      <h4 class="modal-title" id="modal-basic-title">Detalles del Usuario</h4>
+      <h4 class="modal-title" id="modal-basic-title">Datos del empleado</h4>
       <button type="button" class="btn-close" aria-label="Cerrar" (click)="modal.dismiss('Cross click')"></button>
     </div>
     <div class="modal-body">
@@ -74,7 +73,7 @@
         <!--end::Notice-->
 
         <!--begin::User toggle-->
-        <div class="fw-bold fs-3 rotate collapsible mb-7" data-bs-toggle="collapse" role="button" (click)="collapse1.toggle()" [attr.aria-expanded]="!isCollapsed1" aria-controls="kt_modal_update_customer_user_info">Información del Usuario
+        <div class="fw-bold fs-3 rotate collapsible mb-7" data-bs-toggle="collapse" role="button" (click)="collapse1.toggle()" [attr.aria-expanded]="!isCollapsed1" aria-controls="kt_modal_update_customer_user_info">Información del empleado
           <span class="ms-2 rotate-180">
             <i class="ki-duotone ki-down fs-3" [ngClass]="{ 'ki-up': !isCollapsed1 }"></i>
           </span>
@@ -121,8 +120,8 @@
             <input type="text" class="form-control form-control-solid" name="username" [(ngModel)]="userModel.username" />
           </div>
           <div class="fv-row mb-7">
-            <label class="fw-semibold fs-6 mb-2">Contraseña (Dejar en blanco para no cambiar)</label>
-            <input type="password" class="form-control form-control-solid" name="password" [(ngModel)]="userModel.password" />
+            <label class="fw-semibold fs-6 mb-2">{{ userModel.id ? 'Nueva contraseña (opcional)' : 'Contraseña inicial (12 caracteres como mínimo)' }}</label>
+            <input type="password" class="form-control form-control-solid" name="password" minlength="12" [required]="!userModel.id" autocomplete="new-password" [(ngModel)]="userModel.password" />
           </div>
           <div class="fv-row mb-7">
             <label class="fw-semibold fs-6 mb-2">Teléfono</label>
@@ -176,17 +175,19 @@
           </div>
 
           <div class="mb-7">
-            <label class="required fw-semibold fs-6 mb-5">Roles</label>
+            <label class="required fw-semibold fs-6 mb-5">Perfil de acceso (seleccione uno)</label>
+            <p class="text-muted fs-7">Los permisos se administran desde Perfiles, no desde la ficha de cada empleado.</p>
 
-            <div *ngFor="let role of (roles$ | async)?.data; let last = last">
+            <ng-container *ngFor="let role of (roles$ | async)?.data; let last = last">
+            <div *ngIf="role.id !== 3">
               <div class="d-flex fv-row">
                 <div class="form-check form-check-custom form-check-solid">
                   <input class="form-check-input me-3" 
                          id="kt_modal_update_role_option_{{ role.id }}" 
-                         name="role_{{ role.id }}" 
-                         type="checkbox" 
+                         name="perfil" 
+                         type="radio"
                          [checked]="isRoleSelected(role.id)"
-                         (change)="toggleRole(role)" />
+                         (change)="seleccionarPerfil(role)" />
                   <label class="form-check-label" for="kt_modal_update_role_option_{{ role.id }}">
                     <div class="fw-bold text-gray-800">
                       {{ role.name | titlecase }}
@@ -196,6 +197,7 @@
               </div>
               <div *ngIf="!last" class="separator separator-dashed my-5"></div>
             </div>
+            </ng-container>
 
           </div>
 

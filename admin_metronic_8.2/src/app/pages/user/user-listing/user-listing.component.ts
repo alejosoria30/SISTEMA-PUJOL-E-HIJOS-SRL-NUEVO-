@@ -1,3 +1,4 @@
+import { textoTabla } from 'src/app/texto-tabla';
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SwalComponent } from '@sweetalert2/ngx-sweetalert2';
@@ -67,14 +68,14 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
             const initials = data[0].toUpperCase();
             const symbolLabel = `
               <div class="symbol-label fs-3 bg-light-${randomColorClass} text-${randomColorClass}">
-                ${initials}
+                ${textoTabla(initials)}
               </div>
             `;
 
             const nameAndEmail = `
               <div class="d-flex flex-column" data-action="view" data-id="${full.id}">
-                <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
-                <span>${full.email}</span>
+                <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${textoTabla(data)}</a>
+                <span>${textoTabla(full.email)}</span>
               </div>
             `;
 
@@ -91,7 +92,7 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           title: 'Rol', data: 'role', render: function (data, type, row) {
             if (row.roles && row.roles.length > 0) {
-              return row.roles.map((r: any) => r.name).join(', ');
+              return row.roles.map((r: any) => textoTabla(r.name)).join(', ');
             }
             return '';
           },
@@ -101,7 +102,8 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         {
           title: 'Último Acceso', data: 'last_login_at', render: (data, type, full) => {
-            const date = data || full.created_at;
+            if (!data) return 'Sin registro';
+            const date = data;
             const dateString = moment(date).locale('es').fromNow();
             return `<div class="badge badge-light fw-bold">${dateString}</div>`;
           }
@@ -114,7 +116,7 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         {
           title: 'Fecha de Registro', data: 'created_at', render: function (data) {
-            return moment(data).format('DD MMM YYYY, hh:mm a');;
+            return data ? moment(data).format('DD MMM YYYY, hh:mm a') : 'Sin registro';
           }
         }
       ],
@@ -165,6 +167,10 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
   isRoleSelected(roleId: number): boolean {
     if (!this.userModel || !this.userModel.roles) return false;
     return this.userModel.roles.some(r => r.id === roleId);
+  }
+
+  seleccionarPerfil(rol: any): void {
+    this.userModel.roles = [{id: Number(rol.id), name: rol.name, permissions: [], users: []}];
   }
 
   toggleRole(roleObj: any) {
@@ -222,7 +228,6 @@ export class UserListingComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     const createFn = () => {
-      this.userModel.password = 'test123';
       this.apiService.createUser(this.userModel).subscribe({
         next: () => {
           this.showAlert(successAlert);

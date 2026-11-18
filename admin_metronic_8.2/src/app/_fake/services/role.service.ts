@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import { IPermissionModel } from './permission.service';
 import { IUserModel } from './user-service';
 import { StateService } from '../../pages/state.service';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, timeout } from 'rxjs/operators';
 
 export interface DataTablesResponse {
   draw?: number;
@@ -60,6 +60,7 @@ export class RoleService {
 
   getRoles(dataTablesParameters?: any): Observable<DataTablesResponse> {
     return this.http.get<DataTablesResponse>(`${environment.apiUrl}/roles`).pipe(
+      timeout(15000),
       map((res: any) => {
         const searchVal = dataTablesParameters?.search?.value?.toLowerCase() || '';
         let filtered = res.data || [];
@@ -80,7 +81,7 @@ export class RoleService {
   getRole(id: number): Observable<IRoleModel> {
     return this.http.get<IRoleModel>(`${environment.apiUrl}/roles`, {
       params: { id: id.toString() }
-    });
+    }).pipe(timeout(15000));
   }
 
   createRole(role: IRoleModel): Observable<IRoleModel> {
@@ -89,6 +90,7 @@ export class RoleService {
       permissions: role.permissions || []
     };
     return this.http.post<any>(`${environment.apiUrl}/roles`, body).pipe(
+      timeout(15000),
       tap((res) => {
         if (res.success) {
           this.stateService.loadRoles();
@@ -113,6 +115,7 @@ export class RoleService {
       permissions: role.permissions || []
     };
     return this.http.post<any>(`${environment.apiUrl}/roles`, body).pipe(
+      timeout(15000),
       tap((res) => {
         if (res.success) {
           this.stateService.loadRoles();

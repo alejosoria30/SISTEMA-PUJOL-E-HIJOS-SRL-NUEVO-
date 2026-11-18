@@ -1,168 +1,567 @@
-<div class="card card-custom">
-  <div class="card-header border-0 pt-6">
+
+<div class="card card-custom shadow-sm">
+
+  <!-- ENCABEZADO -->
+  <div class="card-header border-0 pt-6 pb-3">
     <div class="card-title">
-      <h3 class="card-label">Gestión de Stock</h3>
+      <h3 class="card-label fw-bold text-gray-900 fs-2">
+        Gestión de Stock
+      </h3>
     </div>
+
     <div class="card-toolbar">
-      <button class="btn btn-primary" (click)="openMovimientoModal()" *ngIf="hasAction('create')">
-        <app-keenicon name="plus" class="fs-2"></app-keenicon> Registrar Movimiento
+      <button
+        type="button"
+        class="btn btn-primary fw-bold"
+        (click)="openMovimientoModal()"
+        *ngIf="puedeRegistrarMovimiento()"
+      >
+        <app-keenicon name="plus" class="fs-2"></app-keenicon>
+        Registrar Movimiento
       </button>
     </div>
   </div>
-  <div class="card-body">
-    <ul class="nav nav-tabs nav-line-tabs mb-5 fs-6">
+
+  <div class="card-body pt-2">
+
+    <!-- PESTAÑAS -->
+    <ul class="nav nav-tabs nav-line-tabs mb-7 fs-6">
+
       <li class="nav-item">
-        <a class="nav-link cursor-pointer" [ngClass]="{ 'active text-primary fw-bold': activeTab === 'stock' }" (click)="activeTab = 'stock'">
+        <a
+          class="nav-link cursor-pointer px-5 py-4"
+          [ngClass]="{
+            'active text-primary fw-bold': activeTab === 'stock'
+          }"
+          (click)="activeTab = 'stock'"
+        >
           Consulta de Stock
         </a>
       </li>
+
       <li class="nav-item">
-        <a class="nav-link cursor-pointer" [ngClass]="{ 'active text-primary fw-bold': activeTab === 'movimientos' }" (click)="activeTab = 'movimientos'">
+        <a
+          class="nav-link cursor-pointer px-5 py-4"
+          [ngClass]="{
+            'active text-primary fw-bold': activeTab === 'movimientos'
+          }"
+          (click)="activeTab = 'movimientos'"
+        >
           Historial de Movimientos
         </a>
       </li>
+
     </ul>
 
+    <!-- ======================================= -->
     <!-- TAB 1: CONSULTA DE STOCK -->
+    <!-- ======================================= -->
+
     <div *ngIf="activeTab === 'stock'">
+
       <div class="table-responsive">
-        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+
+        <table
+          class="table table-row-dashed table-row-gray-300 table-hover align-middle gs-0 gy-4"
+          style="min-width: 850px;"
+        >
+
           <thead>
-            <tr class="fw-bold text-muted">
-              <th class="min-w-100px">Código</th>
-              <th class="min-w-150px">Producto</th>
-              <th class="min-w-100px text-end">Stock Actual</th>
-              <th class="min-w-120px text-center">Disponibilidad</th>
-              <th class="min-w-100px text-end">Acciones</th>
+            <tr class="fw-bold text-muted fs-7 text-uppercase">
+
+              <th class="min-w-100px ps-5 py-5">
+                Código
+              </th>
+
+              <th class="min-w-300px py-5">
+                Producto
+              </th>
+
+              <th class="min-w-110px text-center py-5">
+                Stock Actual
+              </th>
+
+              <th class="min-w-150px text-center py-5">
+                Disponibilidad
+              </th>
+
+              <th class="min-w-140px text-end pe-5 py-5">
+                Acciones
+              </th>
+
             </tr>
           </thead>
+
           <tbody>
-            <tr *ngFor="let item of stock">
-              <td><span class="text-gray-900 fw-bold fs-6">{{ item.code || '-' }}</span></td>
-              <td>
-                <div class="d-flex align-items-center gap-3">
-                  <div class="flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px; max-width: 48px; overflow: hidden;">
-                    <img [src]="getProductImage(item)" [alt]="item.name" style="max-width: 100%; max-height: 100%; object-fit: contain;" (error)="onImageError($event)" loading="lazy" />
-                  </div>
-                  <div class="d-flex flex-column">
-                    <span class="text-gray-900 fw-bold fs-6">{{ item.name }}</span>
-                    <span class="text-muted fs-8">{{ item.description || '' }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="text-end text-gray-900 fw-bold fs-6">{{ item.quantity }}</td>
-              <td class="text-center">
-                <span *ngIf="item.quantity < item.minThreshold" class="badge badge-light-danger fs-7 fw-bold">
-                  Bajo Stock (Min: {{ item.minThreshold }})
+
+            <tr
+              *ngFor="let item of stock"
+              style="height: 120px;"
+            >
+
+              <!-- CÓDIGO -->
+              <td class="ps-5">
+
+                <span
+                  class="text-gray-700 fw-bold fs-6"
+                >
+                  {{ item.code || '-' }}
                 </span>
-                <span *ngIf="item.quantity >= item.minThreshold" class="badge badge-light-success fs-7 fw-bold">
+
+              </td>
+
+              <!-- IMAGEN Y PRODUCTO -->
+              <td>
+
+                <div
+                  class="d-flex align-items-center"
+                  style="gap: 18px;"
+                >
+
+                  <!-- CONTENEDOR DE IMAGEN -->
+                  <div
+                    class="flex-shrink-0 d-flex align-items-center justify-content-center border rounded-3"
+                    style="
+                      width: 96px;
+                      height: 96px;
+                      min-width: 96px;
+                      padding: 3px;
+                      background-color: var(--bs-gray-100, #f5f8fa);
+                      border-color: var(--bs-border-color, #e4e6ef) !important;
+                      overflow: hidden;
+                    "
+                  >
+
+                    <img
+                      [src]="getProductImage(item)"
+                      [alt]="item.name"
+                      (error)="onImageError($event)"
+                      loading="lazy"
+                      style="
+                        display: block;
+                        width: 90px;
+                        height: 90px;
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                        object-position: center;
+                        border-radius: 8px;
+                      "
+                    />
+
+                  </div>
+
+                  <!-- INFORMACIÓN DEL PRODUCTO -->
+                  <div
+                    class="d-flex flex-column justify-content-center"
+                    style="min-width: 0;"
+                  >
+
+                    <span
+                      class="text-gray-900 fw-bold fs-5 mb-2"
+                      style="
+                        line-height: 1.4;
+                        overflow-wrap: anywhere;
+                      "
+                    >
+                      {{ item.name }}
+                    </span>
+
+                    <span
+                      *ngIf="item.description"
+                      class="text-muted fs-7"
+                      style="
+                        line-height: 1.5;
+                        overflow-wrap: anywhere;
+                      "
+                    >
+                      {{ item.description }}
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </td>
+
+              <!-- STOCK ACTUAL -->
+              <td class="text-center">
+
+                <span
+                  class="text-gray-900 fw-bolder fs-3"
+                >
+                  {{ item.quantity }}
+                </span>
+
+              </td>
+
+              <!-- DISPONIBILIDAD -->
+              <td class="text-center">
+
+                <!-- AGOTADO -->
+                <span
+                  *ngIf="item.quantity <= 0"
+                  class="badge badge-light-danger fw-bold fs-7 px-4 py-3"
+                  style="border-radius: 8px;"
+                >
+                  Agotado
+                </span>
+
+                <!-- BAJO STOCK -->
+                <span
+                  *ngIf="
+                    item.quantity > 0 &&
+                    item.quantity < item.minThreshold
+                  "
+                  class="badge badge-light-warning fw-bold fs-7 px-4 py-3"
+                  style="border-radius: 8px;"
+                >
+                  Bajo Stock
+                  (Min: {{ item.minThreshold }})
+                </span>
+
+                <!-- STOCK SUFICIENTE -->
+                <span
+                  *ngIf="
+                    item.quantity > 0 &&
+                    item.quantity >= item.minThreshold
+                  "
+                  class="badge badge-light-success fw-bold fs-7 px-4 py-3"
+                  style="border-radius: 8px;"
+                >
                   Suficiente
                 </span>
+
               </td>
-              <td class="text-end">
-                <button class="btn btn-sm btn-light-primary" (click)="openMovimientoModal(item.id)" *ngIf="hasAction('create')">
+
+              <!-- ACCIONES -->
+              <td class="text-end pe-5">
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light-primary fw-bold px-4 py-3"
+                  style="
+                    border-radius: 8px;
+                    white-space: nowrap;
+                  "
+                  (click)="openMovimientoModal(item.id)"
+                  *ngIf="puedeRegistrarMovimiento()"
+                >
                   Mover Stock
                 </button>
+
               </td>
+
             </tr>
+
+            <!-- SIN PRODUCTOS -->
             <tr *ngIf="stock.length === 0">
-              <td colspan="5" class="text-center text-muted py-5">No hay productos registrados.</td>
+
+              <td
+                colspan="5"
+                class="text-center text-muted py-10"
+              >
+                No hay productos registrados.
+              </td>
+
             </tr>
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
 
+    <!-- ======================================= -->
     <!-- TAB 2: HISTORIAL DE MOVIMIENTOS -->
+    <!-- ======================================= -->
+
     <div *ngIf="activeTab === 'movimientos'">
+
       <div class="table-responsive">
-        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+
+        <table
+          class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4"
+        >
+
           <thead>
+
             <tr class="fw-bold text-muted">
-              <th class="min-w-150px">Fecha y Hora</th>
-              <th class="min-w-150px">Producto</th>
-              <th class="min-w-100px text-center">Tipo</th>
-              <th class="min-w-100px text-end">Cantidad</th>
-              <th class="min-w-150px">Usuario</th>
-              <th class="min-w-200px">Observaciones</th>
+
+              <th class="min-w-150px">
+                Fecha y Hora
+              </th>
+
+              <th class="min-w-150px">
+                Producto
+              </th>
+
+              <th class="min-w-100px text-center">
+                Tipo
+              </th>
+
+              <th class="min-w-100px text-end">
+                Cantidad
+              </th>
+
+              <th class="min-w-150px">
+                Usuario
+              </th>
+
+              <th class="min-w-200px">
+                Observaciones
+              </th>
+
             </tr>
+
           </thead>
+
           <tbody>
+
             <tr *ngFor="let mov of movimientos">
-              <td><span class="text-gray-900 fs-6">{{ mov.date | date:'dd/MM/yyyy HH:mm' }}</span></td>
+
+              <!-- FECHA -->
               <td>
-                <div class="d-flex align-items-center gap-3">
-                  <div class="flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px; max-width: 40px; overflow: hidden;">
-                    <img [src]="getProductImage(mov)" [alt]="mov.productName" style="max-width: 100%; max-height: 100%; object-fit: contain;" (error)="onImageError($event)" loading="lazy" />
-                  </div>
-                  <div>
-                    <span class="text-gray-900 fw-bold fs-6 d-block">{{ mov.productName }}</span>
-                    <span class="text-muted fs-8">{{ mov.productCode || '-' }}</span>
-                  </div>
-                </div>
+
+                <span class="text-gray-900 fs-6">
+                  {{ mov.date | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+
               </td>
+
+              <!-- PRODUCTO -->
+              <td>
+
+                <span
+                  class="text-gray-900 fw-bold fs-6"
+                >
+                  {{ mov.productName }}
+                </span>
+
+                <span class="text-muted fs-7 d-block">
+                  {{ mov.productCode }}
+                </span>
+
+              </td>
+
+              <!-- TIPO -->
               <td class="text-center">
-                <span class="badge fs-7 fw-bold" 
-                      [ngClass]="{
-                        'badge-light-success': mov.type === 'Entrada', 
-                        'badge-light-danger': mov.type === 'Salida',
-                        'badge-light-warning': mov.type === 'Ajuste'
-                      }">
+
+                <span
+                  class="badge fs-7 fw-bold"
+                  [ngClass]="{
+                    'badge-light-success': mov.type === 'Entrada',
+                    'badge-light-danger': mov.type === 'Salida',
+                    'badge-light-warning': mov.type === 'Ajuste'
+                  }"
+                >
                   {{ mov.type }}
                 </span>
+
               </td>
-              <td class="text-end text-gray-900 fw-bold fs-6">{{ mov.quantity }}</td>
-              <td><span class="text-gray-700 fs-6">{{ mov.userName }}</span></td>
-              <td><span class="text-gray-700 fs-7">{{ mov.observations || '-' }}</span></td>
+
+              <!-- CANTIDAD -->
+              <td class="text-end text-gray-900 fw-bold fs-6">
+                {{ mov.quantity }}
+              </td>
+
+              <!-- USUARIO -->
+              <td>
+
+                <span class="text-gray-700 fs-6">
+                  {{ mov.userName }}
+                </span>
+
+              </td>
+
+              <!-- OBSERVACIONES -->
+              <td>
+
+                <span class="text-gray-700 fs-7">
+                  {{ mov.observations || '-' }}
+                </span>
+
+              </td>
+
             </tr>
+
+            <!-- SIN MOVIMIENTOS -->
             <tr *ngIf="movimientos.length === 0">
-              <td colspan="6" class="text-center text-muted py-5">No hay movimientos registrados.</td>
+
+              <td
+                colspan="6"
+                class="text-center text-muted py-5"
+              >
+                No hay movimientos registrados.
+              </td>
+
             </tr>
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- MOVIMIENTO MODAL FORM -->
-<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="isMovimientoModalOpen">
+<!-- ======================================= -->
+<!-- MODAL: MOVIMIENTO DE STOCK -->
+<!-- ======================================= -->
+
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  style="background: rgba(0,0,0,0.5);"
+  *ngIf="isMovimientoModalOpen"
+>
+
   <div class="modal-dialog modal-dialog-centered">
+
     <div class="modal-content">
+
+      <!-- ENCABEZADO DEL MODAL -->
       <div class="modal-header">
-        <h5 class="modal-title fw-bold text-gray-900">Registrar Movimiento de Stock</h5>
-        <button type="button" class="btn-close" (click)="isMovimientoModalOpen = false" aria-label="Close"></button>
+
+        <h5
+          class="modal-title fw-bold text-gray-900"
+        >
+          Registrar Movimiento de Stock
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          (click)="isMovimientoModalOpen = false"
+          aria-label="Cerrar"
+        ></button>
+
       </div>
+
+      <!-- CUERPO DEL MODAL -->
       <div class="modal-body">
+
         <div class="row g-4">
+
+          <!-- PRODUCTO -->
           <div class="col-12">
-            <label class="form-label required">Producto</label>
-            <select class="form-select" [(ngModel)]="movProductId">
-              <option *ngFor="let p of stock" [value]="p.id">{{ p.name }} (Stock: {{ p.quantity }})</option>
+
+            <label class="form-label required">
+              Producto
+            </label>
+
+            <select
+              class="form-select"
+              [(ngModel)]="movProductId"
+            >
+
+              <option
+                *ngFor="let p of stock"
+                [ngValue]="p.id"
+              >
+                {{ p.name }} (Stock: {{ p.quantity }})
+              </option>
+
             </select>
+
           </div>
+
+          <!-- TIPO -->
           <div class="col-12 col-md-6">
-            <label class="form-label required">Tipo de Movimiento</label>
-            <select class="form-select" [(ngModel)]="movType">
-              <option value="Entrada">Entrada (+)</option>
-              <option value="Salida">Salida (-)</option>
-              <option value="Ajuste">Ajuste (=)</option>
+
+            <label class="form-label required">
+              Tipo de Movimiento
+            </label>
+
+            <select
+              class="form-select"
+              [(ngModel)]="movType"
+            >
+
+              <option value="Entrada" *ngIf="hasAction('create')">
+                Entrada (+)
+              </option>
+
+              <option value="Salida" *ngIf="hasAction('create')">
+                Salida (-)
+              </option>
+
+              <option value="Ajuste" *ngIf="puedeAjustarStock()">
+                Ajuste (=)
+              </option>
+
             </select>
+
           </div>
+
+          <!-- CANTIDAD -->
           <div class="col-12 col-md-6">
-            <label class="form-label required">Cantidad</label>
-            <input type="number" class="form-control" [(ngModel)]="movQuantity" min="1">
+
+            <label class="form-label required">
+              {{ movType === 'Ajuste' ? 'Cantidad final en inventario' : 'Cantidad' }}
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="movQuantity"
+              [min]="movType === 'Ajuste' ? 0 : 0.001"
+              step="0.001"
+            />
+
           </div>
+
+          <!-- OBSERVACIONES -->
           <div class="col-12">
-            <label class="form-label">Observaciones</label>
-            <textarea class="form-control" rows="2" [(ngModel)]="movObservations" placeholder="Motivo del movimiento, nro de remito, etc."></textarea>
+
+            <label class="form-label">
+              Observaciones {{ movType === 'Ajuste' ? '(motivo obligatorio)' : '' }}
+            </label>
+
+            <textarea
+              class="form-control"
+              rows="2"
+              [(ngModel)]="movObservations"
+              placeholder="Motivo del movimiento, nro de remito, etc."
+            ></textarea>
+
           </div>
+
         </div>
+
       </div>
+
+      <!-- PIE DEL MODAL -->
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="isMovimientoModalOpen = false">Cancelar</button>
-        <button class="btn btn-primary" (click)="saveMovimiento()">Registrar Movimiento</button>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="isMovimientoModalOpen = false"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="saveMovimiento()"
+        >
+          Registrar Movimiento
+        </button>
+
       </div>
+
     </div>
+
   </div>
+
 </div>

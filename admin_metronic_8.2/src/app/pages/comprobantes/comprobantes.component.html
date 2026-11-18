@@ -82,7 +82,7 @@
             <tbody>
               <tr *ngFor="let c of comprobantes">
                 <td class="ps-4 fw-bolder text-primary">{{ c.numeroComp }}</td>
-                <td><span class="badge badge-light-dark">{{ c.tipoComp }}</span></td>
+                <td><span class="badge badge-light-dark">{{ c.tipoComp }} · {{ c.tipoVenta || "Histórica" }}</span></td>
                 <td>{{ c.fechaEmision | date:'short' }}</td>
                 <td class="text-end text-muted">#{{ c.idVenta }}</td>
                 <td class="text-end fw-bold text-gray-800">${{ c.totalComp | number:'1.2-2' }}</td>
@@ -147,7 +147,7 @@
           <h2 class="fw-bold fs-4 mb-0">Pujol e Hijos S.R.L.</h2>
           <span class="text-muted fs-8 d-block">Gestión de Insumos y Ventas</span>
           <div class="separator border-dashed my-3"></div>
-          <h3 class="fs-6 fw-bold mb-1">{{ ticketActivo?.tipoComp | uppercase }}</h3>
+          <h3 class="fs-6 fw-bold mb-1">{{ ticketActivo?.tipoComp | uppercase }} · {{ ticketActivo?.tipoVenta || "Histórica" }}</h3>
           <span class="fs-7 text-gray-800 d-block">Nº: {{ ticketActivo?.numeroComp }}</span>
           <span class="fs-8 text-muted d-block">Fecha: {{ ticketActivo?.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>

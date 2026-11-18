@@ -1,0 +1,25 @@
+/* Corrección 18: buscador POS ligero, sin componentes externos nuevos. */
+.pos-rapido .pos-resultados {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--bs-gray-300, #e1e3ea);
+  border-radius: .6rem;
+}
+.pos-rapido .pos-resultado {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+}
+.pos-rapido .pos-resultado:hover,
+.pos-rapido .pos-resultado:focus,
+.pos-rapido .pos-resultado.pos-seleccionado {
+  background: var(--bs-gray-100, #f5f8fa);
+  outline-offset: -2px;
+}
+.pos-rapido .pos-resultado:disabled { cursor: not-allowed; opacity: .58; }
+.pos-rapido .pos-cantidad { min-width: 90px; }
+.pos-rapido .pos-cobros-qr { max-height: 220px; overflow-y: auto; }
+@media (max-width: 767px) {
+  .pos-rapido .fs-1 { font-size: 1.6rem !important; }
+}

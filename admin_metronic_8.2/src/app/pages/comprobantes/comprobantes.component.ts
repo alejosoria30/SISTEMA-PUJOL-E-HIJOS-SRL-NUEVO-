@@ -25,13 +25,13 @@ export class ComprobantesComponent implements OnInit {
   hasAction(action: 'read' | 'create' | 'update' | 'delete'): boolean {
     // Permiso 5 es Ventas, podríamos usar ese o crear un Permiso "Comprobantes"
     // Asumiremos que si puede ver Ventas o Caja, puede ver Comprobantes. Usaremos el de Ventas por ahora.
-    return this.authService.hasAction(5, action);
+    return this.authService.hasAction(4, action);
   }
 
   ngOnInit(): void {
     // Escuchar las ventas (Receipts)
     this.stateService.receipts$.subscribe(data => {
-      this.ventas = data;
+      this.ventas = data.filter(venta => !venta.esPrueba);
     });
 
     // Escuchar comprobantes

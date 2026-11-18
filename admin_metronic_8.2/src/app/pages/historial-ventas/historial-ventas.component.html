@@ -1,165 +1,160 @@
-<!-- Summary cards row -->
+<!-- Indicadores comerciales. No representan saldo disponible en la caja. -->
 <div class="row g-5 mb-8">
-  <div class="col-md-3">
-    <div class="card card-flush h-md-100 bg-light-primary border-primary border border-dashed p-6">
-      <div class="card-header p-0 pb-2 bg-transparent">
-        <span class="text-gray-600 fw-bold fs-7">Total Recaudado</span>
-      </div>
-      <div class="card-body p-0">
-        <span class="fs-2hx fw-bold text-gray-900 d-block">{{ getTotalRevenue() | currency:'USD':'symbol':'1.2-2' }}</span>
-        <span class="text-muted fs-8">Total acumulado en caja</span>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 historial-indicador">
+      <div class="card-body p-6">
+        <div class="text-muted fw-semibold fs-7 mb-3">Total facturado</div>
+        <div class="historial-numero fw-bold text-gray-900">{{ getTotalFacturado() | currency:'ARS':'symbol-narrow':'1.2-2' }}</div>
+        <div class="text-muted fs-8 mt-2">Importe de ventas vigentes; no es saldo de caja.</div>
       </div>
     </div>
   </div>
-
-  <div class="col-md-3">
-    <div class="card card-flush h-md-100 bg-light-success border-success border border-dashed p-6">
-      <div class="card-header p-0 pb-2 bg-transparent">
-        <span class="text-gray-600 fw-bold fs-7">Ventas en Efectivo</span>
-      </div>
-      <div class="card-body p-0">
-        <span class="fs-2hx fw-bold text-gray-900 d-block">{{ getTotalCash() | currency:'USD':'symbol':'1.2-2' }}</span>
-        <span class="text-muted fs-8">Cobros físicos registrados</span>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 historial-indicador">
+      <div class="card-body p-6">
+        <div class="text-muted fw-semibold fs-7 mb-3">Efectivo registrado</div>
+        <div class="historial-numero fw-bold text-gray-900">{{ getTotalEfectivo() | currency:'ARS':'symbol-narrow':'1.2-2' }}</div>
+        <div class="text-muted fs-8 mt-2">Operaciones con cobro aprobado en efectivo.</div>
       </div>
     </div>
   </div>
-
-  <div class="col-md-3">
-    <div class="card card-flush h-md-100 bg-light-warning border-warning border border-dashed p-6">
-      <div class="card-header p-0 pb-2 bg-transparent">
-        <span class="text-gray-600 fw-bold fs-7">Transferencias / QR</span>
-      </div>
-      <div class="card-body p-0">
-        <span class="fs-2hx fw-bold text-gray-900 d-block">{{ getTotalTransfer() | currency:'USD':'symbol':'1.2-2' }}</span>
-        <span class="text-muted fs-8">Cobros digitales/bancarios</span>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 historial-indicador">
+      <div class="card-body p-6">
+        <div class="text-muted fw-semibold fs-7 mb-3">Pagos electrónicos</div>
+        <div class="historial-numero fw-bold text-gray-900">{{ getTotalElectronico() | currency:'ARS':'symbol-narrow':'1.2-2' }}</div>
+        <div class="text-muted fs-8 mt-2">Transferencias y Mercado Pago aprobados.</div>
       </div>
     </div>
   </div>
-
-  <div class="col-md-3">
-    <div class="card card-flush h-md-100 bg-light-dark border-dark border border-dashed p-6">
-      <div class="card-header p-0 pb-2 bg-transparent">
-        <span class="text-gray-600 fw-bold fs-7">Comprobantes Emitidos</span>
-      </div>
-      <div class="card-body p-0">
-        <span class="fs-2hx fw-bold text-gray-900 d-block">{{ receipts.length }}</span>
-        <span class="text-muted fs-8">Tickets generados en total</span>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card card-flush h-100 historial-indicador">
+      <div class="card-body p-6">
+        <div class="text-muted fw-semibold fs-7 mb-3">Ventas registradas</div>
+        <div class="historial-numero fw-bold text-gray-900">{{ ventasVigentes.length }}</div>
+        <div class="text-muted fs-8 mt-2">Sin anulaciones ni operaciones de prueba.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Filters bar -->
 <div class="card mb-8">
-  <div class="card-body">
+  <div class="card-body p-6">
     <div class="row g-4 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label text-gray-700 fw-bold fs-7">Buscar Comprobante</label>
-        <div class="position-relative">
-          <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
-            <app-keenicon name="magnifier" class="fs-4 text-muted"></app-keenicon>
-          </span>
-          <input type="text" class="form-control ps-9" placeholder="Buscar por cliente, id o producto..." [(ngModel)]="searchQuery" />
-        </div>
+      <div class="col-md-4">
+        <label class="form-label text-gray-700 fw-bold fs-7" for="busqueda-ventas">Buscar venta</label>
+        <input id="busqueda-ventas" type="search" class="form-control" [(ngModel)]="searchQuery"
+          placeholder="Número de venta, producto o cajero..." />
       </div>
-
-      <div class="col-md-2">
-        <label class="form-label text-gray-700 fw-bold fs-7">Método de Pago</label>
-        <select class="form-select" [(ngModel)]="selectedMethod">
+      <div class="col-md-3">
+        <label class="form-label text-gray-700 fw-bold fs-7" for="metodo-ventas">Medio de pago</label>
+        <select id="metodo-ventas" class="form-select" [(ngModel)]="selectedMethod">
           <option value="">Todos</option>
           <option value="Efectivo">Efectivo</option>
           <option value="Transferencia">Transferencia</option>
+          <option value="Transferencia bancaria">Transferencia bancaria</option>
+          <option value="Mercado Pago">QR Mercado Pago</option>
+          <option value="Sin documentar">No registrado</option>
         </select>
       </div>
-
       <div class="col-md-2">
-        <label class="form-label text-gray-700 fw-bold fs-7">Canal de Venta</label>
-        <select class="form-select" [(ngModel)]="selectedChannel">
-          <option value="">Todos</option>
-          <option value="presencial">Presencial</option>
-          <option value="telefónico">Telefónico</option>
-          <option value="reserva web">Reserva Web</option>
+        <label class="form-label text-gray-700 fw-bold fs-7" for="modalidad-ventas">Modalidad</label>
+        <select id="modalidad-ventas" class="form-select" [(ngModel)]="selectedChannel">
+          <option value="">Todas</option>
+          <option value="mayorista">Mayorista</option>
+          <option value="minorista">Minorista</option>
         </select>
       </div>
-
-      <div class="col-md-2">
-        <label class="form-label text-gray-700 fw-bold fs-7">Fecha de Emisión</label>
-        <input type="date" class="form-control" [(ngModel)]="selectedDate" />
-      </div>
-
       <div class="col-md-3">
-        <button class="btn btn-light-primary w-100" (click)="clearFilters()">
-          <app-keenicon name="trash" class="fs-4 me-1"></app-keenicon> Limpiar Filtros
+        <label class="form-label text-gray-700 fw-bold fs-7" for="fecha-ventas">Fecha</label>
+        <input id="fecha-ventas" type="date" class="form-control" [(ngModel)]="selectedDate" />
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-5">
+      <div class="d-flex gap-3 flex-wrap">
+        <button class="btn btn-sm btn-light" type="button" (click)="clearFilters()">Limpiar filtros</button>
+        <button *ngIf="esAdministrador" class="btn btn-sm btn-light-primary" type="button"
+          [attr.aria-expanded]="mostrarFiltrosAvanzados" (click)="mostrarFiltrosAvanzados = !mostrarFiltrosAvanzados">
+          {{ mostrarFiltrosAvanzados ? 'Ocultar opciones avanzadas' : 'Opciones avanzadas' }}
         </button>
       </div>
+      <span class="text-muted fs-7">{{ getFilteredReceipts().length }} ventas encontradas</span>
+    </div>
+    <div *ngIf="esAdministrador && mostrarFiltrosAvanzados" class="rounded bg-light-warning p-4 mt-4">
+      <label class="form-check form-check-custom form-check-solid">
+        <input type="checkbox" class="form-check-input" [(ngModel)]="mostrarPruebas" />
+        <span class="form-check-label">Incluir operaciones clasificadas como prueba</span>
+      </label>
+      <small class="text-muted d-block mt-2">La clasificación afecta indicadores, no revierte ventas ni movimientos.</small>
     </div>
   </div>
 </div>
 
-<!-- List of sales receipts -->
 <div class="card">
   <div class="card-header border-0 pt-6">
-    <h3 class="card-title align-items-start flex-column">
-      <span class="card-label fw-bold text-gray-900 fs-4">Listado de Comprobantes de Ventas</span>
-      <span class="text-muted mt-1 fw-semibold fs-7">Historial de tickets facturados en el sistema</span>
-    </h3>
+    <div class="card-title align-items-start flex-column">
+      <h3 class="card-label fw-bold text-gray-900 fs-4 mb-1">Historial de operaciones</h3>
+      <span class="text-muted fw-semibold fs-7">Consultá ventas presenciales y abrí sus comprobantes.</span>
+    </div>
   </div>
-
   <div class="card-body py-4">
+    <div *ngIf="mensaje" class="alert alert-info" role="status">{{ mensaje }}</div>
     <div class="table-responsive">
-      <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+      <table class="table table-row-dashed align-middle gs-0 gy-4">
         <thead>
           <tr class="fw-bold text-muted fs-7 text-uppercase">
-            <th class="min-w-100px">ID Ticket</th>
-            <th class="min-w-120px">Fecha</th>
-            <th class="min-w-150px">Cliente</th>
-            <th class="min-w-120px">Canal de Venta</th>
-            <th class="min-w-120px">Método de Pago</th>
-            <th class="min-w-100px text-end">Descuento</th>
-            <th class="min-w-100px text-end">Total Facturado</th>
-            <th class="min-w-120px text-center">Estado</th>
-            <th class="min-w-100px text-end">Acciones</th>
+            <th>Venta</th>
+            <th>Fecha</th>
+            <th>Modalidad</th>
+            <th>Medio de pago</th>
+            <th>Cajero</th>
+            <th class="text-end">Importe</th>
+            <th>Estado</th>
+            <th class="text-end min-w-200px">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let r of getFilteredReceipts()">
-            <td>
-              <span class="text-gray-900 fw-bold fs-6">#REC-{{ r.id }}</span>
-            </td>
-            <td>
-              <span class="text-gray-700 fs-7">{{ r.date | date:'dd/MM/yyyy' }}</span>
-            </td>
-            <td>
-              <span class="text-gray-900 fw-bold d-block fs-6">{{ r.clientName }}</span>
-            </td>
-            <td>
-              <span class="badge badge-light-primary text-capitalize fs-7">{{ r.channel }}</span>
-            </td>
-            <td>
-              <span class="badge badge-light-dark fs-7">{{ r.method }}</span>
-            </td>
-            <td class="text-end text-success fw-bold">
-              {{ r.discount > 0 ? '-' + (r.discount | currency:'USD':'symbol':'1.2-2') : '$0.00' }}
-            </td>
-            <td class="text-end text-gray-900 fw-bold fs-6">
-              {{ r.total | currency:'USD':'symbol':'1.2-2' }}
-            </td>
-            <td class="text-center">
-              <span class="badge fs-7 fw-bold"
-                    [ngClass]="r.method === 'Transferencia' ? 'badge-light-warning' : 'badge-light-success'">
-                {{ r.method === 'Transferencia' ? 'Pendiente' : 'Confirmado' }}
-              </span>
-            </td>
-            <td class="text-end">
-              <button class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" (click)="viewReceipt(r)" title="Ver Comprobante">
-                <app-keenicon name="eye" class="fs-3"></app-keenicon>
-              </button>
-            </td>
-          </tr>
+          <ng-container *ngFor="let r of getFilteredReceipts(); trackBy: trackById">
+            <tr>
+              <td>
+                <button type="button" class="btn btn-link p-0 fw-bold historial-link-venta" (click)="viewReceipt(r)">
+                  #REC-{{ r.id }}
+                </button>
+                <span *ngIf="r.esPrueba" class="badge badge-light-warning ms-2">Prueba</span>
+              </td>
+              <td class="text-gray-700">{{ r.date | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ nombreModalidad(r) }}</td>
+              <td>{{ nombreMetodo(r) }}</td>
+              <td>{{ r.usuarioResponsable || 'No registrado' }}</td>
+              <td class="text-end text-gray-900 fw-bold">{{ r.total | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+              <td>
+                <span class="badge" [ngClass]="estadoVentaTexto(r) === 'Completada' ? 'badge-light-success' : (estadoVentaTexto(r) === 'Anulada' ? 'badge-light-danger' : 'badge-light-secondary')">
+                  {{ estadoVentaTexto(r) }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-primary" (click)="viewReceipt(r)">
+                    <app-keenicon name="eye" class="fs-5 me-1"></app-keenicon> Ver comprobante
+                  </button>
+                  <button *ngIf="esAdministrador" type="button" class="btn btn-sm btn-light"
+                    [attr.aria-expanded]="opcionesAbiertasId === r.id" (click)="alternarOpciones(r.id)">
+                    Más opciones
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="esAdministrador && opcionesAbiertasId === r.id">
+              <td colspan="8" class="bg-light-warning text-end p-4">
+                <span class="text-muted fs-7 me-3">Administración de estadísticas:</span>
+                <button type="button" class="btn btn-sm btn-light-warning" [disabled]="procesandoId !== null" (click)="marcarComoPrueba(r)">
+                  {{ r.esPrueba ? 'Volver a incluir en indicadores' : 'Excluir de indicadores (venta de prueba)' }}
+                </button>
+              </td>
+            </tr>
+          </ng-container>
           <tr *ngIf="getFilteredReceipts().length === 0">
-            <td colspan="9" class="text-center text-muted py-12 fs-6">
-              No se encontraron comprobantes de venta con los filtros seleccionados.
-            </td>
+            <td colspan="8" class="text-center text-muted py-12">No se encontraron ventas con los filtros seleccionados.</td>
           </tr>
         </tbody>
       </table>
@@ -167,98 +162,128 @@
   </div>
 </div>
 
-<!-- Print-Friendly Invoice Modal Overlay -->
-<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="showReceiptModal">
-  <div class="modal-dialog modal-dialog-centered modal-md">
+<!-- Se abre primero el detalle; el ticket imprimible es una vista explícita. -->
+<div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+  aria-labelledby="titulo-detalle-venta" style="background:rgba(0,0,0,.5)" *ngIf="showReceiptModal && activeReceipt">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable historial-modal">
     <div class="modal-content">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-gray-900">Comprobante de Venta</h5>
-        <button type="button" class="btn-close" (click)="closeReceiptModal()" aria-label="Close"></button>
-      </div>
-      
-      <div class="modal-body py-8 px-10">
-        <div id="printable-receipt-card" class="bg-white p-6 border rounded border-gray-300 shadow-xs">
-          <!-- Receipt Header -->
-          <div class="text-center mb-6">
-            <h2 class="fw-bold text-gray-900 mb-1">Pujol e Hijos S.R.L.</h2>
-            <p class="text-muted fs-8 mb-0">Sistema de Control Operativo Gastronómico</p>
-            <p class="text-muted fs-9 mb-0">WAMP Server Host Local</p>
-            <div class="separator separator-dashed my-4"></div>
-            <h4 class="fw-bold text-gray-800">TICKET DE COMPRA #REC-{{ activeReceipt?.id }}</h4>
-            <span class="text-muted fs-8">Fecha de emisión: {{ activeReceipt?.date | date:'dd/MM/yyyy' }}</span>
-          </div>
-
-          <!-- Metadata -->
-          <div class="fs-7 mb-4">
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-muted">Cliente:</span>
-              <span class="fw-bold text-gray-800">{{ activeReceipt?.clientName }}</span>
-            </div>
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-muted">Canal:</span>
-              <span class="fw-bold text-gray-800 text-capitalize">{{ activeReceipt?.channel }}</span>
-            </div>
-            <div class="d-flex justify-content-between mb-1">
-              <span class="text-muted">Método de Pago:</span>
-              <span class="fw-bold text-gray-800">{{ activeReceipt?.method }}</span>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Estado del Cobro:</span>
-              <span class="badge fs-8 fw-bold" 
-                [ngClass]="activeReceipt?.method === 'Transferencia' ? 'badge-light-warning' : 'badge-light-success'"
-              >
-                {{ activeReceipt?.method === 'Transferencia' ? 'Pendiente confirmación' : 'Confirmado' }}
-              </span>
-            </div>
-          </div>
-
-          <div class="separator separator-dashed my-4"></div>
-
-          <!-- Items Table -->
-          <table class="w-100 fs-7 mb-4">
-            <thead>
-              <tr class="fw-bold text-gray-700 border-bottom">
-                <th class="pb-2">Detalle</th>
-                <th class="pb-2 text-end">Cant</th>
-                <th class="pb-2 text-end">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of activeReceipt?.details" class="text-gray-800 border-bottom border-bottom-dashed">
-                <td class="py-2">{{ item.productName }}</td>
-                <td class="py-2 text-end">{{ item.qty }}</td>
-                <td class="py-2 text-end">{{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Totals -->
-          <div class="fs-7">
-            <div class="d-flex justify-content-between mb-1" *ngIf="activeReceipt && activeReceipt.discount > 0">
-              <span class="text-muted">Descuento aplicado:</span>
-              <span class="text-success fw-bold">-{{ activeReceipt.discount | currency:'USD':'symbol':'1.2-2' }}</span>
-            </div>
-            <div class="d-flex justify-content-between fs-5 fw-bold text-gray-900 mt-2 pt-2 border-top">
-              <span>Total Neto:</span>
-              <span class="text-success">{{ activeReceipt?.total | currency:'USD':'symbol':'1.2-2' }}</span>
-            </div>
-          </div>
-
-          <div class="separator separator-dashed my-4"></div>
-          
-          <div class="text-center mt-4">
-            <p class="fs-8 text-muted mb-0">¡Gracias por su compra!</p>
-            <p class="fs-9 text-muted mb-0">Pujol e Hijos S.R.L. ERP</p>
-          </div>
+      <div class="modal-header">
+        <div>
+          <h4 class="modal-title fw-bold" id="titulo-detalle-venta">
+            {{ vistaModal === 'detalle' ? 'Detalle de venta' : 'Vista previa del ticket' }} #REC-{{ activeReceipt.id }}
+          </h4>
+          <small class="text-muted">{{ activeReceipt.date | date:'dd/MM/yyyy HH:mm' }}</small>
         </div>
+        <button type="button" class="btn-close" (click)="closeReceiptModal()" aria-label="Cerrar detalle"></button>
       </div>
-      
-      <div class="modal-footer border-0">
+      <div class="modal-body p-6">
+        <ng-container *ngIf="vistaModal === 'detalle'">
+          <div *ngIf="activeReceipt.esPrueba" class="alert alert-warning">
+            Operación excluida de indicadores como prueba. Sus movimientos originales permanecen registrados.
+          </div>
+          <div class="row g-4 mb-6">
+            <div class="col-sm-6"><div class="text-muted fs-8">Responsable / cajero</div><div class="fw-semibold">{{ activeReceipt.usuarioResponsable || 'No registrado' }}</div></div>
+            <div class="col-sm-6"><div class="text-muted fs-8">Modalidad de venta</div><div class="fw-semibold">{{ nombreModalidad(activeReceipt) }}</div></div>
+            <div class="col-sm-6"><div class="text-muted fs-8">Medio de pago</div><div class="fw-semibold">{{ nombreMetodo(activeReceipt) }}</div></div>
+            <div class="col-sm-6"><div class="text-muted fs-8">Estado del cobro</div><div class="fw-semibold">{{ estadoCobroTexto(activeReceipt) }}</div></div>
+            <div class="col-sm-6"><div class="text-muted fs-8">Estado de venta</div><div class="fw-semibold">{{ estadoVentaTexto(activeReceipt) }}</div></div>
+            <div class="col-sm-6"><div class="text-muted fs-8">Comprador</div><div class="fw-semibold">{{ activeReceipt.clientName || 'Consumidor final' }}</div></div>
+          </div>
+          <h5 class="fw-bold mb-3">Productos de la operación</h5>
+          <div *ngIf="!activeReceipt.details?.length" class="alert alert-warning">
+            Esta venta histórica no tiene un detalle de productos registrado. No es posible reconstruirlo desde esta pantalla.
+          </div>
+          <div class="table-responsive" *ngIf="activeReceipt.details?.length">
+            <table class="table table-row-dashed historial-tabla-detalle">
+              <thead><tr class="fw-semibold text-muted"><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Precio unitario</th><th class="text-end">Subtotal</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let item of activeReceipt.details">
+                  <td>{{ item.productName || 'Producto sin identificar' }}</td>
+                  <td class="text-end">{{ item.qty | number:'1.0-3' }}</td>
+                  <td class="text-end">{{ item.unitPrice | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                  <td class="text-end fw-semibold">{{ item.subtotal | currency:'ARS':'symbol-narrow':'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex justify-content-between mt-4" *ngIf="activeReceipt.discount > 0"><span>Descuento registrado</span><strong>-{{ activeReceipt.discount | currency:'ARS':'symbol-narrow':'1.2-2' }}</strong></div>
+          <div class="d-flex justify-content-between border-top pt-4 mt-3 fs-4"><strong>Total facturado</strong><strong>{{ activeReceipt.total | currency:'ARS':'symbol-narrow':'1.2-2' }}</strong></div>
+          <p class="text-muted fs-8 mt-3 mb-0">El importe facturado no acredita por sí solo que el cobro se haya realizado.</p>
+        </ng-container>
+
+        <ng-container *ngIf="vistaModal === 'ticket'">
+          <div class="historial-ticket" id="historial-ticket-imprimible">
+            <div class="text-center">
+              <h4 class="fw-bold mb-1">PUJOL E HIJOS S.R.L.</h4>
+              <div>Distribuidora mayorista</div>
+              <div class="border-top border-bottom py-2 my-3"><strong>Ticket de venta #REC-{{ activeReceipt.id }}</strong></div>
+            </div>
+            <div>Fecha: {{ activeReceipt.date | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div>Cajero: {{ activeReceipt.usuarioResponsable || 'No registrado' }}</div>
+            <div>Modalidad: {{ nombreModalidad(activeReceipt) }}</div>
+            <div>Medio de pago: {{ nombreMetodo(activeReceipt) }}</div>
+            <div>Estado del cobro: {{ estadoCobroTexto(activeReceipt) }}</div>
+            <div *ngIf="activeReceipt.esPrueba" class="fw-bold mt-2">OPERACIÓN CLASIFICADA COMO PRUEBA</div>
+            <hr />
+            <div *ngIf="!activeReceipt.details?.length" class="my-3">
+              Detalle de artículos no disponible en el registro histórico.
+            </div>
+            <div *ngFor="let item of activeReceipt.details" class="mb-3">
+              <div class="fw-bold">{{ item.productName || 'Producto sin identificar' }}</div>
+              <div class="d-flex justify-content-between">
+                <span>{{ item.qty | number:'1.0-3' }} × {{ item.unitPrice | currency:'ARS':'symbol-narrow':'1.2-2' }}</span>
+                <strong>{{ item.subtotal | currency:'ARS':'symbol-narrow':'1.2-2' }}</strong>
+              </div>
+            </div>
+            <hr />
+            <div class="d-flex justify-content-between fw-bold fs-5"><span>TOTAL</span><span>{{ activeReceipt.total | currency:'ARS':'symbol-narrow':'1.2-2' }}</span></div>
+            <div class="text-center mt-5">Comprobante interno de venta</div>
+            <div class="text-center text-muted">No reemplaza un comprobante fiscal autorizado.</div>
+          </div>
+        </ng-container>
+      </div>
+      <div class="modal-footer">
         <button type="button" class="btn btn-light" (click)="closeReceiptModal()">Cerrar</button>
-        <button type="button" class="btn btn-primary" (click)="printAction()">
-          <app-keenicon name="printer" class="fs-5 me-1"></app-keenicon> Imprimir Ticket
+        <button *ngIf="vistaModal === 'detalle'" type="button" class="btn btn-primary" (click)="mostrarTicket()">
+          <app-keenicon name="printer" class="fs-5 me-1"></app-keenicon> Preparar impresión
+        </button>
+        <button *ngIf="vistaModal === 'ticket'" type="button" class="btn btn-light-primary" (click)="mostrarDetalle()">Volver al detalle</button>
+        <button *ngIf="vistaModal === 'ticket'" type="button" class="btn btn-primary" (click)="printAction()">
+          <app-keenicon name="printer" class="fs-5 me-1"></app-keenicon> Imprimir ticket
         </button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Solo se aplica el formato de impresión cuando el ticket está abierto. -->
+<style *ngIf="showReceiptModal && vistaModal === 'ticket'">
+@media print {
+  body * { visibility: hidden !important; }
+  .modal, .modal-dialog, .modal-content, .modal-body {
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  #historial-ticket-imprimible, #historial-ticket-imprimible * { visibility: visible !important; }
+  #historial-ticket-imprimible {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4mm !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  @page { margin: 5mm; }
+}
+</style>

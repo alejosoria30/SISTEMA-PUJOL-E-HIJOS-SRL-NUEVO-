@@ -7,6 +7,7 @@ import {
   NgZone
 } from '@angular/core';
 
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
@@ -29,7 +30,7 @@ export class CajaComponent implements OnInit, OnDestroy {
   // ESTADO ACTUAL
   turnoActual: any = null;
   movimientos: any[] = [];
-  montoInicial = 0;
+  montoInicial: number | null = null;
 
   // PROTECCION DE OPERACIONES
   guardandoApertura = false;
@@ -38,7 +39,13 @@ export class CajaComponent implements OnInit, OnDestroy {
 
   // CIERRE Y ARQUEO
   isCerrarModalOpen = false;
-  montoFinalReal = 0;
+  readonly denominaciones = [100, 200, 500, 1000, 2000, 10000, 20000];
+  billetes: Record<number, number> = {};
+  otros = 0;
+  observaciones = '';
+  get montoFinalReal(): number {
+    return this.denominaciones.reduce((suma, valor) => suma + valor * (this.billetes[valor] || 0), Number(this.otros) || 0);
+  }
 
   // MOVIMIENTOS MANUALES
   isMovModalOpen = false;
@@ -59,10 +66,10 @@ export class CajaComponent implements OnInit, OnDestroy {
 
   errorHistorial = '';
 
-  mostrarHistorial = true;
   mostrarDetalleHistorial = false;
 
   constructor(
+    public router: Router,
     private stateService: StateService,
     private authService: AuthService,
     private http: HttpClient,
@@ -75,6 +82,26 @@ export class CajaComponent implements OnInit, OnDestroy {
     action: 'read' | 'create' | 'update' | 'delete'
   ): boolean {
     return this.authService.hasAction(3, action);
+  }
+
+  puedeVerHistorialCaja(): boolean {
+    return this.authService.hasPermission('Ver historial de caja');
+  }
+
+  // La vista histórica tiene su propia ruta y permiso: no se duplica en Gestión de caja.
+  esVistaHistorialCaja(): boolean {
+    return this.router.url.split('?')[0] === '/historial-caja';
+  }
+
+  // El campo admite únicamente pesos positivos con centavos (DECIMAL(10,2) en MySQL).
+  esMontoInicialValido(): boolean {
+    const monto = this.montoInicial;
+    if (typeof monto !== 'number' || !Number.isFinite(monto)) {
+      return false;
+    }
+    const centavos = monto * 100;
+    return monto >= 0.01 && monto <= 99999999.99 &&
+      Math.abs(centavos - Math.round(centavos)) < 0.000001;
   }
 
   // ACTUALIZACION INMEDIATA DE LA VISTA
@@ -118,11 +145,12 @@ export class CajaComponent implements OnInit, OnDestroy {
 
     this.vistaIniciada = true;
 
-    // Consultar turno abierto.
-    this.stateService.fetchCajaTurno();
-
-    // Cargar historial automaticamente al entrar.
-    this.cargarHistorial();
+    // Cada ruta consulta únicamente lo que necesita.
+    if (this.esVistaHistorialCaja()) {
+      if (this.puedeVerHistorialCaja()) this.cargarHistorial();
+    } else if (this.hasAction('read')) {
+      this.stateService.fetchCajaTurno();
+    }
   }
 
   ngOnDestroy(): void {
@@ -133,16 +161,16 @@ export class CajaComponent implements OnInit, OnDestroy {
   // ABRIR CAJA
   abrirCaja(): void {
 
-    if (this.guardandoApertura) {
+    if (this.guardandoApertura || !this.hasAction('create') || this.esVistaHistorialCaja()) {
       return;
     }
 
+    // Number(null) y Number('') valen cero. Se valida el dato original ANTES de convertirlo.
+    if (!this.esMontoInicialValido()) {
+      alert('El monto inicial es obligatorio, debe ser mayor que $0 y tener hasta dos decimales.');
+      return;
+    }
     const monto = Number(this.montoInicial);
-
-    if (!Number.isFinite(monto) || monto < 0) {
-      alert('Ingresá un monto inicial válido.');
-      return;
-    }
 
     if (this.turnoActual) {
       alert('Ya existe un turno abierto.');
@@ -157,7 +185,7 @@ export class CajaComponent implements OnInit, OnDestroy {
         this.guardandoApertura = false;
 
         if (success) {
-          this.montoInicial = 0;
+          this.montoInicial = null;
         }
       });
 
@@ -174,9 +202,10 @@ export class CajaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.montoFinalReal = Number(
-      this.turnoActual.saldoActual
-    );
+    this.billetes = {};
+    this.denominaciones.forEach(valor => this.billetes[valor] = 0);
+    this.otros = 0;
+    this.observaciones = '';
 
     this.isCerrarModalOpen = true;
   }
@@ -208,7 +237,7 @@ export class CajaComponent implements OnInit, OnDestroy {
 
     const monto = Number(this.montoFinalReal);
 
-    if (!Number.isFinite(monto) || monto < 0) {
+    if (this.otros < 0 || this.denominaciones.some(valor => !Number.isInteger(this.billetes[valor]) || this.billetes[valor] < 0) || !Number.isFinite(monto) || monto < 0) {
       alert('Ingresá el efectivo contado correctamente.');
       return;
     }
@@ -244,12 +273,10 @@ export class CajaComponent implements OnInit, OnDestroy {
 
         if (success) {
 
-          // Cargar el historial tras cerrar el turno.
-          this.cargarHistorial();
-
+          // El historial se consulta solo desde su pantalla independiente.
           alert('Caja cerrada correctamente.');
         }
-      }
+      }, {billetes:this.billetes, otros:this.otros || 0, observaciones:this.observaciones}
     );
   }
 
@@ -356,7 +383,7 @@ export class CajaComponent implements OnInit, OnDestroy {
   // HISTORIAL AUTOMATICO
   cargarHistorial(): void {
 
-    if (this.cargandoHistorial) {
+    if (!this.esVistaHistorialCaja() || !this.puedeVerHistorialCaja() || this.cargandoHistorial) {
       return;
     }
 
@@ -403,7 +430,7 @@ export class CajaComponent implements OnInit, OnDestroy {
   // VER DETALLE DE TURNO
   verDetalleTurno(turno: any): void {
 
-    if (!turno || !turno.idTurno) {
+    if (!this.esVistaHistorialCaja() || !this.puedeVerHistorialCaja() || !turno || !turno.idTurno) {
       return;
     }
 
@@ -450,13 +477,4 @@ export class CajaComponent implements OnInit, OnDestroy {
     this.movimientosHistorial = [];
   }
 
-  // MOSTRAR / OCULTAR HISTORIAL
-  alternarHistorial(): void {
-
-    this.mostrarHistorial = !this.mostrarHistorial;
-
-    if (this.mostrarHistorial) {
-      this.cargarHistorial();
-    }
-  }
 }

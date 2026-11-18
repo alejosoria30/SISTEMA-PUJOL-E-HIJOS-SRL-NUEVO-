@@ -1,3 +1,4 @@
+import { textoTabla } from 'src/app/texto-tabla';
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SwalComponent } from '@sweetalert2/ngx-sweetalert2';
@@ -16,6 +17,8 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
   isCollapsed1 = false;
 
   isLoading = false;
+
+  mensajeError = '';
 
   permissions: DataTablesResponse;
 
@@ -41,27 +44,38 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
   ngOnInit(): void {
     this.datatableConfig = {
       serverSide: true,
-      ajax: (dataTablesParameters: any, callback) => {
-        this.apiService.getPermissions(dataTablesParameters).subscribe(resp => {
-          console.log(resp);
-          callback(resp);
+      ajax: (parametros: any, callback) => {
+        this.mensajeError = '';
+        this.apiService.getPermissions(parametros).subscribe({
+          next: (respuesta) => {
+            callback(respuesta);
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            // DataTables requiere invocar callback incluso si falla la API;
+            // de lo contrario conserva el spinner de "Loading..." indefinidamente.
+            this.mensajeError = this.describirError(error);
+            callback({
+              draw: Number(parametros?.draw || 1),
+              recordsTotal: 0,
+              recordsFiltered: 0,
+              data: []
+            });
+            this.cdr.detectChanges();
+          }
         });
       },
       columns: [
         {
           title: 'Nombre', data: 'name',
-          render: (data: any, type: any, full: IPermissionModel) => `<a href="javascript:;" data-action="view" data-id="${full.id}" class="text-gray-800 text-hover-primary mb-1">${data}</a>`
+          render: (data: any, type: any, full: IPermissionModel) => `<a href="javascript:;" data-action="view" data-id="${full.id}" class="text-gray-800 text-hover-primary mb-1">${textoTabla(data)}</a>`
         },
         {
           title: 'Asignado a', data: null, render: function (data, type, row) {
-            if (Array.isArray(data.roles)) {
-              return data.roles.map(function (role: any) {
-                const color = ['info', 'success', 'warning', 'danger', 'primary'][Math.floor(Math.random() * 5)];
-                return `<a href="#" class="badge fs-7 m-1 badge-light-${color}">${role.name}</a>`;
-              }).join('');
-            } else {
-              return '';
-            }
+            if (!Array.isArray(data?.roles)) return '';
+            return data.roles.map(function (role: any) {
+              return `<span class="badge fs-7 m-1 badge-light-info">${textoTabla(role.name)}</span>`;
+            }).join('');
           },
           orderData: [1],
           orderSequence: ['asc', 'desc'],
@@ -69,23 +83,53 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
         },
         {
           title: 'Fecha de Creación', data: 'created_at', render: function (data) {
-            return moment(data).format('DD MMM YYYY, hh:mm a');;
+            return data ? moment(data).format('DD MMM YYYY, HH:mm') : '—';
           }
         }
       ],
     };
   }
 
+  reintentarCarga(): void {
+    this.mensajeError = '';
+    this.reloadEvent.emit(true);
+  }
+
+  private describirError(error: any): string {
+    if (error?.name === 'TimeoutError') {
+      return 'La consulta de permisos superó los 15 segundos. Verificá la conexión y los registros del servidor.';
+    }
+    if (error?.status === 0) {
+      return 'No se pudo conectar con la API. Verificá que el servidor PHP esté iniciado y que la URL de la API sea correcta.';
+    }
+    if (error?.status === 401) return 'Tu sesión venció. Volvé a iniciar sesión.';
+    if (error?.status === 403) return 'Tu usuario no tiene autorización para consultar los permisos.';
+    if (error?.status === 404) return 'No se encontró la ruta /api/permisos en el servidor.';
+    if (error?.status >= 500) {
+      return 'La API devolvió un error del servidor (' + error.status + '). Revisá los registros de PHP y la base de datos.';
+    }
+    return error?.error?.message || 'No se pudieron cargar los permisos. Revisá la conexión con el servidor.';
+  }
+
   delete(id: number) {
-    this.apiService.deletePermission(id).subscribe(() => {
-      this.reloadEvent.emit(true);
+    this.apiService.deletePermission(id).subscribe({
+      next: () => this.reloadEvent.emit(true),
+      error: (error) => this.showAlert({
+        icon: 'error', title: 'No se pudo eliminar', text: this.describirError(error)
+      })
     });
   }
 
   edit(id: number) {
     this.permission$ = this.apiService.getPermission(id);
-    this.permission$.subscribe((user: IPermissionModel) => {
-      this.permissionModel = user;
+    this.permission$.subscribe({
+      next: (permiso: IPermissionModel) => {
+        this.permissionModel = permiso;
+        this.cdr.detectChanges();
+      },
+      error: (error) => this.showAlert({
+        icon: 'error', title: 'No se pudo cargar el permiso', text: this.describirError(error)
+      })
     });
   }
 
@@ -98,6 +142,7 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
       return;
     }
 
+    if (this.isLoading) return;
     this.isLoading = true;
 
     const successAlert: SweetAlertOptions = {
@@ -122,7 +167,7 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
           this.reloadEvent.emit(true);
         },
         error: (error) => {
-          errorAlert.text = this.extractText(error.error);
+          errorAlert.text = error?.error?.message || this.describirError(error);
           this.showAlert(errorAlert);
           this.isLoading = false;
         },
@@ -137,7 +182,7 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
           this.reloadEvent.emit(true);
         },
         error: (error) => {
-          errorAlert.text = this.extractText(error.error);
+          errorAlert.text = error?.error?.message || this.describirError(error);
           this.showAlert(errorAlert);
           this.isLoading = false;
         },
@@ -153,6 +198,7 @@ export class PermissionListingComponent implements OnInit, AfterViewInit, OnDest
   }
 
   extractText(obj: any): string {
+    if (!obj || typeof obj !== 'object') return '';
     var textArray: string[] = [];
 
     for (var key in obj) {

@@ -1,300 +1,56 @@
 <?php
-// CORS Headers
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Content-Type: application/json; charset=UTF-8");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+declare(strict_types=1);
+require __DIR__.'/src/Conexion.php';
+require __DIR__.'/src/Claves.php';
+require __DIR__.'/src/Acceso.php';
+require __DIR__.'/src/Catalogo.php';
+require __DIR__.'/src/ReglaMayorista.php';
+require __DIR__.'/src/Arqueo.php';
+require __DIR__.'/src/PanelComercial.php';
+require __DIR__.'/src/Ventas.php';
+require __DIR__.'/src/ClienteMercadoPago.php';
+require __DIR__.'/src/MercadoPago.php';
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigins = ['http://localhost:4200', 'http://127.0.0.1:4200', 'http://localhost'];
+if (in_array($origin, $allowedOrigins, true) || empty($origin)) {
+    header('Access-Control-Allow-Origin: ' . ($origin ?: '*'));
+} else {
+    header('Access-Control-Allow-Origin: *');
 }
-
-// Fallback for getallheaders() if not running under Apache
-if (!function_exists('getallheaders')) {
-    function getallheaders() {
-        $headers = [];
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
-        return $headers;
-    }
+header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+function send_response($data,$status=200) {
+    if ($status>=500) $data=['success'=>false,'message'=>'No se pudo completar la operación. Revise el registro del servidor.'];
+    http_response_code($status); echo json_encode($data); exit;
 }
-
-// Database configuration
-$db_host = '127.0.0.1';
-$db_name = 'pujol_e_hijos';
-$db_user = 'root';
-$db_pass = '';
-$db_ports = [3307, 3306];
-
-$pdo = null;
-$lastException = null;
-
-foreach ($db_ports as $port) {
-    try {
-        $pdo = new PDO("mysql:host=$db_host;port=$port;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
-        break;
-    } catch (PDOException $e) {
-        $lastException = $e;
-    }
-}
-
-if (!$pdo) {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Error de conexion a la base de datos.",
-        "error" => $lastException ? $lastException->getMessage() : "Error desconocido",
-        "hint" => "Asegurate de que XAMPP MySQL este activo (puerto 3307 o 3306), que la base de datos '$db_name' exista y que hayas importado el archivo 'bdPujolScript.sql'."
-    ]);
-    exit;
-}
-
-// Simple JWT signature helper
-define('JWT_SECRET', 'pujol_super_secret_key_123456');
-
-function generate_token($userId) {
-    $header = base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-    $payload = base64url_encode(json_encode([
-        'sub' => $userId,
-        'exp' => time() + 3600 * 24 // 24 hours
-    ]));
-    $signature = hash_hmac('sha256', "$header.$payload", JWT_SECRET, true);
-    $signature = base64url_encode($signature);
-    return "$header.$payload.$signature";
-}
-
-function verify_token($token) {
-    $parts = explode('.', $token);
-    if (count($parts) !== 3) return false;
-    list($header, $payload, $signature) = $parts;
-    $validSignature = hash_hmac('sha256', "$header.$payload", JWT_SECRET, true);
-    $validSignature = base64url_encode($validSignature);
-    if ($signature !== $validSignature) return false;
-    $data = json_decode(base64url_decode($payload), true);
-    if (time() > $data['exp']) return false;
-    return $data['sub'];
-}
-
-function base64url_encode($data) {
-    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-}
-
-function base64url_decode($data) {
-    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
-}
-
-// Helper to send JSON responses
-function send_response($data, $status = 200) {
-    http_response_code($status);
-    echo json_encode($data);
-    exit;
-}
-
-// Simple Router logic
-$requestUri = $_SERVER['REQUEST_URI'];
-$scriptName = $_SERVER['SCRIPT_NAME'];
-$basePath = dirname($scriptName);
-$route = str_replace($basePath, '', $requestUri);
-$route = parse_url($route, PHP_URL_PATH);
-$route = '/' . trim($route, '/');
-
-// Get request method
-$method = $_SERVER['REQUEST_METHOD'];
-
-// Handle POST /auth/register
-if ($route === '/auth/register' && $method === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    
-    // Normalize fields (accept both Spanish/English inputs)
-    $firstname = $input['firstname'] ?? $input['nombre'] ?? '';
-    $lastname = $input['lastname'] ?? $input['apellido'] ?? '';
-    $email = $input['email'] ?? $input['correo'] ?? '';
-    $password = $input['password'] ?? $input['contrasena'] ?? '';
-    $phone = $input['phone'] ?? $input['telefono'] ?? '';
-    $address = $input['address'] ?? $input['direccion'] ?? '';
-    $dob = $input['dob'] ?? $input['fechaNacimiento'] ?? '';
-
-    if (empty($firstname) || empty($lastname) || empty($email) || empty($password) || empty($dob)) {
-        send_response(["success" => false, "message" => "Faltan campos obligatorios (nombre, apellido, email, password, fecha de nacimiento)"], 400);
-    }
-
-    if (strlen($password) < 8 || preg_match('/\s/', $password) || !preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password) || !preg_match('/[^a-zA-Z0-9]/', $password)) {
-        send_response(["success" => false, "message" => "La contraseña debe tener al menos 8 caracteres (sin espacios) e incluir letras, números y caracteres especiales."], 400);
-    }
-
-    // Validate age range (between 14 and 105 years old based on current year)
-    $birthDate = strtotime($dob);
-    if (!$birthDate) {
-        send_response(["success" => false, "message" => "Formato de fecha de nacimiento invalido"], 400);
-    }
-    $birthYear = (int)date('Y', $birthDate);
-    $currentYear = (int)date('Y');
-    $age = $currentYear - $birthYear;
-    if ($age < 14 || $age > 105) {
-        send_response(["success" => false, "message" => "No cumple con el limite de edad"], 400);
-    }
-
-    // Check if email already exists
-    $stmt = $pdo->prepare("SELECT idUsu FROM usuario WHERE correoUsu = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetch()) {
-        send_response(["success" => false, "message" => "El correo electronico ya esta registrado"], 400);
-    }
-
-    // Check or generate unique username
-    $username = $input['username'] ?? $input['usuario'] ?? '';
-    if (!empty($username)) {
-        $username = preg_replace('/[^a-zA-Z0-9_\.]/', '', $username);
-        $stmt = $pdo->prepare("SELECT idUsu FROM usuario WHERE usuarioUsu = ?");
-        $stmt->execute([$username]);
-        if ($stmt->fetch()) {
-            send_response(["success" => false, "message" => "El nombre de usuario ya esta registrado"], 400);
-        }
-    } else {
-        $username = explode('@', $email)[0];
-        $username = preg_replace('/[^a-zA-Z0-9_\.]/', '', $username);
-        $baseUsername = $username;
-        $counter = 1;
-        do {
-            $stmt = $pdo->prepare("SELECT idUsu FROM usuario WHERE usuarioUsu = ?");
-            $stmt->execute([$username]);
-            $exists = $stmt->fetch();
-            if ($exists) {
-                $username = $baseUsername . $counter;
-                $counter++;
-            }
-        } while ($exists);
-    }
-
-    // Generate unique CUIL/DNI matching trigger logic (20 + 8 digits + 9)
-    $cuil = '20' . str_pad(mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT) . '9';
-
-    // Hash password using BCRYPT
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    try {
-        $pdo->beginTransaction();
-
-        // Insert into usuario (default to Empleado so user can access dashboard)
-        $defaultRole = 'Empleado';
-        $defaultRoleId = 2;
-
-        $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, ?, 'Activo', ?)");
-        $stmt->execute([$firstname, $lastname, $email, $username, $hashedPassword, $cuil, $phone, $defaultRole]);
-        $userId = $pdo->lastInsertId();
-
-        // Assign role in usuario_rol
-        $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, ?)")->execute([$userId, $defaultRoleId]);
-
-        // Trigger 'sync_usuario_to_persona' will automatically insert the persona.
-        // We will update the persona with the address details now.
-        $stmt = $pdo->prepare("UPDATE persona SET direccionFiscalPers = ? WHERE idUsuarioPers = ?");
-        $stmt->execute([$address, $userId]);
-
-        $pdo->commit();
-
-        send_response([
-            "success" => true,
-            "message" => "Usuario registrado con exito",
-            "user_id" => $userId,
-            "username" => $username
-        ], 201);
-
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        send_response(["success" => false, "message" => "Error al registrar el usuario: " . $e->getMessage()], 500);
-    }
-}
-
-// Handle POST /auth/login
-if ($route === '/auth/login' && $method === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    
-    $email = $input['email'] ?? $input['correo'] ?? '';
-    $password = $input['password'] ?? $input['contrasena'] ?? '';
-
-    if (empty($email) || empty($password)) {
-        send_response(["success" => false, "message" => "Faltan credenciales (email y password)"], 400);
-    }
-
-    $stmt = $pdo->prepare("SELECT * FROM usuario WHERE correoUsu = ? OR usuarioUsu = ? OR SUBSTRING_INDEX(correoUsu, '@', 1) = ? OR nombreUsu = ?");
-    $stmt->execute([$email, $email, $email, $email]);
-    $user = $stmt->fetch();
-
-    if ($user) {
-        if (strcasecmp($user['estadoUsu'], 'Inactivo') === 0) {
-            send_response(["success" => false, "message" => "Tu cuenta está desactivada. Tienes acceso denegado al sistema.", "error_type" => "no_permission"], 403);
-        }
-
-        if (password_verify($password, $user['contrasenaUsu']) || $password === $user['contrasenaUsu']) {
-            // Check if user has dashboard access (not just Cliente)
-            $hasAccess = false;
-            try {
-                $stmtRoles = $pdo->prepare("SELECT r.idRol FROM usuario_rol ur JOIN roles r ON r.idRol = ur.idRol WHERE ur.idUsu = ? AND r.idRol IN (1, 2)");
-                $stmtRoles->execute([$user['idUsu']]);
-                $hasAccess = $stmtRoles->fetch();
-            } catch (Exception $e) {
-                // Table may not exist yet
-            }
-
-            // Also check by rolUsu column as fallback
-            if (!$hasAccess && !empty($user['rolUsu'])) {
-                try {
-                    $stmtRL = $pdo->prepare("SELECT idRol FROM roles WHERE nombreRol = ? AND idRol IN (1, 2)");
-                    $stmtRL->execute([$user['rolUsu']]);
-                    $hasAccess = $stmtRL->fetch();
-                } catch (Exception $e) {
-                    // roles table may not exist; grant access if rolUsu is admin/empleado
-                    if (in_array($user['rolUsu'], ['Administrador', 'Admin', 'Empleado'])) {
-                        $hasAccess = true;
-                    }
-                }
-            }
-
-            if (!$hasAccess) {
-                send_response(["success" => false, "message" => "Acceso denegado", "error_type" => "no_permission"], 403);
-            }
-
-            // Generate JWT token
-            $token = generate_token($user['idUsu']);
-
-            send_response([
-                "authToken" => $token,
-                "refreshToken" => $token, // simplify for frontend
-                "expiresIn" => date('c', time() + 3600 * 24)
-            ]);
-        } else {
-            send_response(["success" => false, "message" => "El email y/o la contrasena son incorrectos"], 401);
-        }
-    } else {
-        send_response(["success" => false, "message" => "El email y/o la contrasena son incorrectos"], 401);
-    }
-}
-
-// Handle POST /auth/google
+set_exception_handler(function(Throwable $e) {
+    if ($e instanceof DomainException) send_response(['message'=>$e->getMessage()],422);
+    error_log('Pujol: '.get_class($e).' en '.basename($e->getFile()).' línea '.$e->getLine());
+    send_response([],500);
+});
+$method=$_SERVER['REQUEST_METHOD'];
+if ($method==='OPTIONS') { http_response_code(204); exit; }
+$base=rtrim(dirname($_SERVER['SCRIPT_NAME']),'/');
+$route='/'.trim(substr(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),strlen($base)),'/');
+$pdo=Conexion::abrir();
+$acceso=new Acceso($pdo);
+$entrada=json_decode(file_get_contents('php://input'),true)??[];
+if (!is_array($entrada)) send_response(['message'=>'JSON inválido.'],400);
+if ($route==='/auth/login' && $method==='POST') $acceso->ingresar($entrada);
 if ($route === '/auth/google' && $method === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    $accessToken = $input['accessToken'] ?? '';
-
+    $accessToken = $entrada['accessToken'] ?? '';
     if (empty($accessToken)) {
         send_response(["success" => false, "message" => "Falta el token de acceso de Google"], 400);
     }
-
-    // Call Google UserInfo API to verify token and get user details
     $url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" . urlencode($accessToken);
-    
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -307,18 +63,16 @@ if ($route === '/auth/google' && $method === 'POST') {
     $email = $googleUser['email'] ?? '';
     $firstname = $googleUser['given_name'] ?? $googleUser['name'] ?? 'Google';
     $lastname = $googleUser['family_name'] ?? 'Usuario';
-    
+
     if (empty($email)) {
         send_response(["success" => false, "message" => "No se pudo obtener el correo electronico de Google"], 400);
     }
 
-    // Check if email already exists in usuario
     $stmt = $pdo->prepare("SELECT * FROM usuario WHERE correoUsu = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
     if (!$user) {
-        // Generate unique username (usuarioUsu)
         $baseUsername = strtolower($firstname . substr($lastname, 0, 1));
         $username = $baseUsername;
         $counter = 1;
@@ -332,499 +86,282 @@ if ($route === '/auth/google' && $method === 'POST') {
             }
         } while ($exists);
 
-        // Generate unique CUIL/DNI (20 + 8 digits + 9)
-        $cuil = '20' . str_pad(mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT) . '9';
-        // Set a random password for Google-registered users
+        $cuil = '20' . str_pad((string)mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT) . '9';
         $randomPassword = bin2hex(random_bytes(16)) . '!1a';
         $hashedPassword = password_hash($randomPassword, PASSWORD_DEFAULT);
-        $phone = '';
-        $address = '';
 
-        // Determine role: default to Empleado for staff access to dashboard
         $defaultRole = 'Empleado';
         $defaultRoleId = 2;
 
         try {
             $pdo->beginTransaction();
+            $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu, requiereCambioClave) VALUES (?, ?, ?, ?, ?, ?, '', 'Activo', ?, 0)");
+            $stmt->execute([$firstname, $lastname, $email, $username, $hashedPassword, $cuil, $defaultRole]);
+            $userId = (int)$pdo->lastInsertId();
 
-            // Insert into usuario
-            $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, ?, 'Activo', ?)");
-            $stmt->execute([$firstname, $lastname, $email, $username, $hashedPassword, $cuil, $phone, $defaultRole]);
-            $userId = $pdo->lastInsertId();
-
-            // Assign role in usuario_rol
             $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, ?)")->execute([$userId, $defaultRoleId]);
-
             $pdo->commit();
 
-            // Fetch the newly created user
             $stmt = $pdo->prepare("SELECT * FROM usuario WHERE idUsu = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch();
-
         } catch (Exception $e) {
             $pdo->rollBack();
             send_response(["success" => false, "message" => "Error al registrar usuario de Google: " . $e->getMessage()], 500);
         }
     } else {
-        // User already exists: ensure they have system access (Empleado or Admin)
-        try {
-            $stmtCheckRole = $pdo->prepare("SELECT COUNT(*) FROM usuario_rol WHERE idUsu = ? AND idRol IN (1, 2)");
-            $stmtCheckRole->execute([$user['idUsu']]);
-            if ((int)$stmtCheckRole->fetchColumn() === 0) {
-                $targetRole = 2;
-                $targetRoleName = 'Empleado';
-                $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, ?)")->execute([$user['idUsu'], $targetRole]);
-                $pdo->prepare("UPDATE usuario SET rolUsu = ? WHERE idUsu = ?")->execute([$targetRoleName, $user['idUsu']]);
-                $user['rolUsu'] = $targetRoleName;
-            }
-        } catch (Exception $e) {
-            // Ignore if role check fails
+        $stmtCheckRole = $pdo->prepare("SELECT COUNT(*) FROM usuario_rol WHERE idUsu = ? AND idRol IN (1, 2)");
+        $stmtCheckRole->execute([$user['idUsu']]);
+        if ((int)$stmtCheckRole->fetchColumn() === 0) {
+            $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, 2)")->execute([$user['idUsu']]);
+            $pdo->prepare("UPDATE usuario SET rolUsu = 'Empleado' WHERE idUsu = ?")->execute([$user['idUsu']]);
+            $user['rolUsu'] = 'Empleado';
         }
     }
 
-    if ($user && strcasecmp($user['estadoUsu'], 'Inactivo') === 0) {
-        send_response(["success" => false, "message" => "Tu cuenta está desactivada. Tienes acceso denegado al sistema.", "error_type" => "no_permission"], 403);
+    if (strcasecmp($user['estadoUsu'] ?? '', 'Inactivo') === 0) {
+        send_response(["success" => false, "message" => "Tu cuenta está desactivada.", "error_type" => "no_permission"], 403);
     }
 
-    // Check if user has dashboard access (not just Cliente)
-    $hasAccess = false;
-    try {
-        $stmtRoles = $pdo->prepare("SELECT r.idRol FROM usuario_rol ur JOIN roles r ON r.idRol = ur.idRol WHERE ur.idUsu = ? AND r.idRol IN (1, 2)");
-        $stmtRoles->execute([$user['idUsu']]);
-        $hasAccess = $stmtRoles->fetch();
-    } catch (Exception $e) {
-        // Table may not exist yet
-    }
+    $token = bin2hex(random_bytes(32));
+    $pdo->prepare('INSERT INTO sesiones_pos VALUES (?, ?, NOW() + INTERVAL 24 HOUR)')->execute([hash('sha256', $token, true), $user['idUsu']]);
 
-    // Also check by rolUsu column as fallback
-    if (!$hasAccess && !empty($user['rolUsu'])) {
-        try {
-            $stmtRL = $pdo->prepare("SELECT idRol FROM roles WHERE nombreRol = ? AND idRol IN (1, 2)");
-            $stmtRL->execute([$user['rolUsu']]);
-            $hasAccess = $stmtRL->fetch();
-        } catch (Exception $e) {
-            // roles table may not exist; grant access if rolUsu is admin/empleado
-            if (in_array($user['rolUsu'], ['Administrador', 'Admin', 'Empleado'])) {
-                $hasAccess = true;
-            }
-        }
-    }
-
-    if (!$hasAccess) {
-        send_response(["success" => false, "message" => "Acceso denegado", "error_type" => "no_permission"], 403);
-    }
-
-    // Generate JWT token for the user
-    $token = generate_token($user['idUsu']);
-    
     send_response([
         "authToken" => $token,
         "refreshToken" => $token,
         "expiresIn" => date('c', time() + 3600 * 24)
     ]);
 }
-
-// Handle GET /auth/me
-if ($route === '/auth/me' && $method === 'GET') {
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    
-    if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        $token = $matches[1];
-        $userId = verify_token($token);
-        
-        if ($userId) {
-            $stmt = $pdo->prepare("SELECT * FROM usuario WHERE idUsu = ?");
-            $stmt->execute([$userId]);
-            $user = $stmt->fetch();
-            
-            if ($user) {
-                if (strcasecmp($user['estadoUsu'], 'Inactivo') === 0) {
-                    send_response(["success" => false, "message" => "Cuenta desactivada"], 403);
-                }
-                
-                // Get additional info from persona
-                $stmtPers = $pdo->prepare("SELECT * FROM persona WHERE idUsuarioPers = ?");
-                $stmtPers->execute([$userId]);
-                $persona = $stmtPers->fetch();
-
-                // Get role IDs
-                $stmtR = $pdo->prepare("SELECT idRol FROM usuario_rol WHERE idUsu = ?");
-                $stmtR->execute([$userId]);
-                $roles = array_map('intval', $stmtR->fetchAll(PDO::FETCH_COLUMN));
-                if (empty($roles)) {
-                    if ($user['rolUsu']) {
-                        $stmtRl = $pdo->prepare("SELECT idRol FROM roles WHERE nombreRol = ?");
-                        $stmtRl->execute([$user['rolUsu']]);
-                        $rId = $stmtRl->fetchColumn();
-                        if ($rId) {
-                            $roles = [(int)$rId];
-                        }
-                    }
-                }
-                if (empty($roles)) {
-                    $roles = [3]; // Default to Cliente
-                }
-
-                $firstname = $user['nombreUsu'];
-                $lastname = $user['apellidoUsu'];
-                if (($lastname === '-' || empty($lastname)) && strpos($firstname, ' ') !== false) {
-                    $parts = explode(' ', $firstname);
-                    $firstname = $parts[0];
-                    $lastname = implode(' ', array_slice($parts, 1));
-                } else if ($lastname === '-') {
-                    $lastname = '';
-                }
-
-                send_response([
-                    "id" => (int)$user['idUsu'],
-                    "username" => $user['usuarioUsu'] ?? explode('@', $user['correoUsu'])[0],
-                    "fullname" => trim($firstname . ' ' . $lastname),
-                    "firstname" => $firstname,
-                    "lastname" => $lastname,
-                    "email" => $user['correoUsu'],
-                    "phone" => $user['telefonoUsu'],
-                    "roles" => $roles,
-                    "pic" => "./assets/media/avatars/blank.png",
-                    "address" => [
-                        "addressLine" => $persona['direccionFiscalPers'] ?? '',
-                        "city" => "",
-                        "state" => "",
-                        "postCode" => ""
-                    ]
-                ]);
-            }
-        }
-    }
-    send_response(["success" => false, "message" => "No autorizado"], 401);
+$mp=new MercadoPago($pdo,$acceso,new ClienteMercadoPago());
+if ($route==='/mp/retorno' && $method==='GET') {
+    $mp->vincular($_GET); send_response(['message'=>'Cuenta vinculada. Podés cerrar esta pestaña y actualizar la configuración.']);
+}
+if ($route==='/mp/notificar' && $method==='POST') {
+    $orden=$entrada['data']['id']??'';
+    if (!is_string($orden) || !preg_match('/^[A-Za-z0-9_-]{4,100}$/D',$orden)) send_response([],400);
+    // Solo se procesa una orden local. Todas las decisiones usan el GET autenticado al proveedor.
+    $mp->verificar($orden); send_response(['recibido'=>true]);
 }
 
-// Helper function to save base64 uploaded image as physical file in /uploads
-function save_base64_image($base64_string) {
-    if (empty($base64_string)) {
-        return '';
-    }
-    // If it's already a saved URL or path, keep it
-    if (!preg_match('/^data:image\/(\w+);base64,/', $base64_string, $type)) {
-        return $base64_string;
-    }
-    
-    $output_dir = dirname(__DIR__) . '/uploads';
-    if (!is_dir($output_dir)) {
-        mkdir($output_dir, 0755, true);
-    }
-    
-    $ext = strtolower($type[1]);
-    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-        $ext = 'jpg';
-    }
-    
-    $data = substr($base64_string, strpos($base64_string, ',') + 1);
-    $data = base64_decode($data);
-    if ($data === false) {
-        return '';
-    }
-    
-    $fileName = uniqid() . '.' . $ext;
-    $filePath = $output_dir . '/' . $fileName;
-    
-    if (file_put_contents($filePath, $data)) {
-        return 'uploads/' . $fileName;
-    }
-    
-    return '';
+$usuario=$acceso->usuario(); $actor=(int)$usuario['idUsu'];
+$admin=in_array(1,$usuario['roles'],true);
+$permisos=$admin ? [] : $acceso->permisos($actor);
+if ($route==='/auth/logout' && $method==='POST') {
+    $acceso->consultar('DELETE FROM sesiones_pos WHERE resumenToken=?',[$usuario['resumen']]);
+    send_response(['success'=>true]);
 }
-
-// =============================================================
-// IMAGENES DE PRODUCTOS - PUJOL E HIJOS S.R.L.
-// Las fotos se almacenan en /uploads/productos y en MySQL se guarda
-// solamente la ruta relativa en la columna productos.imagenProd.
-// =============================================================
-function pujol_product_image_url($storedPath, $idProd = 0) {
-    $storedPath = trim((string)$storedPath);
-    $idProd = (int)$idProd;
-    if ($storedPath === '') return '';
-
-    // La imagen se obtiene mediante la misma API que consulta los productos.
-    // Esto evita rutas rotas al servir archivos desde XAMPP.
-    if ($idProd > 0 && preg_match('#^uploads/productos/[a-f0-9]{32}\.(jpg|png|webp)$#', $storedPath)) {
-        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
-        if (!preg_match('/^[a-zA-Z0-9.\-]+(?::[0-9]{1,5})?$/', $host)) {
-            $host = 'localhost';
-        }
-        $https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
-        $scheme = $https ? 'https' : 'http';
-        $apiPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/api/index.php'));
-        $apiPath = $apiPath === '/' || $apiPath === '.' ? '' : rtrim($apiPath, '/');
-        return $scheme . '://' . $host . $apiPath . '/productos/imagen?id=' . $idProd;
-    }
-
-    // Compatibilidad con URLs antiguas guardadas en la BD.
-    if (preg_match('#^https?://#i', $storedPath)) return $storedPath;
-    return '';
+if ($route==='/auth/me' && $method==='GET') send_response([
+    'id'=>$actor,'username'=>$usuario['usuarioUsu'],'fullname'=>trim($usuario['nombreUsu'].' '.$usuario['apellidoUsu']),
+    'firstname'=>$usuario['nombreUsu'],'lastname'=>$usuario['apellidoUsu'],'email'=>$usuario['correoUsu'],
+    'roles'=>$usuario['roles'],'phone'=>$usuario['telefonoUsu'],'pic'=>'./assets/media/avatars/blank.png','permisos'=>$permisos
+]);
+$modulo=[
+    '/dashboard'=>'Acceder al Dashboard','/mp/configuracion'=>'Gestionar Roles','/mp/cajas'=>'Cobros QR','/mp/cobros'=>'Cobros QR','/mp/verificar'=>'Cobros QR',
+    '/ventas/productos'=>'Gestionar Ventas','/productos'=>'Catálogo de productos','/stock/productos'=>'Gestionar Stock','/subcategorias'=>'Clasificación de productos','/categorias'=>'Clasificación de productos','/movimientos-stock'=>'Ver movimientos de stock',
+    '/ventas'=>$method==='GET'?'Ver Historial de Ventas':'Gestionar Ventas',
+    '/ventas/marcar-prueba'=>'Ver Historial de Ventas',
+    '/caja/turno'=>'Caja presencial','/caja/historial'=>'Ver historial de caja','/caja/movimientos'=>'Caja presencial',
+    '/caja/abrir'=>'Caja presencial','/caja/cerrar'=>'Caja presencial','/caja/movimiento'=>'Caja presencial',
+    '/comprobantes'=>'Comprobantes presenciales','/comprobantes/emitir'=>'Comprobantes presenciales',
+    '/usuarios'=>'Gestionar Roles','/roles'=>'Gestionar Roles','/permisos'=>'Gestionar Roles',
+    '/personal/resumen'=>'Gestionar Roles',
+    '/configuracion'=>'Gestionar Roles','/actividad'=>'Gestionar Roles','/accesos-empleado'=>'Gestionar Roles'
+][$route]??null;
+if (!$modulo) send_response(['message'=>'Ruta inexistente.'],404);
+$accion=$method==='GET'?'visualizar':($method==='DELETE'?'anular':(!empty($entrada['id'])||$route==='/caja/cerrar'?'modificar':'crear'));
+if (!$admin && $route==='/mp/cobros' && $method==='POST' && empty($permisos['Gestionar Ventas']['crear'])) send_response(['message'=>'Permiso insuficiente.'],403);
+if ($route==='/ventas/marcar-prueba' && !$admin) send_response(['message'=>'Solo el administrador puede clasificar las ventas de prueba.'],403);
+// Corrección 15: autorización por acción y por opción de menú. Se verifica en cada petición.
+// No se confía en los botones ocultos ni en el perfil que declara el navegador.
+if ($route==='/movimientos-stock' && $method==='POST') {
+    $tipo=$entrada['type']??null;
+    if ($tipo==='Entrada') { $modulo='Registrar entradas de stock'; $accion='crear'; }
+    elseif ($tipo==='Salida') { $modulo='Registrar salidas de stock'; $accion='crear'; }
+    elseif ($tipo==='Ajuste') { $modulo='Ajustar cantidad de stock'; $accion='modificar'; }
+    else send_response(['message'=>'Tipo de movimiento no válido.'],400);
 }
-function pujol_save_product_image($dataUrl) {
-    if (!is_string($dataUrl) || !preg_match('#^data:image/(jpeg|png|webp);base64,#i', $dataUrl)) {
-        throw new InvalidArgumentException('La imagen debe ser JPG, PNG o WebP.');
-    }
-
-    $comma = strpos($dataUrl, ',');
-    $encoded = substr($dataUrl, $comma + 1);
-    if (strlen($encoded) > 3 * 1024 * 1024) {
-        throw new InvalidArgumentException('La imagen es demasiado grande.');
-    }
-
-    $bytes = base64_decode($encoded, true);
-    if ($bytes === false || $bytes === '' || strlen($bytes) > 2 * 1024 * 1024) {
-        throw new InvalidArgumentException('La imagen no es valida o supera 2 MB.');
-    }
-
-    $info = @getimagesizefromstring($bytes);
-    if ($info === false || empty($info[2])) {
-        throw new InvalidArgumentException('El archivo no es una imagen valida.');
-    }
-    $extensions = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp'];
-    if (!isset($extensions[$info[2]])) {
-        throw new InvalidArgumentException('Formato de imagen no permitido.');
-    }
-    if ($info[0] > 4096 || $info[1] > 4096) {
-        throw new InvalidArgumentException('La imagen tiene dimensiones demasiado grandes.');
-    }
-
-    $dir = dirname(__DIR__) . '/uploads/productos';
-    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-        throw new RuntimeException('No se pudo crear la carpeta de imagenes de productos.');
-    }
-    $fileName = bin2hex(random_bytes(16)) . '.' . $extensions[$info[2]];
-    $relativePath = 'uploads/productos/' . $fileName;
-    if (file_put_contents($dir . '/' . $fileName, $bytes, LOCK_EX) === false) {
-        throw new RuntimeException('No se pudo guardar la imagen en el servidor.');
-    }
-    return $relativePath;
+// El detalle de un turno histórico exige su propio permiso; un cajero puede ver su turno abierto.
+if ($route==='/caja/movimientos' && $method==='GET') {
+    $turnoSolicitado=filter_var($_GET['idTurno']??null,FILTER_VALIDATE_INT);
+    if (!$turnoSolicitado) send_response(['message'=>'Indique un turno válido.'],400);
+    $estadoTurno=$acceso->consultar('SELECT estadoTurno FROM caja_turnos WHERE idTurno=?',[$turnoSolicitado])->fetchColumn();
+    if ($estadoTurno===false) send_response(['message'=>'Turno inexistente.'],404);
+    $modulo=$estadoTurno==='Cerrado'?'Ver historial de caja':'Caja presencial';
 }
-
-// =============================================================
-// DESCARGA DE IMAGENES DE PRODUCTOS
-// =============================================================
-if ($route === '/productos/imagen' && $method === 'GET') {
-    $idProd = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
-    if (!$idProd || $idProd < 1) {
-        send_response(['success' => false, 'message' => 'Producto invalido.'], 400);
-    }
-
-    try {
-        $stmt = $pdo->prepare('SELECT imagenProd FROM productos WHERE idProd = ? LIMIT 1');
-        $stmt->execute([$idProd]);
-        $storedPath = trim((string)$stmt->fetchColumn());
-
-        if (!preg_match('#^uploads/productos/[a-f0-9]{32}\.(jpg|png|webp)$#', $storedPath)) {
-            send_response(['success' => false, 'message' => 'Imagen no encontrada.'], 404);
-        }
-
-        $base = realpath(dirname(__DIR__) . '/uploads/productos');
-        $file = realpath(dirname(__DIR__) . '/' . $storedPath);
-        if (!$base || !$file || strpos($file, $base . DIRECTORY_SEPARATOR) !== 0 || !is_file($file)) {
-            send_response(['success' => false, 'message' => 'Archivo de imagen no encontrado.'], 404);
-        }
-
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        $types = ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];
-        if (!isset($types[$extension])) {
-            send_response(['success' => false, 'message' => 'Formato no admitido.'], 415);
-        }
-
-        header('Content-Type: ' . $types[$extension]);
-        header('Cache-Control: private, no-store');
-        header('X-Content-Type-Options: nosniff');
-        readfile($file);
-        exit;
-    } catch (Throwable $e) {
-        error_log('Error consultando imagen de producto: ' . $e->getMessage());
-        send_response(['success' => false, 'message' => 'No se pudo cargar la imagen.'], 500);
+if ($route==='/subcategorias' && $method==='POST') {
+    $accion=((int)($entrada['id']??$entrada['idSubcategoria']??0)>0)?'modificar':'crear';
+}
+if ($route==='/categorias' && $method==='POST') {
+    $accion=((int)($entrada['id']??0)>0)?'modificar':'crear';
+}
+$lecturaAuxiliarCatalogo=(!$admin && $method==='GET'
+    && in_array($route,['/categorias','/subcategorias'],true)
+    && !empty($permisos['Catálogo de productos']['visualizar']));
+if (!$admin && !$lecturaAuxiliarCatalogo && ($modulo==='Gestionar Roles' || empty($permisos[$modulo][$accion])))
+    send_response(['message'=>'Su perfil no tiene autorización para esta operación.'],403);
+if ($method!=='GET' && ($modulo==='Gestionar Roles' || $route==='/categorias'))
+    $acceso->consultar('INSERT INTO auditoria_pos(idUsu,accion,referencia) VALUES(?,?,?)',[$actor,$method.' '.$route,(string)($entrada['id']??'')]);
+if ($route==='/personal/resumen' && $method==='GET') {
+    if (!$admin) send_response(['message'=>'Acceso exclusivo del administrador.'],403);
+    send_response([
+        'empleados'=>(int)$pdo->query("SELECT COUNT(*) FROM usuario WHERE rolUsu<>'Cliente'")->fetchColumn(),
+        'empleadosActivos'=>(int)$pdo->query("SELECT COUNT(*) FROM usuario WHERE rolUsu<>'Cliente' AND estadoUsu='Activo'")->fetchColumn(),
+        'perfiles'=>(int)$pdo->query("SELECT COUNT(*) FROM roles WHERE idRol<>3 AND nombreRol<>'Cliente'")->fetchColumn(),
+        'permisos'=>(int)$pdo->query('SELECT COUNT(*) FROM dashboard_permisos')->fetchColumn(),
+        'clientesHistoricos'=>(int)$pdo->query("SELECT COUNT(*) FROM usuario WHERE rolUsu='Cliente'")->fetchColumn(),
+    ]);
+}
+if ($route==='/dashboard' && $method==='GET') {
+    send_response((new PanelComercial($acceso))->consultar($_GET,$admin || !empty($permisos['Caja presencial']['visualizar'])));
+}
+if ($route==='/configuracion' && $admin) {
+    if ($method==='GET') send_response($acceso->consultar('SELECT zonaHoraria FROM configuracion_comercio WHERE id=1')->fetch());
+    if ($method==='POST') {
+        $zona=$entrada['zonaHoraria']??'';
+        if (!in_array($zona,DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true)) throw new DomainException('Indique una zona horaria válida.');
+        $acceso->consultar('UPDATE configuracion_comercio SET zonaHoraria=? WHERE id=1',[$zona]);
+        send_response(['success'=>true]);
     }
 }
+if ($route==='/mp/configuracion' && $admin) {
+    if ($method==='GET') send_response(['cuentas'=>$pdo->query('SELECT idCuenta,vendedorExterno,activa FROM cuentas_mp')->fetchAll(),
+        'cajas'=>$pdo->query('SELECT idCaja,externalPosId,idCuenta,activa FROM cajas_mp')->fetchAll()]);
+    if ($method==='POST') {
+        switch ($entrada['accion']??'') {
+            case 'vincular': send_response(['url'=>$mp->autorizar($actor)]);
+            case 'caja':
+                $externa=trim($entrada['externa']??'');
+                if (!preg_match('/^[A-Za-z0-9_-]{1,64}$/D',$externa)) throw new DomainException('Identificador de caja inválido.');
+                $mp->verificarCaja((int)$entrada['idCuenta'],$externa);
+                $acceso->consultar('INSERT INTO cajas_mp(idCuenta,externalPosId) VALUES(?,?) ON DUPLICATE KEY UPDATE activa=1',[(int)$entrada['idCuenta'],$externa]); break;
+            case 'desactivarCaja':
+                $pdo->beginTransaction();
+                $idCaja=(int)($entrada['idCaja']??0);
+                $acceso->consultar('SELECT idCaja FROM cajas_mp WHERE idCaja=? FOR UPDATE',[$idCaja]);
+                $pendiente=$acceso->consultar("SELECT 1 FROM cobros_pos JOIN ordenes_mp USING(idCobro) WHERE idCaja=? AND estado='pendiente' LIMIT 1",[$idCaja])->fetchColumn();
+                if ($pendiente) { $pdo->rollBack(); throw new DomainException('Concilie el cobro pendiente de la caja.'); }
+                $acceso->consultar('UPDATE cajas_mp SET activa=0 WHERE idCaja=?',[$idCaja]);
+                $pdo->commit();
+                break;
+            case 'desvincular':
+                $id=(int)$entrada['idCuenta'];
+                $acceso->consultar("UPDATE cuentas_mp c SET c.activa=0,c.credencialesCifradas=NULL WHERE idCuenta=? AND NOT EXISTS(SELECT 1 FROM cajas_mp k JOIN ordenes_mp o USING(idCaja) JOIN cobros_pos p USING(idCobro) WHERE k.idCuenta=c.idCuenta AND p.estado='pendiente')",[$id]);
+                if ($acceso->consultar('SELECT activa FROM cuentas_mp WHERE idCuenta=?',[$id])->fetchColumn()) throw new DomainException('Concilie las operaciones pendientes.');
+                break;
+            default: throw new DomainException('Acción desconocida.');
+        }
+        send_response(['success'=>true]);
+    }
+}
+if ($route==='/mp/cajas' && $method==='GET') send_response($pdo->query('SELECT idCaja,externalPosId FROM cajas_mp JOIN cuentas_mp USING(idCuenta) WHERE cajas_mp.activa=1 AND cuentas_mp.activa=1')->fetchAll());
+if ($route==='/mp/cobros') {
+    if ($method==='POST') send_response($mp->iniciar($actor,$entrada));
+    if ($method==='GET') send_response($acceso->consultar("SELECT c.idCobro,c.importe,c.estado,c.idVenta,c.tipoVenta,c.creado,o.ordenExterna,o.estadoProveedor,o.detalleEstado,(SELECT COALESCE(SUM(r.importe),0) FROM reembolsos_mp r WHERE r.idCobro=c.idCobro) reembolsado FROM cobros_pos c JOIN ordenes_mp o USING(idCobro) WHERE (?=1 OR c.idUsu=?) ORDER BY c.idCobro DESC LIMIT 100",[(int)$admin,$actor])->fetchAll());
+}
+if ($route==='/mp/verificar' && $method==='POST') {
+    $q=$acceso->consultar('SELECT c.idUsu,c.estado,o.ordenExterna FROM cobros_pos c JOIN ordenes_mp o USING(idCobro) WHERE c.idCobro=?',[(int)($entrada['idCobro']??0)])->fetch();
+    if (!$q || (!$admin && $q['idUsu']!=$actor)) send_response([],403);
+    if (!$q['ordenExterna'] && $q['estado']!=='pendiente') send_response(['estado'=>$q['estado']]);
+    if (!$q['ordenExterna']) {
+        $c=$acceso->consultar('SELECT c.claveOperacion,c.tipoVenta,o.idCaja FROM cobros_pos c JOIN ordenes_mp o USING(idCobro) WHERE c.idCobro=?',[$entrada['idCobro']])->fetch();
+        $items=$acceso->consultar('SELECT idProd productId,cantidad quantity FROM reservas_pos WHERE idCobro=? ORDER BY idProd',[$entrada['idCobro']])->fetchAll();
+        $reintento=$mp->iniciar((int)$q['idUsu'],array_merge($c,['details'=>$items]));
+        if ($reintento['estado']!=='pendiente') send_response($reintento);
+        $q['ordenExterna']=$acceso->consultar('SELECT ordenExterna FROM ordenes_mp WHERE idCobro=?',[$entrada['idCobro']])->fetchColumn();
+    }
+    send_response($mp->verificar($q['ordenExterna']));
+}
 
-// =============================================================
-// CRUD /productos: consulta, alta, modificacion y baja logica.
-// =============================================================
-if ($route === '/productos') {
+if ($route==='/actividad' && $method==='GET') send_response($acceso->consultar("SELECT fecha,accion,referencia FROM auditoria_pos WHERE idUsu=? OR ((accion='POST /accesos-empleado' OR accion LIKE 'Permiso %') AND referencia=?) ORDER BY idEvento DESC LIMIT 25",[(int)($_GET['id']??0),(string)(int)($_GET['id']??0)])->fetchAll());
+if ($route==='/accesos-empleado') {
+    $id=(int)($_GET['id']??$entrada['id']??0);
+    if ($method==='GET') send_response($acceso->permisos($id));
+    if ($method==='POST') send_response([
+        'message'=>'Los permisos se configuran desde Perfiles (Roles), no por empleado.'
+    ],409);
+}
+if ($route === '/subcategorias') {
     if ($method === 'GET') {
-        try {
-            $stmt = $pdo->query("
-                SELECT
-                    p.idProd AS id,
-                    p.codigoProd AS code,
-                    p.nombreProd AS name,
-                    p.descripcionProd AS description,
-                    p.categoriaProd AS category,
-                    p.imagenProd AS image,
-                    p.precioUnitario AS price,
-                    p.estadoProd AS status,
-                    inv.stockActual AS quantity,
-                    inv.stockMinimo AS minThreshold
-                FROM productos p
-                LEFT JOIN inventario inv ON inv.idProd = p.idProd
-                WHERE p.estadoProd = 'Activo'
-            ");
-            $items = $stmt->fetchAll();
-            foreach ($items as &$item) {
-                $item['id'] = (int)$item['id'];
-                $item['quantity'] = $item['quantity'] !== null ? (int)$item['quantity'] : 0;
-                $item['minThreshold'] = $item['minThreshold'] !== null ? (int)$item['minThreshold'] : 0;
-                $item['price'] = (float)$item['price'];
-                $item['category'] = !empty($item['category']) ? $item['category'] : 'Otros';
-                $item['image'] = pujol_product_image_url($item['image'], $item['id']);
-            }
-            unset($item);
-            send_response($items);
-        } catch (Throwable $e) {
-            error_log('Error consultando productos: ' . $e->getMessage());
-            send_response(['success' => false, 'message' => 'No se pudieron consultar los productos. Compruebe las columnas categoriaProd e imagenProd.'], 500);
-        }
+        send_response($pdo->query('SELECT s.idSubcategoria,s.idCategoria,s.nombre,s.activa,c.nombre AS categoria
+            FROM subcategorias_producto s JOIN categorias_producto c ON c.idCategoria=s.idCategoria
+            ORDER BY c.nombre,s.nombre,s.idSubcategoria')->fetchAll());
     }
-
     if ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        if (!is_array($input)) {
-            send_response(['success' => false, 'message' => 'Los datos del producto no son validos.'], 400);
-        }
-
-        $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $code = $input['code'] ?? null;
-        $name = $input['name'] ?? '';
-        $description = $input['description'] ?? '';
-        $price = isset($input['price']) ? (float)$input['price'] : 0.0;
-        $quantity = isset($input['quantity']) ? (int)$input['quantity'] : 0;
-        $minThreshold = isset($input['minThreshold']) ? (int)$input['minThreshold'] : 0;
-
-        if (empty($name)) {
-            send_response(["success" => false, "message" => "El nombre es obligatorio"], 400);
-        }
-
-        $price = (float)$price;
-        $quantity = (int)$quantity;
-        $minThreshold = (int)$minThreshold;
-        $newImagePath = null;
-
+        $id=(int)($entrada['id']??0);
+        $idCategoria=(int)($entrada['idCategoria']??0);
+        $nombre=trim((string)($entrada['nombre']??''));
+        if ($nombre==='' || mb_strlen($nombre)>100) throw new DomainException('Revise el nombre de la subcategoría.');
+        if ($idCategoria<=0) throw new DomainException('Seleccione la categoría principal.');
+        $pdo->beginTransaction();
         try {
-            $pdo->beginTransaction();
-
-            // Si la imagen no viene en la solicitud, mantener la anterior.
-            // Si viene vacia, quitarla. Si es un data URL, guardar una nueva.
-            if ($id > 0) {
-                $check = $pdo->prepare('SELECT imagenProd FROM productos WHERE idProd = ? FOR UPDATE');
-                $check->execute([$id]);
-                $previous = $check->fetch();
-                if (!$previous) {
-                    $pdo->rollBack();
-                    send_response(['success' => false, 'message' => 'Producto no encontrado.'], 404);
+            $categoria=$acceso->consultar('SELECT idCategoria,activa FROM categorias_producto WHERE idCategoria=?',[$idCategoria])->fetch();
+            if (!$categoria) throw new DomainException('La categoría seleccionada no existe.');
+            if ($id) {
+                $anterior=$acceso->consultar('SELECT idCategoria FROM subcategorias_producto WHERE idSubcategoria=? FOR UPDATE',[$id])->fetch();
+                if (!$anterior) throw new DomainException('La subcategoría ya no existe.');
+                if ($idCategoria!==(int)$anterior['idCategoria']) {
+                    if (!(int)$categoria['activa']) throw new DomainException('Para moverla, seleccione una categoría activa.');
+                    $enUso=$acceso->consultar('SELECT 1 FROM productos WHERE idSubcategoria=? LIMIT 1',[$id])->fetchColumn();
+                    if ($enUso) throw new DomainException('Esta subcategoría tiene productos asociados. Reclasifique esos productos antes de moverla.');
                 }
-                $imagePath = $previous['imagenProd'];
+                $acceso->consultar('UPDATE subcategorias_producto SET nombre=?,activa=?,idCategoria=? WHERE idSubcategoria=?',
+                    [$nombre,(int)!empty($entrada['activa']),$idCategoria,$id]);
             } else {
-                $imagePath = null;
+                if (!(int)$categoria['activa']) throw new DomainException('Seleccione una categoría activa.');
+                $acceso->consultar('INSERT INTO subcategorias_producto(idCategoria,nombre) VALUES(?,?)',[$idCategoria,$nombre]);
             }
-
-            if (array_key_exists('image', $input)) {
-                $imageInput = $input['image'];
-                if ($imageInput === null || $imageInput === '') {
-                    $imagePath = null;
-                } elseif (is_string($imageInput) && strncmp($imageInput, 'data:image/', 11) === 0) {
-                    $newImagePath = pujol_save_product_image($imageInput);
-                    $imagePath = $newImagePath;
-                } elseif ($id > 0 && is_string($imageInput)) {
-                    // La URL devuelta por GET es de solo lectura:
-                    // mantener la ruta que ya consta en la BD.
-                } else {
-                    throw new InvalidArgumentException('La imagen proporcionada no es valida.');
-                }
-            }
-
-            if ($id > 0) {
-                $stmt = $pdo->prepare("
-                    UPDATE productos
-                    SET codigoProd = ?, nombreProd = ?, descripcionProd = ?,
-                        precioUnitario = ?, categoriaProd = COALESCE(?, categoriaProd),
-                        imagenProd = ?
-                    WHERE idProd = ?
-                ");
-                $stmt->execute([$code, $name, $description, $price, $category, $imagePath, $id]);
-
-                $stmtCheck = $pdo->prepare('SELECT idInv FROM inventario WHERE idProd = ?');
-                $stmtCheck->execute([$id]);
-                if ($stmtCheck->fetch()) {
-                    $stmtInv = $pdo->prepare('UPDATE inventario SET stockActual = ?, stockMinimo = ? WHERE idProd = ?');
-                    $stmtInv->execute([$quantity, $minThreshold, $id]);
-                } else {
-                    $stmtInv = $pdo->prepare('INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)');
-                    $stmtInv->execute([$id, $quantity, $minThreshold]);
-                }
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO productos (codigoProd, nombreProd, descripcionProd, precioUnitario, estadoProd) VALUES (?, ?, ?, ?, 'Activo')");
-                $stmt->execute([$code, $name, $description, $price]);
-                $id = $pdo->lastInsertId();
-                
-                $stmtInv = $pdo->prepare("INSERT INTO inventario (idProd, stockActual, stockMinimo) VALUES (?, ?, ?)");
-                $stmtInv->execute([$id, $quantity, $minThreshold]);
-            }
-
             $pdo->commit();
-            send_response([
-                'success' => true,
-                'id' => (int)$id,
-                'image' => pujol_product_image_url($imagePath, $id),
-                'message' => 'Producto guardado correctamente.'
-            ]);
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            if ($newImagePath !== null) {
-                $file = dirname(__DIR__) . '/' . $newImagePath;
-                if (is_file($file)) @unlink($file);
-            }
-            error_log('Error guardando producto: ' . $e->getMessage());
-            $status = $e instanceof InvalidArgumentException ? 400 : 500;
-            send_response([
-                'success' => false,
-                'message' => $status === 400 ? $e->getMessage() : 'No se pudo guardar el producto.'
-            ], $status);
+            if ($e instanceof PDOException && $e->getCode()==='23000')
+                throw new DomainException('Ya existe esa subcategoría dentro de la categoría seleccionada.');
+            throw $e;
         }
-    }
-
-    if ($method === 'DELETE') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($id <= 0) {
-            send_response(['success' => false, 'message' => 'ID de producto no proporcionado.'], 400);
-        }
-        try {
-            // Validate if product is used in active sales
-            $stmtCheck = $pdo->prepare("SELECT d.idDetalle FROM detalle_venta d JOIN ventas v ON d.idVenta = v.idVenta WHERE d.idProd = ? AND v.estadoVenta = 'Completada'");
-            $stmtCheck->execute([$id]);
-            
-            if ($stmtCheck->fetch()) {
-                send_response([
-                    "success" => false, 
-                    "message" => "No se puede eliminar el producto porque tiene un historial de ventas asociado. Su estado será cambiado a Inactivo."
-                ], 400); // we could soft-delete but for simplicity we return error and tell them we can't
-                // Or better, just soft delete:
-                // $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?")->execute([$id]);
-            }
-            
-            $pdo->beginTransaction();
-            $stmt = $pdo->prepare("UPDATE productos SET estadoProd = 'Inactivo' WHERE idProd = ?");
-            $stmt->execute([$id]);
-            $pdo->commit();
-            send_response(['success' => true, 'message' => 'Producto dado de baja correctamente.']);
-        } catch (Throwable $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            error_log('Error eliminando producto: ' . $e->getMessage());
-            send_response(['success' => false, 'message' => 'No se pudo eliminar el producto.'], 500);
-        }
+        send_response(['success'=>true]);
     }
 }
-
-// =============================================================
-// CRUD /movimientos-stock
-// =============================================================
+if ($route==='/categorias') {
+    if ($method==='GET') send_response($pdo->query('SELECT idCategoria,nombre,activa FROM categorias_producto ORDER BY nombre')->fetchAll());
+    if ($method==='POST') {
+        $nombre=trim($entrada['nombre']??'');
+        if (!$nombre || mb_strlen($nombre)>100) throw new DomainException('Nombre de categoría inválido.');
+        $id=(int)($entrada['id']??0);
+        if ($acceso->consultar('SELECT 1 FROM categorias_producto WHERE nombre=? AND idCategoria<>?',[$nombre,$id])->fetchColumn()) throw new DomainException('Ya existe una categoría con ese nombre.');
+        if ($id) $acceso->consultar('UPDATE categorias_producto SET nombre=?,activa=? WHERE idCategoria=?',[$nombre,(int)!empty($entrada['activa']),$id]);
+        else $acceso->consultar('INSERT INTO categorias_producto(nombre) VALUES(?)',[$nombre]);
+        send_response(['success'=>true]);
+    }
+}
+if ($route==='/stock/productos' && $method==='GET') send_response((new Catalogo($pdo))->listar());
+if ($route==='/ventas/productos' && $method==='GET') send_response(array_values(array_filter((new Catalogo($pdo))->listar(), static fn($p)=>$p['status']==='Activo')));
+if ($route==='/productos') {
+    $catalogo=new Catalogo($pdo);
+    if ($method==='GET') send_response($catalogo->listar());
+    if ($method==='POST') {
+        if (!$admin && empty($permisos['Ajustar cantidad de stock']['modificar'])) {
+            $idProducto=(int)($entrada['id']??0);
+            if (!isset($entrada['quantity']) || !is_numeric($entrada['quantity']))
+                throw new DomainException('Indique una cantidad de stock válida.');
+            $cantidadSolicitada=(float)$entrada['quantity'];
+            if ($idProducto>0) {
+                $cantidadActual=$acceso->consultar(
+                    'SELECT stockActual FROM inventario WHERE idProd=?',[$idProducto]
+                )->fetchColumn();
+                if ($cantidadActual===false) throw new DomainException('Producto inexistente.');
+                if (round($cantidadSolicitada,3)!==round((float)$cantidadActual,3))
+                    send_response(['message'=>'Su perfil no permite modificar la cantidad de stock.'],403);
+            } elseif (round($cantidadSolicitada,3)!==0.0) {
+                send_response(['message'=>'Su perfil no permite establecer stock inicial distinto de cero.'],403);
+            }
+        }
+        send_response(['success'=>true,'id'=>$catalogo->guardar($entrada,$actor)]);
+    }
+    if ($method==='DELETE') {
+        $acceso->consultar("UPDATE productos SET estadoProd='Inactivo' WHERE idProd=?",[(int)($_GET['id']??0)]);
+        send_response(['success'=>true]);
+    }
+}
+if ($route==='/ventas' && $method==='POST') send_response(['success'=>true,'id'=>Ventas::registrar($pdo,$actor,$entrada)]);
 if ($route === '/movimientos-stock') {
     if ($method === 'GET') {
         $stmt = $pdo->query("SELECT m.idMovStock as id, m.idProd as productId, p.nombreProd as productName, p.codigoProd as productCode,
@@ -838,7 +375,7 @@ if ($route === '/movimientos-stock') {
         foreach ($items as &$item) {
             $item['id'] = (int)$item['id'];
             $item['productId'] = (int)$item['productId'];
-            $item['quantity'] = (int)$item['quantity'];
+            $item['quantity'] = (float)$item['quantity'];
             $item['userId'] = (int)$item['userId'];
         }
         send_response($items);
@@ -849,17 +386,23 @@ if ($route === '/movimientos-stock') {
         
         $productId = isset($input['productId']) ? (int)$input['productId'] : 0;
         $type = $input['type'] ?? '';
-        $quantity = isset($input['quantity']) ? (int)$input['quantity'] : 0;
-        $userId = isset($input['userId']) ? (int)$input['userId'] : 1; // Default to admin for now
-        $observations = $input['observations'] ?? '';
+        $quantity = isset($input['quantity']) ? (float)$input['quantity'] : 0;
+        $userId = $actor;
+        $observations = trim((string)($input['observations'] ?? ''));
+        if ($type==='Ajuste' && $observations==='')
+            throw new DomainException('Explique el motivo del ajuste de inventario.');
+        if (mb_strlen($observations)>255) throw new DomainException('La observación es demasiado extensa.');
 
-        if ($productId <= 0 || empty($type) || $quantity <= 0) {
+        if ($productId <= 0 || !in_array($type,['Entrada','Salida','Ajuste'],true)
+            || !is_finite($quantity) || ($type==='Ajuste' ? $quantity<0 : $quantity<=0)) {
             send_response(["success" => false, "message" => "Producto, tipo de movimiento y cantidad son obligatorios"], 400);
         }
 
         try {
             $pdo->beginTransaction();
             
+            $existencia=$acceso->consultar('SELECT stockActual FROM inventario WHERE idProd=? FOR UPDATE',[$productId])->fetchColumn();
+            if ($existencia===false || ($type==='Salida' && $existencia<$quantity)) { $pdo->rollBack(); send_response(['message'=>'Stock insuficiente.'],409); }
             // Insert movement
             $stmt = $pdo->prepare("INSERT INTO movimientos_stock (idProd, tipoMovimiento, cantidad, idUsu, observaciones) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$productId, $type, $quantity, $userId, $observations]);
@@ -886,319 +429,60 @@ if ($route === '/movimientos-stock') {
     }
 }
 
-// Handle CRUD for /proveedores (Suppliers)
-if ($route === '/proveedores') {
-    if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT idPro as id, nombrePro as name, emailPro as contact, 
-                                    telefonoPro as phone, direccionPro as catalogStr 
-                             FROM proveedor");
-        $items = $stmt->fetchAll();
-        
-        foreach ($items as &$item) {
-            $item['id'] = (int)$item['id'];
-            
-            $str = $item['catalogStr'];
-            if (strpos($str, 'Catalog: ') === 0) {
-                $catStr = substr($str, 9);
-                $item['catalog'] = $catStr ? array_map('trim', explode(',', $catStr)) : [];
-            } else {
-                $item['catalog'] = [];
-            }
-            unset($item['catalogStr']);
-        }
-        send_response($items);
+// Consultas del historial: una sola consulta para ventas y otra para los detalles.
+// Esto evita ejecutar una consulta adicional por cada venta registrada.
+if ($route === '/ventas' && $method === 'GET') {
+    $ventas=$pdo->query("SELECT v.idVenta AS id,v.fechaVenta AS date,v.totalVenta AS total,
+            v.tipoVenta,c.medio,c.estado AS estadoCobro,v.estadoVenta AS status,v.esPrueba,
+            u.nombreUsu AS userName
+        FROM ventas v LEFT JOIN cobros_pos c ON c.idVenta=v.idVenta
+        LEFT JOIN usuario u ON u.idUsu=v.idUsu
+        ORDER BY v.fechaVenta ASC,v.idVenta ASC")->fetchAll();
+    $detalles=$pdo->query("SELECT d.idVenta,d.idDetalle AS detailId,d.idProd AS productId,
+        p.nombreProd AS productName,d.cantidad AS quantity,d.precioUnitario AS price,d.subtotal
+        FROM detalle_venta d LEFT JOIN productos p ON p.idProd=d.idProd
+        ORDER BY d.idVenta DESC,d.idDetalle ASC")->fetchAll();
+    $porVenta=[];
+    foreach ($detalles as $detalle) {
+        $ventaId=(int)$detalle['idVenta'];
+        unset($detalle['idVenta']);
+        foreach (['detailId','productId'] as $campo) $detalle[$campo]=(int)$detalle[$campo];
+        foreach (['quantity','price','subtotal'] as $campo) $detalle[$campo]=(float)$detalle[$campo];
+        $porVenta[$ventaId][]=$detalle;
     }
-    
-    if ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        
-        $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $name = $input['name'] ?? '';
-        $contact = $input['contact'] ?? '';
-        $phone = $input['phone'] ?? '';
-        $catalog = $input['catalog'] ?? [];
-        
-        if (empty($name) || empty($contact) || empty($phone)) {
-            send_response(["success" => false, "message" => "Faltan campos obligatorios"], 400);
-        }
-        
-        $catalogStr = 'Catalog: ' . implode(', ', $catalog);
-        
-        try {
-            if ($id > 0) {
-                $stmt = $pdo->prepare("UPDATE proveedor SET nombrePro = ?, emailPro = ?, telefonoPro = ?, direccionPro = ? WHERE idPro = ?");
-                $stmt->execute([$name, $contact, $phone, $catalogStr, $id]);
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO proveedor (nombrePro, emailPro, telefonoPro, direccionPro, CUITPro, ciudadPro, provinciaPro) VALUES (?, ?, ?, ?, '00-00000000-0', 'Desconocida', 'Desconocida')");
-                $stmt->execute([$name, $contact, $phone, $catalogStr]);
-                $id = $pdo->lastInsertId();
-            }
-            send_response(["success" => true, "id" => (int)$id]);
-        } catch (Exception $e) {
-            send_response(["success" => false, "message" => "Error al guardar el proveedor: " . $e->getMessage()], 500);
-        }
+    foreach ($ventas as &$venta) {
+        $venta['id']=(int)$venta['id'];
+        $venta['total']=(float)$venta['total'];
+        $venta['esPrueba']=(bool)$venta['esPrueba'];
+        $venta['details']=$porVenta[$venta['id']]??[];
     }
-    
-    if ($method === 'DELETE') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($id <= 0) {
-            send_response(["success" => false, "message" => "ID no proporcionado"], 400);
-        }
-        
-        try {
-            $stmt = $pdo->prepare("DELETE FROM proveedor WHERE idPro = ?");
-            $stmt->execute([$id]);
-            send_response(["success" => true]);
-        } catch (Exception $e) {
-            // Check for foreign key constraint violation (SQLSTATE 23000)
-            if ($e->getCode() == '23000') {
-                send_response([
-                    "success" => false, 
-                    "message" => "No se puede eliminar el proveedor porque tiene insumos asociados en el inventario. Por favor, elimine o reasigne los insumos antes de continuar."
-                ], 400);
-            }
-            send_response(["success" => false, "message" => "Error al eliminar el proveedor: " . $e->getMessage()], 500);
-        }
-    }
+    unset($venta);
+    send_response($ventas);
 }
 
-// Handle CRUD for /recetas (Recipes)
-if ($route === '/recetas') {
-    if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT idReceta as id, nombreReceta as name, instruccionesReceta as instructions, 
-                                    margenGananciaReceta as marginPercent, descripcionReceta as image 
-                             FROM recetas 
-                             WHERE estadoReceta = 'Activa'");
-        $recipes = $stmt->fetchAll();
-        
-        foreach ($recipes as &$r) {
-            $r['id'] = (int)$r['id'];
-            $r['marginPercent'] = (float)$r['marginPercent'];
-            
-            $stmtIng = $pdo->prepare("SELECT insumoIdRecIng as stockId, cantidadNecesaria as quantity, unidadMedidaRecIng as unit, pesoPorUnidadRecIng as unitWeight 
-                                      FROM receta_ingrediente 
-                                      WHERE recetaIdRecIng = ?");
-            $stmtIng->execute([$r['id']]);
-            $ingredients = $stmtIng->fetchAll();
-            
-            foreach ($ingredients as &$ing) {
-                $ing['stockId'] = (int)$ing['stockId'];
-                $ing['quantity'] = (float)$ing['quantity'];
-                $ing['unit'] = $ing['unit'] ?? '';
-                $ing['unitWeight'] = $ing['unitWeight'] !== null ? (float)$ing['unitWeight'] : null;
-            }
-            $r['ingredients'] = $ingredients;
+// Etiquetado no destructivo para la analítica. No altera cobros, stock, caja ni comprobantes.
+if ($route==='/ventas/marcar-prueba' && $method==='POST') {
+    $id=(int)($entrada['id']??0);
+    if ($id<=0 || !isset($entrada['esPrueba']) || !is_bool($entrada['esPrueba']))
+        throw new DomainException('Indique una venta y su clasificación.');
+    $pdo->beginTransaction();
+    try {
+        $venta=$acceso->consultar('SELECT idVenta,esPrueba FROM ventas WHERE idVenta=? FOR UPDATE',[$id])->fetch();
+        if (!$venta) throw new DomainException('La venta indicada no existe.');
+        if ((bool)$venta['esPrueba']!==$entrada['esPrueba']) {
+            $acceso->consultar('UPDATE ventas SET esPrueba=? WHERE idVenta=?',[(int)$entrada['esPrueba'],$id]);
+            $acceso->consultar('INSERT INTO auditoria_pos(idUsu,accion,referencia) VALUES(?,?,?)',
+                [$actor,$entrada['esPrueba']?'Marcar venta de prueba':'Restaurar venta real',(string)$id]);
         }
-        send_response($recipes);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
     }
-    
-    if ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        
-        $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $name = $input['name'] ?? '';
-        $instructions = $input['instructions'] ?? '';
-        $marginPercent = isset($input['marginPercent']) ? (float)$input['marginPercent'] : 50.0;
-        $image = $input['image'] ?? '';
-        $ingredients = $input['ingredients'] ?? [];
-        
-        if (empty($name) || empty($ingredients)) {
-            send_response(["success" => false, "message" => "Nombre e ingredientes son obligatorios"], 400);
-        }
-        
-        $imagePath = save_base64_image($image);
-        
-        try {
-            $pdo->beginTransaction();
-            
-            if ($id > 0) {
-                $stmt = $pdo->prepare("UPDATE recetas SET nombreReceta = ?, instruccionesReceta = ?, margenGananciaReceta = ?, descripcionReceta = ? WHERE idReceta = ?");
-                $stmt->execute([$name, $instructions, $marginPercent, $imagePath, $id]);
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO recetas (nombreReceta, instruccionesReceta, margenGananciaReceta, descripcionReceta, estadoReceta) VALUES (?, ?, ?, ?, 'Activa')");
-                $stmt->execute([$name, $instructions, $marginPercent, $imagePath]);
-                $id = $pdo->lastInsertId();
-            }
-            
-            $stmtDel = $pdo->prepare("DELETE FROM receta_ingrediente WHERE recetaIdRecIng = ?");
-            $stmtDel->execute([$id]);
-            
-            foreach ($ingredients as $ing) {
-                $stockId = (int)$ing['stockId'];
-                $qty = (float)$ing['quantity'];
-                $frontendUnit = isset($ing['unit']) ? trim($ing['unit']) : '';
-                $unitWeight = isset($ing['unitWeight']) && $ing['unitWeight'] !== '' ? (float)$ing['unitWeight'] : null;
-                
-                $stmtIns = $pdo->prepare("SELECT unidadMedidaIns, pesoPorUnidadIns, precioCompraIns FROM insumo WHERE idIns = ?");
-                $stmtIns->execute([$stockId]);
-                $insDetails = $stmtIns->fetch();
-                $stockUnit = $insDetails ? strtolower($insDetails['unidadMedidaIns']) : 'unidades';
-                $stockUnitWeight = $insDetails && isset($insDetails['pesoPorUnidadIns']) ? (float)$insDetails['pesoPorUnidadIns'] : null;
-                $unit = !empty($frontendUnit) ? $frontendUnit : $stockUnit;
-                $cost = $insDetails ? (float)$insDetails['precioCompraIns'] : 0.0;
-                
-                $getBaseQty = function($q, $u, $w) {
-                    $l = strtolower($u);
-                    if (strpos($l, 'kg') !== false || strpos($l, 'ltr') !== false || strpos($l, 'litro') !== false) return $q * 1000;
-                    if (strpos($l, 'gr') !== false || strpos($l, 'ml') !== false) return $q;
-                    if ($w && $w > 0) return $q * $w;
-                    return $q;
-                };
-                
-                $ingBase = $getBaseQty($qty, $unit, $unitWeight);
-                $stockBase = $getBaseQty(1, $stockUnit, $stockUnitWeight);
-                
-                $costProportional = $stockBase > 0 ? $ingBase * ($cost / $stockBase) : 0;
-                
-                $stmtAdd = $pdo->prepare("INSERT INTO receta_ingrediente (recetaIdRecIng, insumoIdRecIng, cantidadNecesaria, unidadMedidaRecIng, pesoPorUnidadRecIng, costoProporcional) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmtAdd->execute([$id, $stockId, $qty, $unit, $unitWeight, $costProportional]);
-            }
-            
-            $pdo->commit();
-            send_response(["success" => true, "id" => (int)$id, "image" => $imagePath]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            send_response(["success" => false, "message" => "Error al guardar la receta: " . $e->getMessage()], 500);
-        }
-    }
-    
-    if ($method === 'DELETE') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($id <= 0) {
-            send_response(["success" => false, "message" => "ID no proporcionado"], 400);
-        }
-        
-        try {
-            $pdo->beginTransaction();
-            
-            $stmt = $pdo->prepare("UPDATE recetas SET estadoReceta = 'Inactiva' WHERE idReceta = ?");
-            $stmt->execute([$id]);
-            
-            $pdo->commit();
-            send_response(["success" => true]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            send_response(["success" => false, "message" => "Error al eliminar la receta: " . $e->getMessage()], 500);
-        }
-    }
+    send_response(['success'=>true]);
 }
-
-// Handle CRUD for /ventas
-if ($route === '/ventas') {
-    if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT v.idVenta as id, v.fechaVenta as date, v.totalVenta as total, v.estadoVenta as status, u.nombreUsu as userName 
-                             FROM ventas v
-                             LEFT JOIN usuario u ON v.idUsu = u.idUsu
-                             ORDER BY v.fechaVenta DESC");
-        $items = $stmt->fetchAll();
-        
-        foreach ($items as &$item) {
-            $item['id'] = (int)$item['id'];
-            $item['total'] = (float)$item['total'];
-            
-            // Get details
-            $stmtDet = $pdo->prepare("SELECT d.idDetalle as detailId, d.idProd as productId, p.nombreProd as productName, d.cantidad as quantity, d.precioUnitario as price, d.subtotal as subtotal 
-                                      FROM detalle_venta d
-                                      LEFT JOIN productos p ON d.idProd = p.idProd
-                                      WHERE d.idVenta = ?");
-            $stmtDet->execute([$item['id']]);
-            $details = $stmtDet->fetchAll();
-            
-            foreach ($details as &$d) {
-                $d['detailId'] = (int)$d['detailId'];
-                $d['productId'] = (int)$d['productId'];
-                $d['quantity'] = (int)$d['quantity'];
-                $d['price'] = (float)$d['price'];
-                $d['subtotal'] = (float)$d['subtotal'];
-            }
-            $item['details'] = $details;
-        }
-        send_response($items);
-    }
-    
-    if ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        
-        $total = isset($input['total']) ? (float)$input['total'] : 0.0;
-        $idUsu = isset($input['idUsu']) ? (int)$input['idUsu'] : 1; // Default to admin for now
-        $details = $input['details'] ?? [];
-        
-        if (empty($details)) {
-            send_response(["success" => false, "message" => "La venta debe contener al menos un producto."], 400);
-        }
-
-        try {
-            $pdo->beginTransaction();
-            
-            // 1. Insert Venta
-            $stmt = $pdo->prepare("INSERT INTO ventas (totalVenta, idUsu, estadoVenta) VALUES (?, ?, 'Completada')");
-            $stmt->execute([$total, $idUsu]);
-            $idVenta = $pdo->lastInsertId();
-            
-            // 2. Insert details and deduct inventory
-            $stmtDet = $pdo->prepare("INSERT INTO detalle_venta (idVenta, idProd, cantidad, precioUnitario, subtotal) VALUES (?, ?, ?, ?, ?)");
-            $stmtInv = $pdo->prepare("UPDATE inventario SET stockActual = stockActual - ? WHERE idProd = ?");
-            
-            foreach ($details as $d) {
-                $productId = (int)$d['productId'];
-                $qty = (int)$d['quantity'];
-                $price = (float)$d['price'];
-                $subtotal = $qty * $price;
-                
-                $stmtDet->execute([$idVenta, $productId, $qty, $price, $subtotal]);
-                $stmtInv->execute([$qty, $productId]);
-            }
-            
-            // 3. Register Caja movement if a turn is open
-            $stmtCheckCaja = $pdo->query("SELECT idTurno FROM caja_turnos WHERE estadoTurno = 'Abierto' LIMIT 1");
-            $turno = $stmtCheckCaja->fetch();
-            if ($turno) {
-                $stmtCaja = $pdo->prepare("INSERT INTO movimientos_caja (idTurno, tipoMovimiento, concepto, monto, idUsu, idVenta) VALUES (?, 'Ingreso', ?, ?, ?, ?)");
-                $stmtCaja->execute([$turno['idTurno'], "Venta #" . $idVenta, $total, $idUsu, $idVenta]);
-            }
-            
-            $pdo->commit();
-            send_response(["success" => true, "id" => (int)$idVenta]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            send_response(["success" => false, "message" => "Error al registrar la venta: " . $e->getMessage()], 500);
-        }
-    }
-}
-
-// Handle CRUD for /caja
-// Pujol e Hijos: historial, arqueo y proteccion contra duplicados.
 if (strpos($route, '/caja/') === 0) {
 
-    // Preparar columna e indice de idempotencia solo si faltan.
-    try {
-        $col = $pdo->query("SHOW COLUMNS FROM movimientos_caja LIKE 'requestKey'")->fetch();
-
-        if (!$col) {
-            $pdo->exec("ALTER TABLE movimientos_caja ADD COLUMN requestKey VARCHAR(64) NULL");
-        }
-
-        $indice = $pdo->query("SHOW INDEX FROM movimientos_caja WHERE Key_name = 'uk_movimientos_caja_requestKey'")->fetch();
-
-        if (!$indice) {
-            $pdo->exec("CREATE UNIQUE INDEX uk_movimientos_caja_requestKey ON movimientos_caja (requestKey)");
-        } elseif ((int)$indice['Non_unique'] !== 0) {
-            send_response([
-                'success' => false,
-                'message' => 'El indice requestKey debe ser UNIQUE.'
-            ], 500);
-        }
-
-    } catch (Throwable $e) {
-        error_log('Migracion de caja: ' . $e->getMessage());
-
-        send_response([
-            'success' => false,
-            'message' => 'No se pudo preparar la proteccion de movimientos de caja.'
-        ], 500);
-    }
-
-    // ==========================================
     // HISTORIAL DE TURNOS CERRADOS
     // ==========================================
 
@@ -1208,7 +492,8 @@ if (strpos($route, '/caja/') === 0) {
             $sql = "SELECT
                         t.idTurno,
                         t.fechaApertura,
-                        t.fechaCierre,
+                        t.fechaCierre, a.billetes, a.otros, a.observaciones, responsable.usuarioUsu responsable,
+
                         t.montoInicial,
                         t.montoFinal,
                         t.diferencia,
@@ -1220,6 +505,8 @@ if (strpos($route, '/caja/') === 0) {
                         COALESCE(m.totalMovimientos, 0) AS totalMovimientos
                     FROM caja_turnos t
                     LEFT JOIN usuario u ON u.idUsu = t.idUsu
+                    LEFT JOIN arqueos_pos a ON a.idTurno=t.idTurno
+                    LEFT JOIN usuario responsable ON responsable.idUsu=a.idUsu
                     LEFT JOIN (
                         SELECT
                             idTurno,
@@ -1256,6 +543,7 @@ if (strpos($route, '/caja/') === 0) {
                     $t[$campo] = round((float)$t[$campo], 2);
                 }
 
+                $t['billetes'] = $t['billetes'] === null ? null : json_decode($t['billetes'],true);
                 $t['totalMovimientos'] = (int)$t['totalMovimientos'];
 
                 $t['saldoEsperado'] = round(
@@ -1320,6 +608,8 @@ if (strpos($route, '/caja/') === 0) {
 
                 $s->execute([$turno['idTurno']]);
 
+                $turno['movimientosPorTipo']=$acceso->consultar('SELECT tipoMovimiento,SUM(monto) total FROM movimientos_caja WHERE idTurno=? GROUP BY tipoMovimiento',[$turno['idTurno']])->fetchAll();
+                $turno['electronicos']=$acceso->consultar("SELECT c.medio,SUM(c.importe-COALESCE(r.devuelto,0)) total FROM cobros_pos c LEFT JOIN (SELECT idCobro,SUM(importe) devuelto FROM reembolsos_mp GROUP BY idCobro) r USING(idCobro) WHERE idTurno=? AND estado='aprobado' AND medio<>'efectivo' GROUP BY c.medio",[$turno['idTurno']])->fetchAll();
                 $turno['saldoActual'] = round(
                     $turno['montoInicial'] + (float)$s->fetchColumn(),
                     2
@@ -1349,11 +639,16 @@ if (strpos($route, '/caja/') === 0) {
 
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $raw = $input['montoInicial'] ?? null;
+        $monto = is_numeric($raw) ? (float)$raw : null;
 
-        if (!is_numeric($raw) || !is_finite((float)$raw) || (float)$raw < 0) {
+        // Validación del servidor: no confiar en min/required de Angular.
+        // No aceptar importes que redondeen a $0, importes con fracciones de centavo
+        // ni importes fuera del rango DECIMAL(10,2) de caja_turnos.
+        if ($monto === null || !is_finite($monto) || $monto < 0.01 || $monto > 99999999.99
+            || abs($monto * 100 - round($monto * 100)) > 0.000001) {
             send_response([
                 'success' => false,
-                'message' => 'El fondo inicial debe ser valido y no negativo.'
+                'message' => 'El fondo inicial es obligatorio, debe ser mayor que $0 y tener hasta dos decimales.'
             ], 400);
         }
 
@@ -1390,10 +685,10 @@ if (strpos($route, '/caja/') === 0) {
             $stmt = $pdo->prepare("
                 INSERT INTO caja_turnos
                 (montoInicial, idUsu, estadoTurno)
-                VALUES (?, 1, 'Abierto')
+                VALUES (?, ?, 'Abierto')
             ");
 
-            $stmt->execute([round((float)$raw, 2)]);
+            $stmt->execute([round($monto, 2), $actor]);
 
             $id = (int)$pdo->lastInsertId();
 
@@ -1428,7 +723,8 @@ if (strpos($route, '/caja/') === 0) {
 
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $id = filter_var($input['idTurno'] ?? null, FILTER_VALIDATE_INT);
-        $raw = $input['montoFinal'] ?? null;
+        $arqueo = $input['arqueo'] ?? null;
+        $raw = $arqueo === null ? ($input['montoFinal'] ?? null) : Arqueo::total($arqueo);
 
         if (!$id || !is_numeric($raw) || !is_finite((float)$raw) || (float)$raw < 0) {
             send_response([
@@ -1493,6 +789,10 @@ if (strpos($route, '/caja/') === 0) {
                 AND estadoTurno = 'Abierto'
             ");
 
+            if ($arqueo !== null) {
+                $acceso->consultar('INSERT INTO arqueos_pos(idTurno,idUsu,billetes,otros,observaciones) VALUES(?,?,?,?,?)',
+                    [$id,$actor,json_encode($arqueo['billetes'],JSON_THROW_ON_ERROR),$arqueo['otros']??0,$arqueo['observaciones']??'']);
+            }
             $stmt->execute([$contado, $diferencia, $id]);
 
             if ($stmt->rowCount() !== 1) {
@@ -1695,10 +995,10 @@ if (strpos($route, '/caja/') === 0) {
             $stmt = $pdo->prepare("
                 INSERT INTO movimientos_caja
                 (idTurno, tipoMovimiento, concepto, monto, idUsu, requestKey)
-                VALUES (?, ?, ?, ?, 1, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
 
-            $stmt->execute([$id, $tipo, $concepto, $monto, $key]);
+            $stmt->execute([$id, $tipo, $concepto, $monto, $actor, $key]);
 
             $idMov = (int)$pdo->lastInsertId();
 
@@ -1770,7 +1070,7 @@ if (strpos($route, '/caja/') === 0) {
 // Handle CRUD for /comprobantes
 if (strpos($route, '/comprobantes') === 0) {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT c.idComp, c.tipoComp, c.numeroComp, c.fechaEmision, c.idVenta, c.totalComp, v.fechaVenta, u.nombreUsu as userName
+        $stmt = $pdo->query("SELECT c.idComp, c.tipoComp, c.numeroComp, c.fechaEmision, c.idVenta, c.totalComp, v.tipoVenta, v.fechaVenta, u.nombreUsu as userName
                              FROM comprobantes c
                              JOIN ventas v ON c.idVenta = v.idVenta
                              LEFT JOIN usuario u ON v.idUsu = u.idUsu
@@ -1789,7 +1089,7 @@ if (strpos($route, '/comprobantes') === 0) {
             $stmtDet->execute([$c['idVenta']]);
             $c['details'] = $stmtDet->fetchAll();
             foreach ($c['details'] as &$d) {
-                $d['quantity'] = (int)$d['quantity'];
+                $d['quantity'] = (float)$d['quantity'];
                 $d['price'] = (float)$d['price'];
                 $d['subtotal'] = (float)$d['subtotal'];
             }
@@ -1810,6 +1110,7 @@ if (strpos($route, '/comprobantes') === 0) {
             $pdo->beginTransaction();
             
             // Validate if comprobante already exists for this sale
+            $acceso->consultar('SELECT idVenta FROM ventas WHERE idVenta=? FOR UPDATE',[$idVenta]);
             $check = $pdo->prepare("SELECT idComp, numeroComp FROM comprobantes WHERE idVenta = ? LIMIT 1");
             $check->execute([$idVenta]);
             $existing = $check->fetch();
@@ -1836,13 +1137,14 @@ if (strpos($route, '/comprobantes') === 0) {
                 case 'Factura C': $prefix = 'C-0001-'; break;
                 default: $prefix = 'T-0001-'; break;
             }
-            $numComp = $prefix . str_pad($idVenta, 8, '0', STR_PAD_LEFT);
+            $numComp = $prefix . str_pad((string)$idVenta, 8, '0', STR_PAD_LEFT);
             
             $stmt = $pdo->prepare("INSERT INTO comprobantes (tipoComp, numeroComp, idVenta, totalComp) VALUES (?, ?, ?, ?)");
             $stmt->execute([$tipoComp, $numComp, $idVenta, $total]);
             
+            $idComp=(int)$pdo->lastInsertId();
             $pdo->commit();
-            send_response(["success" => true, "idComp" => (int)$pdo->lastInsertId(), "numeroComp" => $numComp]);
+            send_response(["success" => true, "idComp" => $idComp, "numeroComp" => $numComp]);
         } catch (Exception $e) {
             $pdo->rollBack();
             send_response(["success" => false, "message" => "Error al emitir comprobante: " . $e->getMessage()], 500);
@@ -1851,332 +1153,96 @@ if (strpos($route, '/comprobantes') === 0) {
 }
 
 // =============================================================
-// CRUD /clientes (Gestión de Clientes y Fidelización)
-// =============================================================
-if ($route === '/clientes') {
-    if ($method === 'GET') {
-        try {
-            $stmt = $pdo->query("
-                SELECT u.idUsu as id, u.nombreUsu as name, u.apellidoUsu as lastname,
-                       u.correoUsu as email, u.telefonoUsu as phone, u.estadoUsu as status,
-                       p.direccionFiscalPers as extra
-                FROM usuario u
-                LEFT JOIN persona p ON u.idUsu = p.idUsuarioPers
-                WHERE (u.rolUsu = 'Cliente' OR u.idUsu IN (SELECT ur.idUsu FROM usuario_rol ur WHERE ur.idRol = 3))
-                  AND u.estadoUsu = 'Activo'
-                ORDER BY u.idUsu ASC
-            ");
-            $clients = $stmt->fetchAll();
-            $result = [];
-            foreach ($clients as $c) {
-                $extraData = [];
-                if (!empty($c['extra'])) {
-                    $decoded = json_decode($c['extra'], true);
-                    if (is_array($decoded)) {
-                        $extraData = $decoded;
-                    }
-                }
-                $result[] = [
-                    'id' => (int)$c['id'],
-                    'name' => $c['name'],
-                    'lastname' => ($c['lastname'] && $c['lastname'] !== '-') ? $c['lastname'] : '',
-                    'email' => $c['email'],
-                    'phone' => $c['phone'] ?? '',
-                    'points' => isset($extraData['points']) ? (int)$extraData['points'] : 100,
-                    'isVIP' => !empty($extraData['isVIP']),
-                    'vipDiscount' => isset($extraData['vipDiscount']) ? (int)$extraData['vipDiscount'] : 0,
-                    'status' => $c['status']
-                ];
-            }
-            send_response($result);
-        } catch (Exception $e) {
-            send_response(["success" => false, "message" => "Error al consultar clientes: " . $e->getMessage()], 500);
-        }
-    }
-
-    if ($method === 'POST') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $id = isset($input['id']) ? (int)$input['id'] : 0;
-        $name = trim($input['name'] ?? '');
-        $lastname = trim($input['lastname'] ?? '');
-        $email = trim($input['email'] ?? '');
-        $phone = trim($input['phone'] ?? '');
-        $points = isset($input['points']) ? (int)$input['points'] : 0;
-        $isVIP = !empty($input['isVIP']);
-        $vipDiscount = isset($input['vipDiscount']) ? (int)$input['vipDiscount'] : 0;
-
-        if (empty($name) || empty($email)) {
-            send_response(["success" => false, "message" => "Nombre y correo son obligatorios"], 400);
-        }
-
-        $extra = json_encode([
-            'points' => $points,
-            'isVIP' => $isVIP,
-            'vipDiscount' => $vipDiscount
-        ]);
-
-        try {
-            $pdo->beginTransaction();
-
-            if ($id > 0) {
-                $stmt = $pdo->prepare("UPDATE usuario SET nombreUsu = ?, apellidoUsu = ?, correoUsu = ?, telefonoUsu = ?, estadoUsu = 'Activo' WHERE idUsu = ?");
-                $stmt->execute([$name, $lastname ?: '-', $email, $phone, $id]);
-
-                $checkP = $pdo->prepare("SELECT idPers FROM persona WHERE idUsuarioPers = ?");
-                $checkP->execute([$id]);
-                if ($checkP->fetch()) {
-                    $stmtP = $pdo->prepare("UPDATE persona SET direccionFiscalPers = ? WHERE idUsuarioPers = ?");
-                    $stmtP->execute([$extra, $id]);
-                } else {
-                    $stmtP = $pdo->prepare("INSERT INTO persona (idUsuarioPers, direccionFiscalPers) VALUES (?, ?)");
-                    $stmtP->execute([$id, $extra]);
-                }
-            } else {
-                $username = preg_replace('/[^a-zA-Z0-9_\.]/', '', explode('@', $email)[0]);
-                $base = $username;
-                $counter = 1;
-                do {
-                    $stmtCheck = $pdo->prepare("SELECT idUsu FROM usuario WHERE usuarioUsu = ?");
-                    $stmtCheck->execute([$username]);
-                    if ($stmtCheck->fetch()) {
-                        $username = $base . $counter++;
-                    } else {
-                        break;
-                    }
-                } while (true);
-
-                $hashedPassword = password_hash('Pujol2026!', PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, 'Activo', 'Cliente')");
-                $stmt->execute([$name, $lastname ?: '-', $email, $username, $hashedPassword, $phone]);
-                $id = (int)$pdo->lastInsertId();
-
-                $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, 3)")->execute([$id]);
-
-                $checkP = $pdo->prepare("SELECT idPers FROM persona WHERE idUsuarioPers = ?");
-                $checkP->execute([$id]);
-                if ($checkP->fetch()) {
-                    $stmtP = $pdo->prepare("UPDATE persona SET direccionFiscalPers = ? WHERE idUsuarioPers = ?");
-                    $stmtP->execute([$extra, $id]);
-                } else {
-                    $stmtP = $pdo->prepare("INSERT INTO persona (idUsuarioPers, direccionFiscalPers) VALUES (?, ?)");
-                    $stmtP->execute([$id, $extra]);
-                }
-            }
-
-            $pdo->commit();
-            send_response(["success" => true, "id" => $id]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            send_response(["success" => false, "message" => "Error al guardar el cliente: " . $e->getMessage()], 500);
-        }
-    }
-
-    if ($method === 'DELETE') {
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($id <= 0) {
-            send_response(["success" => false, "message" => "ID no proporcionado"], 400);
-        }
-
-        try {
-            $pdo->beginTransaction();
-            $stmt = $pdo->prepare("UPDATE usuario SET estadoUsu = 'Inactivo' WHERE idUsu = ?");
-            $stmt->execute([$id]);
-            $pdo->commit();
-
-            send_response(["success" => true]);
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            send_response(["success" => false, "message" => "Error al eliminar el cliente: " . $e->getMessage()], 500);
-        }
-    }
-}
-
-// =============================================================
-// AUTO-CREATE TABLES FOR ROLES / PERMISOS (run once per request)
-// =============================================================
-$pdo->exec("ALTER TABLE usuario MODIFY CUILUsu VARCHAR(20) NULL;");
-$pdo->exec("ALTER TABLE usuario MODIFY rolUsu ENUM('Administrador', 'Empleado', 'Cliente') NOT NULL DEFAULT 'Cliente';");
-$pdo->exec("
-CREATE TABLE IF NOT EXISTS `roles` (
-  `idRol`        INT NOT NULL AUTO_INCREMENT,
-  `nombreRol`    VARCHAR(100) NOT NULL,
-  `fechaCreaRol` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`idRol`),
-  UNIQUE KEY `uk_roles_nombre` (`nombreRol`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `dashboard_permisos` (
-  `idDashPer`         INT NOT NULL AUTO_INCREMENT,
-  `nombreDashPer`     VARCHAR(100) NOT NULL,
-  `fechaCreaDashPer`  DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`idDashPer`),
-  UNIQUE KEY `uk_dashboard_permisos_nombre` (`nombreDashPer`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `rol_permiso` (
-  `idRol`     INT NOT NULL,
-  `idDashPer` INT NOT NULL,
-  PRIMARY KEY (`idRol`, `idDashPer`),
-  FOREIGN KEY (`idRol`)     REFERENCES `roles`(`idRol`)   ON DELETE CASCADE,
-  FOREIGN KEY (`idDashPer`) REFERENCES `dashboard_permisos`(`idDashPer`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `usuario_rol` (
-  `idUsu` INT NOT NULL,
-  `idRol` INT NOT NULL,
-  PRIMARY KEY (`idUsu`, `idRol`),
-  FOREIGN KEY (`idUsu`) REFERENCES `usuario`(`idUsu`) ON DELETE CASCADE,
-  FOREIGN KEY (`idRol`) REFERENCES `roles`(`idRol`)   ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-");
-
-// Seed default permissions and roles if tables are empty
-$countPerms = $pdo->query("SELECT COUNT(*) FROM dashboard_permisos")->fetchColumn();
-if ((int)$countPerms === 0) {
-    $defaultPerms = [
-        'Acceder al Dashboard', 'Gestionar Stock', 'Gestionar Recetas',
-        'Gestionar Pedidos', 'Gestionar Ventas', 'Gestionar Clientes', 'Gestionar Roles', 'Ver Historial de Ventas'
-    ];
-    $stmtP = $pdo->prepare("INSERT IGNORE INTO dashboard_permisos (nombreDashPer) VALUES (?)");
-    foreach ($defaultPerms as $pname) {
-        $stmtP->execute([$pname]);
-    }
-}
-
-$countRoles = $pdo->query("SELECT COUNT(*) FROM roles")->fetchColumn();
-if ((int)$countRoles === 0) {
-    // Get permission ids
-    $permRows = $pdo->query("SELECT idDashPer, nombreDashPer FROM dashboard_permisos")->fetchAll();
-    $permByName = [];
-    foreach ($permRows as $pr) { $permByName[$pr['nombreDashPer']] = $pr['idDashPer']; }
-
-    $defaultRoles = [
-        'Administrador' => array_values($permByName),
-        'Empleado'      => array_filter(array_map(fn($n) => $permByName[$n] ?? null,
-                            ['Acceder al Dashboard','Gestionar Stock','Gestionar Pedidos','Gestionar Ventas','Gestionar Clientes','Ver Historial de Ventas'])),
-        'Cliente'       => array_filter(array_map(fn($n) => $permByName[$n] ?? null,
-                            ['Acceder al Dashboard','Gestionar Pedidos'])),
-    ];
-
-    $stmtR  = $pdo->prepare("INSERT IGNORE INTO roles (nombreRol) VALUES (?)");
-    $stmtRP = $pdo->prepare("INSERT IGNORE INTO rol_permiso (idRol, idDashPer) VALUES (?, ?)");
-    foreach ($defaultRoles as $rname => $permIds) {
-        $stmtR->execute([$rname]);
-        $rolId = $pdo->lastInsertId();
-        if ($rolId > 0) {
-            foreach ($permIds as $pid) {
-                $stmtRP->execute([$rolId, $pid]);
-            }
-        }
-    }
-}
-
-// Dynamic migration block: Check and insert 'Ver Historial de Ventas' if not exists, and assign to roles
-try {
-    $hasHistorial = $pdo->query("SELECT idDashPer FROM dashboard_permisos WHERE nombreDashPer = 'Ver Historial de Ventas'")->fetchColumn();
-    if (!$hasHistorial) {
-        $pdo->exec("INSERT INTO dashboard_permisos (nombreDashPer) VALUES ('Ver Historial de Ventas')");
-        $hasHistorial = $pdo->lastInsertId();
-    }
-    if ($hasHistorial) {
-        // Admin role (id 1)
-        $adminRoleExists = $pdo->query("SELECT COUNT(*) FROM roles WHERE idRol = 1")->fetchColumn();
-        if ($adminRoleExists) {
-            $hasRel = $pdo->query("SELECT COUNT(*) FROM rol_permiso WHERE idRol = 1 AND idDashPer = $hasHistorial")->fetchColumn();
-            if (!$hasRel) {
-                $pdo->exec("INSERT IGNORE INTO rol_permiso (idRol, idDashPer) VALUES (1, $hasHistorial)");
-            }
-        }
-    }
-    
-    // Dynamic migration block: Check and insert 'Modificar Mi Perfil' if not exists, and assign to admin
-    $hasPerfilPerm = $pdo->query("SELECT idDashPer FROM dashboard_permisos WHERE nombreDashPer = 'Modificar Mi Perfil'")->fetchColumn();
-    if (!$hasPerfilPerm) {
-        $pdo->exec("INSERT INTO dashboard_permisos (nombreDashPer) VALUES ('Modificar Mi Perfil')");
-        $hasPerfilPerm = $pdo->lastInsertId();
-    }
-    if ($hasPerfilPerm) {
-        $adminRoleExists = $pdo->query("SELECT COUNT(*) FROM roles WHERE idRol = 1")->fetchColumn();
-        if ($adminRoleExists) {
-            $hasRel = $pdo->query("SELECT COUNT(*) FROM rol_permiso WHERE idRol = 1 AND idDashPer = $hasPerfilPerm")->fetchColumn();
-            if (!$hasRel) {
-                $pdo->exec("INSERT IGNORE INTO rol_permiso (idRol, idDashPer) VALUES (1, $hasPerfilPerm)");
-            }
-        }
-    }
-
-    if ($hasHistorial) {
-        // Empleado role (id 2)
-        $empleadoRoleExists = $pdo->query("SELECT COUNT(*) FROM roles WHERE idRol = 2")->fetchColumn();
-        if ($empleadoRoleExists) {
-            $hasRel = $pdo->query("SELECT COUNT(*) FROM rol_permiso WHERE idRol = 2 AND idDashPer = $hasHistorial")->fetchColumn();
-            if (!$hasRel) {
-                $pdo->exec("INSERT IGNORE INTO rol_permiso (idRol, idDashPer) VALUES (2, $hasHistorial)");
-            }
-        }
-    }
-} catch (Exception $e) {
-    // Suppress DB errors here during request lifecycle
-}
-
-// =============================================================
-// CRUD /permisos
-// =============================================================
 if ($route === '/permisos') {
+    $permisosFijos=[
+       'Acceder al Dashboard','Gestionar Stock','Gestionar Ventas','Gestionar Roles',
+       'Ver Historial de Ventas','Modificar Mi Perfil','Caja presencial',
+       'Comprobantes presenciales','Catálogo de productos','Clasificación de productos',
+       'Cobros QR','Ajustar cantidad de stock','Ver movimientos de stock',
+       'Registrar entradas de stock','Registrar salidas de stock','Ver historial de caja'
+    ];
     if ($method === 'GET') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
         if ($id > 0) {
-            $stmt = $pdo->prepare("SELECT p.idDashPer as id, p.nombreDashPer as name, p.fechaCreaDashPer as created_at,
-                JSON_ARRAYAGG(JSON_OBJECT('id', r.idRol, 'name', r.nombreRol)) as roles_json
-                FROM dashboard_permisos p
-                LEFT JOIN rol_permiso rp ON rp.idDashPer = p.idDashPer
-                LEFT JOIN roles r ON r.idRol = rp.idRol
-                WHERE p.idDashPer = ?
-                GROUP BY p.idDashPer");
+            $stmt = $pdo->prepare("SELECT idDashPer AS id, nombreDashPer AS name,
+                fechaCreaDashPer AS created_at FROM dashboard_permisos WHERE idDashPer = ?");
             $stmt->execute([$id]);
-            $row = $stmt->fetch();
-            if (!$row) send_response(['success' => false, 'message' => 'Permiso no encontrado'], 404);
-            $row['id'] = (int)$row['id'];
-            $rolesArr = json_decode($row['roles_json'] ?? '[]', true);
-            $row['roles'] = array_values(array_filter($rolesArr, fn($r) => $r['id'] !== null));
-            unset($row['roles_json']);
-            send_response($row);
+            $fila = $stmt->fetch();
+            if (!$fila) send_response(['success'=>false, 'message'=>'Permiso no encontrado'], 404);
+            $fila['id'] = (int)$fila['id'];
+            $stmtRoles = $pdo->prepare("SELECT r.idRol AS id, r.nombreRol AS name
+                FROM rol_permiso rp JOIN roles r ON r.idRol = rp.idRol AND r.idRol<>3 AND r.nombreRol<>'Cliente'
+                WHERE rp.idDashPer = ? ORDER BY r.nombreRol");
+            $stmtRoles->execute([$id]);
+            $fila['roles'] = array_map(static fn($r) => [
+                'id'=>(int)$r['id'], 'name'=>$r['name']
+            ], $stmtRoles->fetchAll());
+            send_response($fila);
         }
 
-        // Paged list with search
-        $search      = '%' . ($_GET['search']['value'] ?? $_GET['search'] ?? '') . '%';
-        $start       = (int)($_GET['start'] ?? 0);
-        $length      = (int)($_GET['length'] ?? 10);
-        $draw        = (int)($_GET['draw'] ?? 1);
+        // Parámetros controlados y LIMIT numérico nativo. Evita SQL con JSON agregado
+        // por cada permiso y mantiene la respuesta compatible con DataTables.
+        $busqueda = $_GET['search'] ?? '';
+        if (is_array($busqueda)) $busqueda = $busqueda['value'] ?? '';
+        if (!is_string($busqueda)) $busqueda = '';
+        $busqueda = trim($busqueda);
+        $patron = '%' . $busqueda . '%';
+        $inicio = max(0, (int)($_GET['start'] ?? 0));
+        $cantidad = min(1000, max(1, (int)($_GET['length'] ?? 10)));
+        $draw = max(0, (int)($_GET['draw'] ?? 1));
+        $total = (int)$pdo->query('SELECT COUNT(*) FROM dashboard_permisos')->fetchColumn();
 
-        $total = (int)$pdo->query("SELECT COUNT(*) FROM dashboard_permisos")->fetchColumn();
+        $where = '';
+        if ($busqueda !== '') $where = ' WHERE nombreDashPer LIKE :busqueda';
+        $query = "SELECT idDashPer AS id, nombreDashPer AS name,
+                  fechaCreaDashPer AS created_at FROM dashboard_permisos"
+                 . $where . " ORDER BY idDashPer ASC LIMIT :inicio, :cantidad";
+        $stmt = $pdo->prepare($query);
+        if ($busqueda !== '') $stmt->bindValue(':busqueda', $patron, PDO::PARAM_STR);
+        $stmt->bindValue(':inicio', $inicio, PDO::PARAM_INT);
+        $stmt->bindValue(':cantidad', $cantidad, PDO::PARAM_INT);
+        $stmt->execute();
+        $filas = $stmt->fetchAll();
 
-        $stmtF = $pdo->prepare("SELECT COUNT(*) FROM dashboard_permisos WHERE nombreDashPer LIKE ?");
-        $stmtF->execute([$search]);
-        $filtered = (int)$stmtF->fetchColumn();
-
-        $stmt = $pdo->prepare(
-            "SELECT p.idDashPer as id, p.nombreDashPer as name, p.fechaCreaDashPer as created_at,
-                COALESCE((SELECT JSON_ARRAYAGG(JSON_OBJECT('id', r.idRol, 'name', r.nombreRol))
-                          FROM rol_permiso rp2
-                          JOIN roles r ON r.idRol = rp2.idRol
-                          WHERE rp2.idDashPer = p.idDashPer), '[]') AS roles_json
-             FROM dashboard_permisos p
-             WHERE p.nombreDashPer LIKE ?
-             ORDER BY p.idDashPer ASC
-             LIMIT ?, ?"
-        );
-        $stmt->execute([$search, $start, $length]);
-        $rows = $stmt->fetchAll();
-        foreach ($rows as &$row) {
-            $row['id'] = (int)$row['id'];
-            $row['roles'] = json_decode($row['roles_json'] ?? '[]', true);
-            unset($row['roles_json']);
+        if ($busqueda !== '') {
+            $stmtConteo = $pdo->prepare('SELECT COUNT(*) FROM dashboard_permisos WHERE nombreDashPer LIKE ?');
+            $stmtConteo->execute([$patron]);
+            $filtrados = (int)$stmtConteo->fetchColumn();
+        } else {
+            $filtrados = $total;
         }
-        send_response(['draw' => $draw, 'recordsTotal' => $total, 'recordsFiltered' => $filtered, 'data' => $rows]);
+
+        // Obtener los roles de toda la página en una sola consulta.
+        $rolesPorPermiso = [];
+        if ($filas) {
+            $ids = array_map(static fn($fila) => (int)$fila['id'], $filas);
+            $marcadores = implode(',', array_fill(0, count($ids), '?'));
+            $stmtRoles = $pdo->prepare(
+                "SELECT rp.idDashPer AS idPermiso, r.idRol AS id, r.nombreRol AS name
+                 FROM rol_permiso rp JOIN roles r ON r.idRol = rp.idRol AND r.idRol<>3 AND r.nombreRol<>'Cliente'
+                 WHERE rp.idDashPer IN ($marcadores)
+                 ORDER BY rp.idDashPer, r.nombreRol"
+            );
+            foreach ($ids as $indice => $permisoId) {
+                $stmtRoles->bindValue($indice + 1, $permisoId, PDO::PARAM_INT);
+            }
+            $stmtRoles->execute();
+            foreach ($stmtRoles->fetchAll() as $rol) {
+                $rolesPorPermiso[(int)$rol['idPermiso']][] = [
+                    'id'=>(int)$rol['id'], 'name'=>$rol['name']
+                ];
+            }
+        }
+        foreach ($filas as &$fila) {
+            $fila['id'] = (int)$fila['id'];
+            $fila['roles'] = $rolesPorPermiso[$fila['id']] ?? [];
+        }
+        unset($fila);
+        send_response([
+            'draw'=>$draw, 'recordsTotal'=>$total,
+            'recordsFiltered'=>$filtrados, 'data'=>$filas
+        ]);
     }
 
     if ($method === 'POST') {
@@ -2184,6 +1250,15 @@ if ($route === '/permisos') {
         $id   = isset($input['id']) ? (int)$input['id'] : 0;
         $name = trim($input['name'] ?? '');
         if (empty($name)) send_response(['success' => false, 'message' => 'El nombre es obligatorio'], 400);
+        // Los nombres de los permisos básicos están referenciados en PHP y Angular.
+        // Su cambio o eliminación haría fallar el control de accesos.
+        if ($id>0) {
+            $original=$acceso->consultar('SELECT nombreDashPer FROM dashboard_permisos WHERE idDashPer=?',[$id])->fetchColumn();
+            if (in_array($original,$permisosFijos,true))
+                send_response(['message'=>'Este permiso es parte del sistema y no se puede renombrar. Configure qué perfil lo utiliza.'],403);
+        }
+        if (in_array($name,$permisosFijos,true))
+            send_response(['message'=>'Los permisos internos no se deben crear manualmente ni renombrar.'],403);
 
         try {
             if ($id > 0) {
@@ -2206,6 +1281,9 @@ if ($route === '/permisos') {
     if ($method === 'DELETE') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id <= 0) send_response(['success' => false, 'message' => 'ID no proporcionado'], 400);
+        $nombre=$acceso->consultar('SELECT nombreDashPer FROM dashboard_permisos WHERE idDashPer=?',[$id])->fetchColumn();
+        if (in_array($nombre,$permisosFijos,true))
+            send_response(['message'=>'Este permiso forma parte del sistema. Puede retirarlo de los perfiles, pero no eliminarlo.'],403);
         try {
             $pdo->prepare("DELETE FROM dashboard_permisos WHERE idDashPer = ?")->execute([$id]);
             send_response(['success' => true]);
@@ -2227,7 +1305,8 @@ if ($route === '/roles') {
             $stmt = $pdo->prepare("SELECT idRol as id, nombreRol as name, fechaCreaRol as created_at FROM roles WHERE idRol = ?");
             $stmt->execute([$id]);
             $role = $stmt->fetch();
-            if (!$role) send_response(['success' => false, 'message' => 'Rol no encontrado'], 404);
+            if (!$role || $id === 3 || strcasecmp((string)$role['name'], 'Cliente')===0)
+                send_response(['success' => false, 'message' => 'Perfil no disponible para empleados.'], 404);
             $role['id'] = (int)$role['id'];
 
             $stmtP = $pdo->prepare("SELECT p.idDashPer as id, p.nombreDashPer as name, rp.puede_ver, rp.puede_crear, rp.puede_modificar, rp.puede_eliminar FROM rol_permiso rp JOIN dashboard_permisos p ON p.idDashPer = rp.idDashPer WHERE rp.idRol = ?");
@@ -2241,20 +1320,36 @@ if ($route === '/roles') {
             send_response($role);
         }
 
-        // List all roles with permissions and user counts
-        $stmt = $pdo->query("SELECT r.idRol as id, r.nombreRol as name, r.fechaCreaRol as created_at FROM roles r ORDER BY r.idRol ASC");
-        $roles = $stmt->fetchAll();
-        foreach ($roles as &$role) {
-            $role['id'] = (int)$role['id'];
-
-            $stmtP = $pdo->prepare("SELECT p.idDashPer as id, p.nombreDashPer as name, rp.puede_ver, rp.puede_crear, rp.puede_modificar, rp.puede_eliminar FROM rol_permiso rp JOIN dashboard_permisos p ON p.idDashPer = rp.idDashPer WHERE rp.idRol = ?");
-            $stmtP->execute([$role['id']]);
-            $role['permissions'] = array_map(fn($p) => ['id' => (int)$p['id'], 'name' => $p['name'], 'can_read' => (bool)$p['puede_ver'], 'can_create' => (bool)$p['puede_crear'], 'can_update' => (bool)$p['puede_modificar'], 'can_delete' => (bool)$p['puede_eliminar']], $stmtP->fetchAll());
-
-            $stmtU = $pdo->prepare("SELECT u.idUsu as id, CONCAT(u.nombreUsu, IF(u.apellidoUsu != '' AND u.apellidoUsu != '-', CONCAT(' ', u.apellidoUsu), '')) as name, u.correoUsu as email FROM usuario_rol ur JOIN usuario u ON u.idUsu = ur.idUsu WHERE ur.idRol = ?");
-            $stmtU->execute([$role['id']]);
-            $role['users'] = array_map(fn($u) => ['id' => (int)$u['id'], 'name' => $u['name'], 'email' => $u['email']], $stmtU->fetchAll());
+        // Listado de roles: dos consultas relacionadas en vez de 2 consultas por rol.
+        $roles=$pdo->query("SELECT idRol AS id,nombreRol AS name,fechaCreaRol AS created_at FROM roles WHERE idRol<>3 AND nombreRol<>'Cliente' ORDER BY idRol")->fetchAll();
+        $porRol=[];
+        foreach ($pdo->query("SELECT rp.idRol,p.idDashPer AS id,p.nombreDashPer AS name,
+                rp.puede_ver,rp.puede_crear,rp.puede_modificar,rp.puede_eliminar
+                FROM rol_permiso rp JOIN dashboard_permisos p ON p.idDashPer=rp.idDashPer
+                ORDER BY rp.idRol,p.idDashPer")->fetchAll() as $permiso) {
+            $porRol[(int)$permiso['idRol']][]=[
+                'id'=>(int)$permiso['id'],'name'=>$permiso['name'],
+                'can_read'=>(bool)$permiso['puede_ver'],
+                'can_create'=>(bool)$permiso['puede_crear'],
+                'can_update'=>(bool)$permiso['puede_modificar'],
+                'can_delete'=>(bool)$permiso['puede_eliminar']
+            ];
         }
+        $usuariosPorRol=[];
+        foreach ($pdo->query("SELECT ur.idRol,u.idUsu AS id,
+                CONCAT(u.nombreUsu,IF(u.apellidoUsu!='' AND u.apellidoUsu!='-',CONCAT(' ',u.apellidoUsu),'')) AS name,
+                u.correoUsu AS email
+                FROM usuario_rol ur JOIN usuario u ON u.idUsu=ur.idUsu ORDER BY ur.idRol,u.idUsu")->fetchAll() as $usuarioRol) {
+            $usuariosPorRol[(int)$usuarioRol['idRol']][]=[
+                'id'=>(int)$usuarioRol['id'],'name'=>$usuarioRol['name'],'email'=>$usuarioRol['email']
+            ];
+        }
+        foreach ($roles as &$rol) {
+            $rol['id']=(int)$rol['id'];
+            $rol['permissions']=$porRol[$rol['id']]??[];
+            $rol['users']=$usuariosPorRol[$rol['id']]??[];
+        }
+        unset($rol);
         send_response(['recordsTotal' => count($roles), 'recordsFiltered' => count($roles), 'data' => $roles]);
     }
 
@@ -2265,6 +1360,10 @@ if ($route === '/roles') {
         $permissions = $input['permissions'] ?? [];
 
         if (empty($name)) send_response(['success' => false, 'message' => 'El nombre es obligatorio'], 400);
+        if ($id===1 || strcasecmp($name,'Administrador')===0)
+            send_response(['success'=>false,'message'=>'El perfil Administrador tiene acceso total por diseño y no se puede modificar desde esta matriz.'],403);
+        if ($id===3 || strcasecmp($name,'Cliente')===0)
+            send_response(['success'=>false,'message'=>'El perfil Cliente es histórico y no se puede gestionar desde personal.'],403);
 
         try {
             $pdo->beginTransaction();
@@ -2278,7 +1377,7 @@ if ($route === '/roles') {
             }
             // Sync permissions
             $pdo->prepare("DELETE FROM rol_permiso WHERE idRol = ?")->execute([$id]);
-            $stmtRP = $pdo->prepare("INSERT IGNORE INTO rol_permiso (idRol, idDashPer, puede_ver, puede_crear, puede_modificar, puede_eliminar) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtRP = $pdo->prepare("INSERT INTO rol_permiso (idRol, idDashPer, puede_ver, puede_crear, puede_modificar, puede_eliminar) VALUES (?, ?, ?, ?, ?, ?)");
             foreach ($permissions as $p) {
                 $pid = (int)($p['id'] ?? 0);
                 if ($pid > 0) {
@@ -2288,7 +1387,7 @@ if ($route === '/roles') {
                     $canDelete = !empty($p['can_delete']) ? 1 : 0;
                     // Always fallback to true if passing old permissionIds format (backward compatibility)
                     if (isset($p['can_read']) === false) {
-                        $canRead = $canCreate = $canUpdate = $canDelete = 1;
+                        $canRead = 1; $canCreate = $canUpdate = $canDelete = 0;
                     }
                     $stmtRP->execute([$id, $pid, $canRead, $canCreate, $canUpdate, $canDelete]);
                 }
@@ -2298,7 +1397,7 @@ if ($route === '/roles') {
                 foreach ($input['permissionIds'] as $pid) {
                     $pid = (int)$pid;
                     if ($pid > 0) {
-                        $stmtRP->execute([$id, $pid, 1, 1, 1, 1]);
+                        $stmtRP->execute([$id, $pid, 1, 0, 0, 0]);
                     }
                 }
             }
@@ -2314,6 +1413,7 @@ if ($route === '/roles') {
     if ($method === 'DELETE') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id <= 0) send_response(['success' => false, 'message' => 'ID no proporcionado'], 400);
+        if ($id===3 || $id===1) send_response(['message'=>'Este perfil está protegido.'],403);
         // Check if role has users
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM usuario_rol WHERE idRol = ?");
         $stmt->execute([$id]);
@@ -2337,7 +1437,7 @@ if ($route === '/usuarios') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
         if ($id > 0) {
-            $stmt = $pdo->prepare("SELECT idUsu as id, CONCAT(nombreUsu, IF(apellidoUsu != '' AND apellidoUsu != '-', CONCAT(' ', apellidoUsu), '')) as name, correoUsu as email, estadoUsu as status, rolUsu as role_str, telefonoUsu as phone, usuarioUsu as username, fechaNacUsu as dob, direccionUsu as address FROM usuario WHERE idUsu = ?");
+            $stmt = $pdo->prepare("SELECT idUsu as id, CONCAT(nombreUsu, IF(apellidoUsu != '' AND apellidoUsu != '-', CONCAT(' ', apellidoUsu), '')) as name, correoUsu as email, estadoUsu as status, rolUsu as role_str, telefonoUsu as phone, usuarioUsu as username, fechaNacUsu as dob, direccionUsu as address FROM usuario WHERE idUsu = ? AND rolUsu <> 'Cliente'");
             $stmt->execute([$id]);
             $user = $stmt->fetch();
             if (!$user) send_response(['success' => false, 'message' => 'Usuario no encontrado'], 404);
@@ -2357,7 +1457,7 @@ if ($route === '/usuarios') {
         $draw    = (int)($_GET['draw'] ?? 1);
         $roleFilter = $_GET['roleFilter'] ?? '';
 
-        $total = (int)$pdo->query("SELECT COUNT(*) FROM usuario")->fetchColumn();
+        $total = (int)$pdo->query("SELECT COUNT(*) FROM usuario WHERE rolUsu <> 'Cliente'")->fetchColumn();
 
         $roleCondition = '';
         $roleParams = [];
@@ -2366,7 +1466,7 @@ if ($route === '/usuarios') {
             $roleParams[] = $roleFilter;
         }
 
-        $stmtF = $pdo->prepare("SELECT COUNT(*) FROM usuario WHERE (nombreUsu LIKE ? OR correoUsu LIKE ? OR apellidoUsu LIKE ?)" . $roleCondition);
+        $stmtF = $pdo->prepare("SELECT COUNT(*) FROM usuario WHERE rolUsu <> 'Cliente' AND (nombreUsu LIKE ? OR correoUsu LIKE ? OR apellidoUsu LIKE ?)" . $roleCondition);
         $stmtF->execute(array_merge([$search, $search, $search], $roleParams));
         $filtered = (int)$stmtF->fetchColumn();
 
@@ -2380,21 +1480,35 @@ if ($route === '/usuarios') {
                 fechaNacUsu as dob,
                 direccionUsu as address
              FROM usuario
-             WHERE (nombreUsu LIKE ? OR correoUsu LIKE ? OR apellidoUsu LIKE ?)" . $roleCondition . "
+             WHERE rolUsu <> 'Cliente' AND (nombreUsu LIKE ? OR correoUsu LIKE ? OR apellidoUsu LIKE ?)" . $roleCondition . "
              ORDER BY FIELD(estadoUsu, 'Activo', 'Inactivo'), idUsu ASC
              LIMIT ?, ?"
         );
         $stmt->execute(array_merge([$search, $search, $search], $roleParams, [$start, $length]));
         $users = $stmt->fetchAll();
 
-        foreach ($users as &$user) {
-            $user['id'] = (int)$user['id'];
-            $stmtR = $pdo->prepare("SELECT r.idRol as id, r.nombreRol as name FROM usuario_rol ur JOIN roles r ON r.idRol = ur.idRol WHERE ur.idUsu = ?");
-            $stmtR->execute([$user['id']]);
-            $user['roles'] = array_map(fn($r) => ['id' => (int)$r['id'], 'name' => $r['name'], 'permissions' => [], 'users' => []], $stmtR->fetchAll());
-            $user['last_login_at'] = null;
-            $user['created_at']    = date('c');
+        // Roles de la página consultados en un lote para evitar N consultas por N empleados.
+        $rolesPorUsuario=[];
+        if ($users) {
+            $ids=array_map(static fn($u)=>(int)$u['id'],$users);
+            $signos=implode(',',array_fill(0,count($ids),'?'));
+            $stmtR=$pdo->prepare("SELECT ur.idUsu,r.idRol AS id,r.nombreRol AS name
+                FROM usuario_rol ur JOIN roles r ON r.idRol=ur.idRol
+                WHERE ur.idUsu IN ($signos) ORDER BY ur.idUsu,r.idRol");
+            $stmtR->execute($ids);
+            foreach ($stmtR->fetchAll() as $fila) {
+                $rolesPorUsuario[(int)$fila['idUsu']][]=[
+                    'id'=>(int)$fila['id'],'name'=>$fila['name'],'permissions'=>[],'users'=>[]
+                ];
+            }
         }
+        foreach ($users as &$user) {
+            $user['id']=(int)$user['id'];
+            $user['roles']=$rolesPorUsuario[$user['id']]??[];
+            $user['last_login_at']=null;
+            $user['created_at']=null;
+        }
+        unset($user);
         send_response(['draw' => $draw, 'recordsTotal' => $total, 'recordsFiltered' => $filtered, 'data' => $users]);
     }
 
@@ -2410,14 +1524,23 @@ if ($route === '/usuarios') {
             $lastname = $parts[1] ?? '-';
         }
         $email   = trim($input['email'] ?? '');
-        $password= trim($input['password'] ?? '');
+        $password= ($input['password'] ?? '');
+        if ($password!=='' && strlen($password)<12) throw new DomainException('Utilice 12 caracteres como mínimo.');
         $phone   = trim($input['phone'] ?? '');
         $username= trim($input['username'] ?? '');
         $dob     = trim($input['dob'] ?? '');
         $address = isset($input['address']) && is_array($input['address']) ? json_encode($input['address']) : null;
         $status  = trim($input['status'] ?? 'Activo');
-        $roleIds = array_map('intval', $input['roleIds'] ?? array_map(fn($r) => $r['id'] ?? 0, $input['roles'] ?? []));
+        $roleIds = array_values(array_unique(array_map('intval', $input['roleIds'] ?? array_map(fn($r) => $r['id'] ?? 0, $input['roles'] ?? []))));
 
+        if ($id===$actor && ($status!=='Activo' || !in_array(1,$roleIds,true))) throw new DomainException('Conserve un perfil administrador activo para su propia cuenta.');
+        if (!in_array($status,['Activo','Inactivo'],true)) throw new DomainException('Estado de empleado inválido.');
+        if ($id>0 && $acceso->consultar("SELECT 1 FROM usuario WHERE idUsu=? AND rolUsu='Cliente'",[$id])->fetchColumn())
+            throw new DomainException('La cuenta histórica de Cliente no es un empleado.');
+        if (count($roleIds)!==1 || in_array(3,$roleIds,true) || !filter_var($email,FILTER_VALIDATE_EMAIL))
+            throw new DomainException('Seleccione exactamente un perfil de personal y un correo válido.');
+        if (!$acceso->consultar("SELECT 1 FROM roles WHERE idRol=? AND idRol<>3 AND nombreRol<>'Cliente'",[$roleIds[0]])->fetchColumn())
+            throw new DomainException('El perfil seleccionado no existe o no está habilitado para empleados.');
         if (empty($name) || empty($email)) {
             send_response(['success' => false, 'message' => 'Nombre y email son obligatorios'], 400);
         }
@@ -2432,7 +1555,7 @@ if ($route === '/usuarios') {
 
                 if (!empty($password)) {
                     $updateQuery .= ", contrasenaUsu = ?";
-                    $params[] = password_hash($password, PASSWORD_DEFAULT);
+                    $params[] = Claves::generar($password);
                 }
 
                 $updateQuery .= " WHERE idUsu = ?";
@@ -2442,11 +1565,11 @@ if ($route === '/usuarios') {
                 $stmt->execute($params);
             } else {
                 // CREATE new user
-                if (empty($password)) $password = 'Pujol2026!';
-                $hashedPw = password_hash($password, PASSWORD_DEFAULT);
+                if (strlen($password)<12) throw new DomainException('La contraseña requiere 12 caracteres.');
+                $hashedPw = Claves::generar($password);
 
                 // Generate unique username from email
-                $username = preg_replace('/[^a-zA-Z0-9_.]/', '', explode('@', $email)[0]);
+                $username = $username ?: preg_replace('/[^a-zA-Z0-9_.]/', '', explode('@', $email)[0]);
                 $base = $username; $c = 1;
                 do {
                     $stmtUsr = $pdo->prepare("SELECT idUsu FROM usuario WHERE usuarioUsu = ?");
@@ -2454,21 +1577,14 @@ if ($route === '/usuarios') {
                     if ($stmtUsr->fetch()) { $username = $base . $c++; } else break;
                 } while (true);
 
-                // Generate unique CUIL placeholder only for Admin (1) or Empleado (2)
-                $isAdminOrEmployee = false;
-                foreach ($roleIds as $rid) {
-                    if ($rid === 1 || $rid === 2) {
-                        $isAdminOrEmployee = true;
-                        break;
-                    }
-                }
-                $cuil = $isAdminOrEmployee ? ('20' . str_pad(mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT) . '9') : null;
-
-                $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu) VALUES (?, ?, ?, ?, ?, ?, '', 'Activo', 'Cliente')");
-                $stmt->execute([$firstname, $lastname, $email, $username, $hashedPw, $cuil]);
+                $cuil = null;
+                $stmt = $pdo->prepare("INSERT INTO usuario (nombreUsu, apellidoUsu, correoUsu, usuarioUsu, contrasenaUsu, CUILUsu, telefonoUsu, estadoUsu, rolUsu,fechaNacUsu,direccionUsu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Empleado',?,?)");
+                $stmt->execute([$firstname, $lastname, $email, $username, $hashedPw, $cuil,$phone,$status,$dob ?: null,$address]);
                 $id = (int)$pdo->lastInsertId();
             }
 
+            $pdo->prepare('DELETE FROM sesiones_pos WHERE idUsu=?')->execute([$id]);
+            if ($password!=='') $pdo->prepare('UPDATE usuario SET requiereCambioClave=1 WHERE idUsu=?')->execute([$id]);
             // Sync roles in usuario_rol
             $pdo->prepare("DELETE FROM usuario_rol WHERE idUsu = ?")->execute([$id]);
             $stmtUR = $pdo->prepare("INSERT IGNORE INTO usuario_rol (idUsu, idRol) VALUES (?, ?)");
@@ -2485,7 +1601,7 @@ if ($route === '/usuarios') {
             }
             // Also update rolUsu column for display
             if ($firstRoleName) {
-                $pdo->prepare("UPDATE usuario SET rolUsu = ? WHERE idUsu = ?")->execute([$firstRoleName, $id]);
+                $pdo->prepare("UPDATE usuario SET rolUsu = ? WHERE idUsu = ?")->execute([in_array(1,$roleIds,true)?'Administrador':'Empleado', $id]);
             }
 
             $pdo->commit();
@@ -2503,7 +1619,13 @@ if ($route === '/usuarios') {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id <= 0) send_response(['success' => false, 'message' => 'ID no proporcionado'], 400);
         try {
+            if ($id===$actor) throw new DomainException('No puede desactivar su propia sesión administrativa.');
+            if ($acceso->consultar("SELECT 1 FROM usuario WHERE idUsu=? AND rolUsu='Cliente'",[$id])->fetchColumn())
+                throw new DomainException('La cuenta histórica de Cliente no se gestiona como empleado.');
+            $pdo->beginTransaction();
             $pdo->prepare("UPDATE usuario SET estadoUsu = 'Inactivo' WHERE idUsu = ?")->execute([$id]);
+            $pdo->prepare('DELETE FROM sesiones_pos WHERE idUsu=?')->execute([$id]);
+            $pdo->commit();
             send_response(['success' => true]);
         } catch (Exception $e) {
             send_response(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()], 500);

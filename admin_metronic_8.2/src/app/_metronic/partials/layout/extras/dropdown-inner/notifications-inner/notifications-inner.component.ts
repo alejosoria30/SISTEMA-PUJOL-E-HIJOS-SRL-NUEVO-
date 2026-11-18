@@ -52,7 +52,7 @@ export class NotificationsInnerComponent implements OnInit {
     }
 
     // Check receipts
-    const receipts = this.stateService.receipts$.value;
+    const receipts = this.stateService.receipts$.value.filter(venta => !venta.esPrueba);
     if (receipts.length > 0) {
       const last = receipts[receipts.length - 1];
       this.alerts.push({
@@ -78,7 +78,7 @@ export class NotificationsInnerComponent implements OnInit {
 
   generateLogs() {
     this.logs = [];
-    const receipts = this.stateService.receipts$.value;
+    const receipts = this.stateService.receipts$.value.filter(venta => !venta.esPrueba);
     const last3 = [...receipts].reverse().slice(0, 5);
     
     last3.forEach(r => {

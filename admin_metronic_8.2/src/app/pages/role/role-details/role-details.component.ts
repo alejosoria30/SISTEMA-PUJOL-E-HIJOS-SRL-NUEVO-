@@ -1,3 +1,4 @@
+import { textoTabla } from 'src/app/texto-tabla';
 import { Component, EventEmitter, OnInit, TemplateRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -26,6 +27,7 @@ export class RoleDetailsComponent implements OnInit {
   // Modal setup
   roleModel: IRoleModel = { id: 0, name: '', permissions: [], users: [] };
   isLoading = false;
+  mensajeError = '';
 
   @ViewChild('formModal')
   formModal: TemplateRef<any>;
@@ -63,14 +65,14 @@ export class RoleDetailsComponent implements OnInit {
               const initials = data[0].toUpperCase();
               const symbolLabel = `
               <div class="symbol-label fs-3 bg-light-${randomColorClass} text-${randomColorClass}">
-                ${initials}
+                ${textoTabla(initials)}
               </div>
             `;
 
               const nameAndEmail = `
               <div class="d-flex flex-column" data-action="view" data-id="${full.id}">
-                <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${data}</a>
-                <span>${full.email}</span>
+                <a href="javascript:;" class="text-gray-800 text-hover-primary mb-1">${textoTabla(data)}</a>
+                <span>${textoTabla(full.email)}</span>
               </div>
             `;
 
@@ -176,7 +178,9 @@ export class RoleDetailsComponent implements OnInit {
       return;
     }
 
+    if (this.isLoading) return;
     this.isLoading = true;
+    this.mensajeError = '';
     this.apiService.updateRole(this.roleId, this.roleModel).subscribe({
       next: () => {
         this.isLoading = false;
@@ -186,7 +190,9 @@ export class RoleDetailsComponent implements OnInit {
       },
       error: (error) => {
         console.error(error);
+        this.mensajeError = error?.error?.message || 'No se pudieron guardar los permisos del rol. Verificá la conexión con la API.';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

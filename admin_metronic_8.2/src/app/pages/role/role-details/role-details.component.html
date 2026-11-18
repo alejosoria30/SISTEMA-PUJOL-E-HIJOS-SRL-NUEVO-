@@ -36,7 +36,7 @@
             <!--end::Card body-->
             <!--begin::Card footer-->
             <div class="card-footer pt-0">
-                <button type="button" class="btn btn-light btn-active-primary" (click)="openEditModal()">Edit Role</button>
+                <button type="button" class="btn btn-light btn-active-primary" (click)="openEditModal()">Editar perfil y permisos</button>
             </div>
             <!--end::Card footer-->
         </div>
@@ -94,7 +94,7 @@
             <!--begin::Input group-->
             <div class="fv-row mb-7">
               <!--begin::Label-->
-              <label class="required fw-semibold fs-6 mb-2">Nombre del Rol</label>
+              <label class="required fw-semibold fs-6 mb-2">Nombre del perfil</label>
               <!--end::Label-->
               <!--begin::Input-->
               <input type="text" class="form-control form-control-solid" name="name" [(ngModel)]="roleModel.name" #name="ngModel" required minlength="4" />
@@ -108,21 +108,21 @@
 
             <!--begin::Permissions group-->
             <div class="mb-7">
-              <label class="required fw-semibold fs-6 mb-5">Permisos</label>
+              <label class="required fw-semibold fs-6 mb-5">Permisos del perfil</label>
               <div class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5">
                   <tbody class="text-gray-800 fw-bold">
                     <tr *ngFor="let perm of permissions">
-                      <td class="text-dark fs-5">{{ perm.name }}</td>
+                      <td class="text-dark fs-5">{{ perm.name }} <small *ngIf="perm.name === 'Ajustar cantidad de stock'" class="text-muted d-block">Permitir con «Modificar»</small></td>
                       <td>
                         <div class="d-flex">
                           <!-- Ver -->
-                          <label class="form-check form-check-custom me-5 me-lg-20">
+                          <label class="form-check form-check-custom me-5 me-lg-20" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'read')" (change)="toggleAction(perm, 'read')" />
                             <span class="form-check-label text-gray-800">Ver</span>
                           </label>
                           <!-- Crear -->
-                          <label class="form-check form-check-custom me-5 me-lg-20">
+                          <label class="form-check form-check-custom me-5 me-lg-20" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'create')" (change)="toggleAction(perm, 'create')" />
                             <span class="form-check-label text-gray-800">Crear</span>
                           </label>
@@ -132,7 +132,7 @@
                             <span class="form-check-label text-gray-800">Modificar</span>
                           </label>
                           <!-- Eliminar -->
-                          <label class="form-check form-check-custom">
+                          <label class="form-check form-check-custom" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'delete')" (change)="toggleAction(perm, 'delete')" />
                             <span class="form-check-label text-gray-800">Eliminar</span>
                           </label>
@@ -148,6 +148,7 @@
           <!--end::User form-->
         </div>
       </div>
+      <div *ngIf="mensajeError" role="alert" class="alert alert-danger mx-5">{{mensajeError}}</div>
       <div class="modal-footer flex-center">
         <!--begin::Button-->
         <button type="reset" class="btn btn-light me-3" (click)="modal.dismiss('cancel')">

@@ -14,24 +14,14 @@ export class AuthHTTPService {
   constructor(private http: HttpClient) {}
 
   // public methods
-  login(email: string, password: string): Observable<any> {
+  login(email: string, password: string, claveNueva: string): Observable<any> {
     return this.http.post<AuthModel>(`${API_USERS_URL}/login`, {
       email,
-      password,
+      password, claveNueva, acceso: location.pathname.endsWith('/empleados') ? 'empleado' : 'administrador',
     });
   }
 
-  loginWithGoogle(accessToken: string): Observable<any> {
-    return this.http.post<AuthModel>(`${API_USERS_URL}/google`, {
-      accessToken,
-    });
-  }
-
-  // CREATE =>  POST: add a new user to the server
-  createUser(payload: any): Observable<UserModel> {
-    return this.http.post<UserModel>(`${API_USERS_URL}/register`, payload);
-  }
-
+  salir(): Observable<any> { return this.http.post(API_USERS_URL+'/logout',{}); }
   // Your server should check email => If email exists send link to the user and return true | If email doesn't exist return false
   forgotPassword(email: string): Observable<boolean> {
     return this.http.post<boolean>(`${API_USERS_URL}/forgot-password`, {

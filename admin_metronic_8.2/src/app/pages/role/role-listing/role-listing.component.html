@@ -17,7 +17,7 @@
                     <!--begin::Card body-->
                     <div class="card-body pt-1">
                         <!--begin::Users-->
-                        <div class="fw-bold text-gray-600 mb-5">Total de usuarios con este rol: {{ role.users.length }}</div>
+                        <div class="fw-bold text-gray-600 mb-5">Empleados asignados: {{ role.users.length }}</div>
                         <!--end::Users-->
                         <!--begin::Permissions-->
                         <div class="d-flex flex-column text-gray-600">
@@ -39,9 +39,9 @@
                     <!--end::Card body-->
                     <!--begin::Card footer-->
                     <div class="card-footer flex-wrap pt-0">
-                        <a [routerLink]="['/apps/roles', role.id]" class="btn btn-light btn-active-primary my-1 me-2">Ver Rol</a>
-                        <button type="button" class="btn btn-light btn-active-light-primary my-1 me-2" [attr.data-id]="role.id" data-action="edit">Editar Rol</button>
-                        <button type="button" class="btn btn-light btn-active-light-danger my-1" [attr.data-id]="role.id" data-action="delete">Eliminar</button>
+                        <a [routerLink]="['/personal/perfiles', role.id]" class="btn btn-light btn-active-primary my-1 me-2">Ver perfil</a>
+                        <button type="button" class="btn btn-light btn-active-light-primary my-1 me-2" [attr.data-id]="role.id" data-action="edit">Configurar permisos</button>
+                        <button type="button" class="btn btn-light btn-active-light-danger my-1" [attr.data-id]="role.id" data-action="delete">Eliminar perfil</button>
                     </div>
                     <!--end::Card footer-->
                 </div>
@@ -63,7 +63,7 @@
                     <img src="assets/media/illustrations/sketchy-1/4.png" alt="" class="mw-100 mh-150px mb-7" />
                     <!--end::Illustration-->
                     <!--begin::Label-->
-                    <div class="fw-bold fs-3 text-gray-600 text-hover-primary">Agregar Nuevo Rol</div>
+                    <div class="fw-bold fs-3 text-gray-600 text-hover-primary">Crear nuevo perfil</div>
                     <!--end::Label-->
                 </button>
                 <!--begin::Button-->
@@ -93,7 +93,7 @@
 <ng-template #formModal let-modal>
     <form #myForm="ngForm" (ngSubmit)="onSubmit($event, myForm)">
       <div class="modal-header">
-        <h4 class="modal-title" id="modal-basic-title">Detalles del Rol</h4>
+        <h4 class="modal-title" id="modal-basic-title">Configurar perfil y permisos</h4>
         <button type="button" class="btn-close" aria-label="Cerrar" (click)="modal.dismiss('Cross click')"></button>
       </div>
       <div class="modal-body">
@@ -111,7 +111,7 @@
             <!--begin::Input group-->
             <div class="fv-row mb-7">
               <!--begin::Label-->
-              <label class="required fw-semibold fs-6 mb-2">Nombre del Rol</label>
+              <label class="required fw-semibold fs-6 mb-2">Nombre del perfil</label>
               <!--end::Label-->
               <!--begin::Input-->
               <input type="text" class="form-control form-control-solid" name="name" [(ngModel)]="roleModel.name" #name="ngModel" required minlength="4" />
@@ -125,21 +125,21 @@
 
             <!--begin::Permissions group-->
             <div class="mb-7">
-              <label class="required fw-semibold fs-6 mb-5">Permisos</label>
+              <label class="required fw-semibold fs-6 mb-5">Permisos del perfil</label>
               <div class="table-responsive">
                 <table class="table align-middle table-row-dashed fs-6 gy-5">
                   <tbody class="text-gray-800 fw-bold">
                     <tr *ngFor="let perm of permissions">
-                      <td class="text-dark fs-5">{{ perm.name }}</td>
+                      <td class="text-dark fs-5">{{ perm.name }} <small *ngIf="perm.name === 'Ajustar cantidad de stock'" class="text-muted d-block">Permitir con «Modificar»</small></td>
                       <td>
                         <div class="d-flex">
                           <!-- Ver -->
-                          <label class="form-check form-check-custom me-5 me-lg-20">
+                          <label class="form-check form-check-custom me-5 me-lg-20" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'read')" (change)="toggleAction(perm, 'read')" />
                             <span class="form-check-label text-gray-800">Ver</span>
                           </label>
                           <!-- Crear -->
-                          <label class="form-check form-check-custom me-5 me-lg-20">
+                          <label class="form-check form-check-custom me-5 me-lg-20" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'create')" (change)="toggleAction(perm, 'create')" />
                             <span class="form-check-label text-gray-800">Crear</span>
                           </label>
@@ -149,7 +149,7 @@
                             <span class="form-check-label text-gray-800">Modificar</span>
                           </label>
                           <!-- Eliminar -->
-                          <label class="form-check form-check-custom">
+                          <label class="form-check form-check-custom" *ngIf="perm.name !== 'Ajustar cantidad de stock'">
                             <input class="form-check-input" type="checkbox" [checked]="isActionSelected(perm.id, 'delete')" (change)="toggleAction(perm, 'delete')" />
                             <span class="form-check-label text-gray-800">Eliminar</span>
                           </label>
@@ -173,7 +173,7 @@
         <!--end::Button-->
     
         <!--begin::Button-->
-        <button type="submit" id="kt_modal_update_customer_submit" class="btn btn-primary" [attr.data-kt-indicator]="isLoading ? 'on' : 'off'">
+        <button type="submit" id="kt_modal_update_customer_submit" class="btn btn-primary" [disabled]="isLoading" [attr.data-kt-indicator]="isLoading ? 'on' : 'off'">
           <span class="indicator-label">
             Guardar
           </span>

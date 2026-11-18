@@ -1,0 +1,67 @@
+/* Ajustes exclusivos del catálogo, conservando los colores y tipografía de Metronic. */
+.filtros-catalogo {
+  .form-label {
+    min-width: 136px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .form-select {
+    min-width: 145px;
+  }
+}
+
+.precios-producto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 0.75rem;
+}
+
+.precio-producto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 0.75rem;
+  background: var(--bs-gray-100, #f5f8fa);
+  border: 1px solid var(--bs-gray-200, #e4e6ef);
+  border-radius: 0.7rem;
+
+  &.mayorista {
+    border-left: 3px solid var(--bs-primary, #ff6900);
+  }
+
+  &.minorista {
+    border-left: 3px solid var(--bs-info, #0dcaf0);
+  }
+
+  .etiqueta-precio {
+    color: var(--bs-gray-600, #7e8299);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .importe-precio {
+    color: var(--bs-gray-900, #181c32);
+    font-size: clamp(1.2rem, 1.5vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+}
+
+.configuracion-precios {
+  background-color: var(--bs-gray-100, #f5f8fa);
+}
+
+@media (max-width: 575px) {
+  .filtros-catalogo .form-label {
+    flex: 1 1 150px;
+  }
+}
+
+/* Corrección 17: tres filtros relacionados, legibles en pantallas pequeñas. */
+.busqueda-catalogo {
+  .form-label { display: block; min-width: 0; }
+  .form-select, .form-control { min-width: 0; width: 100%; }
+}

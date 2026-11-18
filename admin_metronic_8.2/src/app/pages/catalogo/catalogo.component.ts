@@ -1,1088 +1,341 @@
-
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectorRef
-} from '@angular/core';
-
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
-import Swal from 'sweetalert2';
-
-import {
-  StateService,
-  StockItem,
-  compressImage
-} from '../state.service';
-
+import { StateService, StockItem } from '../state.service';
 import { AuthService } from '../../modules/auth';
-
-type CatalogProduct = StockItem & {
-  category?: string;
-};
 
 @Component({
   selector: 'app-catalogo',
   templateUrl: './catalogo.component.html',
-  styleUrls: [],
+  styleUrls: ['./catalogo.component.scss'],
 })
 export class CatalogoComponent implements OnInit, OnDestroy {
-
-  // ==========================================
-  // DATOS DEL CATÁLOGO
-  // ==========================================
-
   stock: StockItem[] = [];
   filteredStock: StockItem[] = [];
-
-  // ==========================================
-  // FILTROS Y VISTAS
-  // ==========================================
-
+  
+  // Filtros y Vista
+  // Los tres criterios se combinan: texto + categoría + subcategoría.
   searchTerm: string = '';
-  selectedCategory: string = 'Todas';
-
+  selectedCategory: number | null = null;
+  filtroSubcategoria: number | null = null;
   viewMode: 'grid' | 'table' = 'grid';
+  categorias: any[] = [];
+  subcategorias: any[] = [];
+  errorCategorias = '';
+  errorSubcategorias = '';
 
-  categories: string[] = [
-    'Todas',
-    'Gaseosas',
-    'Aguas',
-    'Jugos',
-    'Isotónicas',
-    'Energizantes',
-    'Arroz y Cereales',
-    'Fideos y Pastas',
-    'Aceites',
-    'Conservas',
-    'Lácteos',
-    'Snacks',
-    'Alimentos',
-    'Limpieza',
-    'Higiene Personal',
-    'Otros'
-  ];
+  subcategoriasDe(categoria?: number | null): any[] {
+    if (categoria === null || categoria === undefined) return [];
+    return this.subcategorias.filter(s => Number(s.idCategoria) === Number(categoria));
+  }
 
-  // ==========================================
-  // MODAL CREAR / EDITAR
-  // ==========================================
+  get opcionesSubcategoria(): any[] {
+    return this.subcategoriasDe(this.selectedCategory);
+  }
 
+  alCambiarCategoria(categoria: number | null): void {
+    this.selectedCategory = categoria === null ? null : Number(categoria);
+    // No conservar una subcategoría perteneciente a la categoría anterior.
+    this.filtroSubcategoria = null;
+    this.applyFilters();
+  }
+
+  // Coincidencias sin distinción de mayúsculas, tildes ni espacios repetidos.
+  private normalizarBusqueda(valor: unknown): string {
+    return String(valor ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('es')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  trackByProducto(_: number, producto: StockItem): number {
+    return producto.id;
+  }
+  filtroEstado='Todos';
+  filtroStock='Todos';
+  // Cambia la visualización, no elimina productos de los resultados.
+  filtroPrecio: 'ambos' | 'mayorista' | 'minorista' = 'ambos';
+  vistaPrevia='';
+  imagen(item: StockItem): string {
+    return item.imagen ? environment.apiUrl+'/fotos/'+item.imagen : './assets/media/logos/pujol-icono.png';
+  }
+  seleccionarFoto(evento: Event) {
+    const archivo=(evento.target as HTMLInputElement).files?.[0];
+    if (!archivo) return;
+    if (archivo.size>3*1024*1024) {alert('El máximo es 3 MB.');return;}
+    const lector=new FileReader();
+    lector.onload=()=>{
+      this.vistaPrevia=String(lector.result);
+      this.currentItem.fotoNueva={nombre:archivo.name,datos:this.vistaPrevia.split(',')[1]};
+      this.currentItem.quitarFoto=false;
+      this.cdr.detectChanges();
+    };
+    lector.readAsDataURL(archivo);
+  }
+  quitarFoto(){
+    this.vistaPrevia=''; this.currentItem.imagen=undefined;
+    this.currentItem.fotoNueva=undefined; this.currentItem.quitarFoto=true;
+  }
+
+  // Modal Crear / Editar
   isModalOpen: boolean = false;
   isEditing: boolean = false;
+  currentItem: StockItem = this.getEmptyItem();
 
-  currentItem: CatalogProduct = this.getEmptyItem();
-
-  // ==========================================
-  // MODAL DE PRECIO
-  // ==========================================
-
+  // Modal Ajuste Rápido de Precio
   isQuickPriceModalOpen: boolean = false;
   quickPriceItem: StockItem | null = null;
   newPriceValue: number = 0;
-
-  // ==========================================
-  // CONTROL DE IMÁGENES
-  // ==========================================
-
-  isProcessingImage: boolean = false;
-  private imageSelectionVersion: number = 0;
+  newMinoristaValue: number | null = null;
 
   private subscriptions: Subscription[] = [];
 
   constructor(
+    private http: HttpClient,
     private stateService: StateService,
     private cdr: ChangeDetectorRef,
     private authService: AuthService
   ) {}
 
-  // ==========================================
-  // CONTROL DE PERMISOS
-  // ==========================================
-
-  hasAction(
-    action: 'read' | 'create' | 'update' | 'delete'
-  ): boolean {
-    return this.authService.hasAction(2, action);
+  puedeAjustarStock(): boolean {
+    return this.authService.hasPermission('Ajustar cantidad de stock', 'update');
   }
 
-  // ==========================================
-  // INICIALIZACIÓN
-  // ==========================================
+  hasAction(action: 'read' | 'create' | 'update' | 'delete'): boolean {
+    return this.authService.hasAction(12, action); // Permiso 2 (Stock / Productos)
+  }
 
   ngOnInit(): void {
-
-    const sub = this.stateService.stock$.subscribe(
-      (data) => {
-        this.stock = data || [];
+    this.http.get<any[]>(environment.apiUrl+'/categorias').subscribe({
+      next: lista => {
+        this.categorias = Array.isArray(lista) ? lista : [];
+        this.errorCategorias = '';
         this.applyFilters();
         this.cdr.detectChanges();
-      }
-    );
-
+      },
+      error: err => {
+        console.error('No se pudieron cargar las categorías:', err);
+        this.errorCategorias = 'No se pudieron cargar las categorías. Actualizá la página para volver a intentar.';
+        this.cdr.detectChanges();
+      },
+    });
+    this.http.get<any[]>(environment.apiUrl+'/subcategorias').subscribe({
+      next: lista => {
+        this.subcategorias = Array.isArray(lista) ? lista : [];
+        this.errorSubcategorias = '';
+        this.applyFilters();
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error('No se pudieron cargar las subcategorías:', err);
+        this.errorSubcategorias = 'No se pudieron cargar las subcategorías. Actualizá la página para volver a intentar.';
+        this.cdr.detectChanges();
+      },
+    });
+    const sub = this.stateService.stock$.subscribe((data) => {
+      this.stock = data || [];
+      this.applyFilters();
+      this.cdr.detectChanges();
+    });
     this.subscriptions.push(sub);
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(
-      (subscription) => subscription.unsubscribe()
-    );
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  // ==========================================
-  // DISEÑO SWEETALERT2
-  // ==========================================
-
-  private getAlertTheme() {
-
-    const backgroundColor = '#1e1e2d';
-    const titleColor = '#ffffff';
-    const textColor = '#e5e7eb';
-
-    return {
-      background: backgroundColor,
-      color: titleColor,
-
-      confirmButtonColor: '#c58b32',
-      cancelButtonColor: '#50546a',
-
-      heightAuto: false,
-      buttonsStyling: true,
-
-      didOpen: () => {
-
-        const title = Swal.getTitle();
-        const content = Swal.getHtmlContainer();
-
-        const confirm = Swal.getConfirmButton();
-        const cancel = Swal.getCancelButton();
-
-        if (title) {
-
-          title.style.setProperty(
-            'color',
-            titleColor,
-            'important'
-          );
-
-          title.style.setProperty(
-            'opacity',
-            '1',
-            'important'
-          );
-
-          title.style.setProperty(
-            '-webkit-text-fill-color',
-            titleColor,
-            'important'
-          );
-        }
-
-        if (content) {
-
-          content.style.setProperty(
-            'color',
-            textColor,
-            'important'
-          );
-
-          content.style.setProperty(
-            'opacity',
-            '1',
-            'important'
-          );
-
-          content.style.setProperty(
-            '-webkit-text-fill-color',
-            textColor,
-            'important'
-          );
-        }
-
-        if (confirm) {
-          confirm.style.setProperty(
-            'color',
-            '#ffffff',
-            'important'
-          );
-        }
-
-        if (cancel) {
-          cancel.style.setProperty(
-            'color',
-            '#ffffff',
-            'important'
-          );
-        }
-      }
-    };
-  }
-
-  // ==========================================
-  // ADVERTENCIAS
-  // ==========================================
-
-  private showWarning(
-    title: string,
-    message: string
-  ): void {
-
-    void Swal.fire({
-
-      ...this.getAlertTheme(),
-
-      title: title,
-      text: message,
-
-      icon: 'warning',
-      iconColor: '#e5a23c',
-
-      confirmButtonText: 'Entendido',
-
-      width: '450px',
-      padding: '2rem',
-
-      customClass: {
-        popup: 'rounded-4 shadow-lg',
-        title: 'fw-bold',
-        confirmButton: 'fw-semibold px-4 py-2'
-      }
-    });
-  }
-
-  // ==========================================
-  // PRODUCTO VACÍO
-  // ==========================================
-
-  getEmptyItem(): CatalogProduct {
-
+  getEmptyItem(): StockItem {
     return {
       id: 0,
       code: '',
       name: '',
       description: '',
-      category: 'Otros',
-      image: '',
       price: 0,
+      precioMayorista: 0,
+      precioMinorista: null,
       quantity: 0,
       minThreshold: 10,
       status: 'Activo'
     };
   }
 
-  // ==========================================
-  // FILTROS DEL CATÁLOGO
-  // ==========================================
-
+  // Filtrado conjunto, siempre sobre los productos ya cargados en memoria.
+  // No se envía una nueva petición a la API con cada pulsación del teclado.
   applyFilters(): void {
+    const palabras = this.normalizarBusqueda(this.searchTerm).split(' ').filter(Boolean);
+    const categoria = this.selectedCategory;
+    const subcategoria = this.filtroSubcategoria;
 
-    let result = [...this.stock];
+    this.filteredStock = this.stock.filter(producto => {
+      if (categoria !== null && Number(producto.categoriaId) !== categoria) return false;
+      if (subcategoria !== null && Number(producto.subcategoriaId) !== subcategoria) return false;
 
-    if (this.selectedCategory !== 'Todas') {
+      if (palabras.length) {
+        // Se mantiene compatibilidad con búsqueda anterior por descripción y códigos.
+        const texto = this.normalizarBusqueda([
+          producto.name, producto.code, producto.barras, producto.description
+        ].filter(Boolean).join(' '));
+        if (!palabras.every(palabra => texto.includes(palabra))) return false;
+      }
 
-      result = result.filter(
-        item =>
-          this.getCategory(item) === this.selectedCategory
-      );
-    }
-
-    if (this.searchTerm.trim() !== '') {
-
-      const term = this.searchTerm.toLowerCase().trim();
-
-      result = result.filter(item => {
-
-        const name = (item.name || '').toLowerCase();
-        const code = (item.code || '').toLowerCase();
-
-        const description =
-          (item.description || '').toLowerCase();
-
-        const category =
-          this.getCategory(item).toLowerCase();
-
-        return (
-          name.includes(term) ||
-          code.includes(term) ||
-          description.includes(term) ||
-          category.includes(term)
-        );
-      });
-    }
-
-    this.filteredStock = result;
+      if (this.filtroEstado !== 'Todos' && producto.status !== this.filtroEstado) return false;
+      if (this.filtroStock === 'Agotado' && producto.quantity > 0) return false;
+      if (this.filtroStock === 'Bajo' && !(producto.quantity > 0 && producto.quantity <= producto.minThreshold)) return false;
+      if (this.filtroStock === 'Disponible' && producto.quantity <= 0) return false;
+      return true;
+    });
   }
 
-  setCategory(cat: string): void {
-
-    this.selectedCategory = cat;
+  limpiarFiltros(): void {
+    this.searchTerm = '';
+    this.selectedCategory = null;
+    this.filtroSubcategoria = null;
+    this.filtroEstado = 'Todos';
+    this.filtroStock = 'Todos';
+    this.filtroPrecio = 'ambos';
     this.applyFilters();
   }
 
-  // ==========================================
-  // SELECCIONAR CATEGORÍA
-  // ==========================================
-
-  setProductCategory(category: string): void {
-
-    if (
-      !this.categories.includes(category) ||
-      category === 'Todas'
-    ) {
-      this.currentItem.category = 'Otros';
-      return;
-    }
-
-    this.currentItem.category = category;
+  precioMayorista(item: StockItem): number {
+    return item.precioMayorista ?? item.price;
   }
 
-  // ==========================================
-  // DETECTAR CATEGORÍA
-  // ==========================================
-
-  getCategory(item: StockItem): string {
-
-    const product = item as CatalogProduct;
-
-    const savedCategory =
-      typeof product.category === 'string'
-        ? product.category.trim()
-        : '';
-
-    if (savedCategory) {
-      return savedCategory;
-    }
-
-    // Compatibilidad con productos antiguos
-
-    const text = (
-      (item.name || '') + ' ' +
-      (item.description || '')
-    ).toLowerCase();
-
-    if (
-      text.includes('coca') ||
-      text.includes('sprite') ||
-      text.includes('fanta') ||
-      text.includes('pepsi') ||
-      text.includes('7up') ||
-      text.includes('gaseosa') ||
-      text.includes('cola')
-    ) {
-      return 'Gaseosas';
-    }
-
-    if (
-      text.includes('agua') ||
-      text.includes('villavicencio') ||
-      text.includes('glaciar') ||
-      text.includes('mineral') ||
-      text.includes('soda')
-    ) {
-      return 'Aguas';
-    }
-
-    if (
-      text.includes('cepita') ||
-      text.includes('jugo') ||
-      text.includes('baggio') ||
-      text.includes('citric')
-    ) {
-      return 'Jugos';
-    }
-
-    if (
-      text.includes('powerade') ||
-      text.includes('gatorade') ||
-      text.includes('isotonica') ||
-      text.includes('isotónica')
-    ) {
-      return 'Isotónicas';
-    }
-
-    if (
-      text.includes('monster') ||
-      text.includes('speed') ||
-      text.includes('red bull') ||
-      text.includes('energizante')
-    ) {
-      return 'Energizantes';
-    }
-
-    if (
-      text.includes('arroz') ||
-      text.includes('cereal') ||
-      text.includes('avena')
-    ) {
-      return 'Arroz y Cereales';
-    }
-
-    if (
-      text.includes('fideo') ||
-      text.includes('pasta') ||
-      text.includes('tallarín') ||
-      text.includes('tallarin')
-    ) {
-      return 'Fideos y Pastas';
-    }
-
-    if (text.includes('aceite')) {
-      return 'Aceites';
-    }
-
-    if (
-      text.includes('conserva') ||
-      text.includes('atún') ||
-      text.includes('atun')
-    ) {
-      return 'Conservas';
-    }
-
-    if (
-      text.includes('leche') ||
-      text.includes('yogur') ||
-      text.includes('queso')
-    ) {
-      return 'Lácteos';
-    }
-
-    if (
-      text.includes('papas fritas') ||
-      text.includes('snack') ||
-      text.includes('galletita')
-    ) {
-      return 'Snacks';
-    }
-
-    if (
-      text.includes('detergente') ||
-      text.includes('lavandina') ||
-      text.includes('limpiador') ||
-      text.includes('desinfectante')
-    ) {
-      return 'Limpieza';
-    }
-
-    if (
-      text.includes('shampoo') ||
-      text.includes('jabón') ||
-      text.includes('jabon') ||
-      text.includes('desodorante')
-    ) {
-      return 'Higiene Personal';
-    }
-
-    return 'Otros';
+  tienePrecioMinorista(item: StockItem): boolean {
+    return Number(item.precioMinorista) > 0;
   }
 
-  // ==========================================
-  // COLORES DE CATEGORÍAS
-  // ==========================================
-
-  getCategoryBadgeClass(category: string): string {
-
-    switch (category) {
-
-      case 'Gaseosas':
-        return 'badge-light-danger text-danger';
-
-      case 'Aguas':
-        return 'badge-light-info text-info';
-
-      case 'Jugos':
-        return 'badge-light-warning text-warning';
-
-      case 'Isotónicas':
-        return 'badge-light-primary text-primary';
-
-      case 'Energizantes':
-        return 'badge-light-danger text-danger';
-
-      case 'Arroz y Cereales':
-      case 'Fideos y Pastas':
-      case 'Aceites':
-      case 'Conservas':
-      case 'Alimentos':
-        return 'badge-light-warning text-warning';
-
-      case 'Lácteos':
-        return 'badge-light-info text-info';
-
-      case 'Snacks':
-        return 'badge-light-success text-success';
-
-      case 'Limpieza':
-        return 'badge-light-primary text-primary';
-
-      case 'Higiene Personal':
-        return 'badge-light-success text-success';
-
-      default:
-        return 'badge-light-secondary text-gray-700';
-    }
+  actualizarMayoristaEdicion(precio: number | null): void {
+    this.currentItem.precioMayorista = precio === null ? 0 : precio;
+    this.currentItem.price = this.currentItem.precioMayorista;
   }
 
-  // ==========================================
-  // ICONOS POR CATEGORÍA
-  // ==========================================
 
-  getCategoryIcon(category: string): string {
-
-    switch (category) {
-
-      case 'Gaseosas':
-        return 'flask';
-
-      case 'Aguas':
-        return 'drop';
-
-      case 'Jugos':
-      case 'Lácteos':
-        return 'cup';
-
-      case 'Isotónicas':
-      case 'Energizantes':
-        return 'flash-circle';
-
-      default:
-        return 'cube-2';
-    }
-  }
-
-  // ==========================================
-  // INDICADORES
-  // ==========================================
-
-  get totalBeverages(): number {
+  getCategory(item: StockItem) { return item.categoria || 'Sin categoría'; }
+  getCategoryBadgeClass(category: string) { return 'badge-light-primary'; }
+  getCategoryIcon(category: string) { return 'cube-2'; }
+  // KPIs
+  get totalProductos(): number {
     return this.stock.length;
   }
 
-  get totalProducts(): number {
-    return this.stock.length;
-  }
+  // Alias conservado para no romper otras referencias antiguas.
+  get totalBeverages(): number { return this.totalProductos; }
 
   get averagePrice(): number {
-
-    if (this.stock.length === 0) {
-      return 0;
-    }
-
-    const sum = this.stock.reduce(
-      (acc, curr) => acc + (curr.price || 0),
-      0
-    );
-
+    if (this.stock.length === 0) return 0;
+    const sum = this.stock.reduce((acc, curr) => acc + (this.precioMayorista(curr) || 0), 0);
     return sum / this.stock.length;
   }
 
   get lowStockCount(): number {
-
-    return this.stock.filter(
-      item => item.quantity < item.minThreshold
-    ).length;
+    return this.stock.filter(item => item.quantity < item.minThreshold).length;
   }
 
   get optimalStockCount(): number {
-
-    return this.stock.filter(
-      item => item.quantity >= item.minThreshold
-    ).length;
+    return this.stock.filter(item => item.quantity >= item.minThreshold).length;
   }
 
-  // ==========================================
-  // ABRIR REGISTRO DE PRODUCTO
-  // ==========================================
-
+  // Abrir Modal de Creación
   openCreateModal(): void {
-
-    this.imageSelectionVersion++;
-    this.isProcessingImage = false;
-
     this.isEditing = false;
     this.currentItem = this.getEmptyItem();
-
-    if (this.selectedCategory !== 'Todas') {
-      this.currentItem.category = this.selectedCategory;
-    }
-
-    const existingCodes = new Set(
-      this.stock.map(
-        item => (item.code || '').toUpperCase()
-      )
-    );
-
-    let nextNum = this.stock.length + 1;
-    let suggestedCode = '';
-
-    do {
-
-      suggestedCode =
-        `PROD-${String(nextNum).padStart(3, '0')}`;
-
-      nextNum++;
-
-    } while (existingCodes.has(suggestedCode));
-
-    this.currentItem.code = suggestedCode;
+    this.vistaPrevia='';
     this.isModalOpen = true;
   }
 
-  // ==========================================
-  // EDITAR PRODUCTO
-  // ==========================================
-
+  // Abrir Modal de Edición
   openEditModal(item: StockItem): void {
-
-    this.imageSelectionVersion++;
-    this.isProcessingImage = false;
-
     this.isEditing = true;
-
+    this.vistaPrevia='';
     this.currentItem = {
       ...item,
-      category: this.getCategory(item)
+      price: this.precioMayorista(item),
+      precioMayorista: this.precioMayorista(item),
+      precioMinorista: item.precioMinorista ?? null,
+      stockEsperado: item.quantity
     };
-
     this.isModalOpen = true;
   }
 
   closeModal(): void {
-
-    this.imageSelectionVersion++;
-    this.isProcessingImage = false;
-
     this.isModalOpen = false;
   }
 
-  // ==========================================
-  // GUARDAR PRODUCTO
-  // ==========================================
-
+  // Guardar un producto con ambos precios, sin romper la API antigua.
   saveItem(): void {
-
-    // Esperar a que termine la compresión
-
-    if (this.isProcessingImage) {
-
-      this.showWarning(
-        'Imagen en procesamiento',
-        'La imagen se está preparando. Guardá el producto cuando aparezca la vista previa.'
-      );
-
+    if (!this.currentItem.name || !this.currentItem.name.trim()) {
+      alert('Debe ingresar el nombre del producto.');
       return;
     }
-
-    // Validar nombre
-
-    if (
-      !this.currentItem.name ||
-      !this.currentItem.name.trim()
-    ) {
-
-      this.showWarning(
-        'Información incompleta',
-        'Debe ingresar el nombre del producto.'
-      );
-
+    const mayorista = this.currentItem.precioMayorista ?? this.currentItem.price;
+    const minorista = this.normalizarPrecioOpcional(this.currentItem.precioMinorista);
+    if (!this.precioValido(mayorista) || (minorista !== null && !this.precioValido(minorista))) {
+      alert('Ingrese importes válidos, no negativos y con hasta dos decimales.');
       return;
     }
-
-    // Validar categoría
-
-    if (
-      !this.currentItem.category ||
-      this.currentItem.category === 'Todas' ||
-      !this.categories.includes(this.currentItem.category)
-    ) {
-
-      this.showWarning(
-        'Categoría inválida',
-        'Seleccione una categoría válida para el producto.'
-      );
-
+    const umbral = this.currentItem.minimoMayorista;
+    if (umbral != null && (!Number.isFinite(umbral) || umbral <= 0 || umbral > 99999999.999 ||
+        Math.abs(umbral*1000 - Math.round(umbral*1000)) > 0.00001 ||
+        (['unidad','paquete','caja'].includes((this.currentItem.unidad || 'unidad').trim().toLowerCase()) && !Number.isInteger(umbral)))) {
+      alert('Revise el mínimo mayorista. Para unidad, paquete y caja se requiere una cantidad entera positiva.');
       return;
     }
-
-    // Validar precio
-
-    if (
-      !Number.isFinite(this.currentItem.price) ||
-      this.currentItem.price < 0
-    ) {
-
-      this.showWarning(
-        'Precio inválido',
-        'Ingrese un precio válido mayor o igual a cero.'
-      );
-
-      return;
-    }
-
-    // Validar stock
-
-    if (
-      !Number.isFinite(this.currentItem.quantity) ||
-      this.currentItem.quantity < 0 ||
-      !Number.isInteger(this.currentItem.quantity)
-    ) {
-
-      this.showWarning(
-        'Stock inválido',
-        'El stock debe ser un número entero mayor o igual a cero.'
-      );
-
-      return;
-    }
-
-    // Validar stock mínimo
-
-    if (
-      !Number.isFinite(this.currentItem.minThreshold) ||
-      this.currentItem.minThreshold < 0 ||
-      !Number.isInteger(this.currentItem.minThreshold)
-    ) {
-
-      this.showWarning(
-        'Stock mínimo inválido',
-        'El stock mínimo debe ser un número entero mayor o igual a cero.'
-      );
-
-      return;
-    }
-
-    // Comprobar permisos
-
-    if (
-      !this.hasAction(
-        this.isEditing ? 'update' : 'create'
-      )
-    ) {
-
-      this.showWarning(
-        'Acceso restringido',
-        'No dispone de permisos para guardar este producto.'
-      );
-
-      return;
-    }
-
-    // Enviar producto e imagen al servicio
-
-    this.stateService.saveStockItem(this.currentItem);
-    this.closeModal();
+    const actualizado: StockItem = {
+      ...this.currentItem,
+      price: Number(mayorista),
+      precioMayorista: Number(mayorista),
+      precioMinorista: minorista,
+    };
+    this.stateService.saveStockItem(actualizado, () => this.closeModal());
   }
 
-  // ==========================================
-  // ELIMINAR PRODUCTO
-  // ==========================================
-
-  async deleteItem(item: StockItem): Promise<void> {
-
-    if (!this.hasAction('delete')) {
-
-      this.showWarning(
-        'Acceso restringido',
-        'No dispone de permisos para eliminar productos.'
-      );
-
-      return;
-    }
-
-    const resultado = await Swal.fire({
-
-      ...this.getAlertTheme(),
-
-      title: 'Confirmar eliminación',
-
-      text:
-        `¿Está seguro de eliminar "${item.name}" ` +
-        'del catálogo de productos?',
-
-      icon: 'warning',
-      iconColor: '#e5a23c',
-
-      showCancelButton: true,
-      showCloseButton: true,
-
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-
-      reverseButtons: true,
-      focusCancel: true,
-
-      width: '460px',
-      padding: '2rem',
-
-      confirmButtonColor: '#dc3545',
-
-      customClass: {
-        popup: 'rounded-4 shadow-lg',
-        title: 'fw-bold',
-        confirmButton: 'fw-semibold px-4 py-2',
-        cancelButton: 'fw-semibold px-4 py-2'
-      }
-    });
-
-    if (!resultado.isConfirmed) {
-      return;
-    }
-
-    this.stateService.deleteStockItem(item.id);
+  private normalizarPrecioOpcional(valor: unknown): number | null {
+    return valor === null || valor === undefined || valor === '' ? null : Number(valor);
   }
 
-  // ==========================================
-  // ABRIR AJUSTE RÁPIDO DE PRECIO
-  // ==========================================
+  private precioValido(valor: unknown): boolean {
+    if (valor === '' || valor === null || valor === undefined) return false;
+    const numero = Number(valor);
+    return Number.isFinite(numero) && numero >= 0 && numero <= 99999999.99 &&
+      Math.abs(numero * 100 - Math.round(numero * 100)) < 0.00001;
+  }
 
+  // Dar de baja un producto (baja lógica)
+  deleteItem(item: StockItem): void {
+    if (confirm(`¿Confirma eliminar '${item.name}' del catálogo?`)) {
+      this.stateService.deleteStockItem(item.id);
+    }
+  }
+
+  // Modal Rápido de Precio
   openQuickPriceModal(item: StockItem): void {
-
-    this.quickPriceItem = item;
-    this.newPriceValue = item.price;
-
+    this.quickPriceItem = {...item, stockEsperado:item.quantity};
+    this.newPriceValue = this.precioMayorista(item);
+    this.newMinoristaValue = item.precioMinorista ?? null;
     this.isQuickPriceModalOpen = true;
   }
 
   closeQuickPriceModal(): void {
-
     this.isQuickPriceModalOpen = false;
     this.quickPriceItem = null;
   }
 
-  // ==========================================
-  // GUARDAR PRECIO RÁPIDO
-  // ==========================================
-
   saveQuickPrice(): void {
-
-    if (
-      !this.quickPriceItem ||
-      !Number.isFinite(this.newPriceValue) ||
-      this.newPriceValue < 0
-    ) {
-
-      this.showWarning(
-        'Precio inválido',
-        'Ingrese un precio válido para continuar.'
-      );
-
+    const minorista = this.normalizarPrecioOpcional(this.newMinoristaValue);
+    if (!this.quickPriceItem || !this.precioValido(this.newPriceValue) ||
+        (minorista !== null && !this.precioValido(minorista))) {
+      alert('Ingrese precios válidos, no negativos y con hasta dos decimales.');
       return;
     }
-
-    if (!this.hasAction('update')) {
-
-      this.showWarning(
-        'Acceso restringido',
-        'No dispone de permisos para modificar precios.'
-      );
-
-      return;
-    }
-
     const updated: StockItem = {
       ...this.quickPriceItem,
-      price: this.newPriceValue
+      price: Number(this.newPriceValue),
+      precioMayorista: Number(this.newPriceValue),
+      precioMinorista: minorista,
     };
-
-    this.stateService.saveStockItem(updated);
-
-    this.closeQuickPriceModal();
-  }
-
-  // ==========================================
-  // SELECCIONAR IMAGEN DEL PRODUCTO
-  // ==========================================
-
-  onProductImageSelected(event: Event): void {
-
-    const input = event.target as HTMLInputElement;
-
-    const file =
-      input.files && input.files.length > 0
-        ? input.files[0]
-        : null;
-
-    if (!file) {
-      return;
-    }
-
-    // Tipos de archivo permitidos
-
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/webp'
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-
-      input.value = '';
-
-      this.showWarning(
-        'Formato no admitido',
-        'Seleccione una imagen JPG, PNG o WebP.'
-      );
-
-      return;
-    }
-
-    // Tamaño máximo: 2 MB
-
-    const maxSize = 2 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-
-      input.value = '';
-
-      this.showWarning(
-        'Imagen demasiado grande',
-        'La imagen no debe superar los 2 MB.'
-      );
-
-      return;
-    }
-
-    // Invalidar lecturas anteriores
-
-    const selection = ++this.imageSelectionVersion;
-
-    this.isProcessingImage = true;
-
-    // Leer imagen seleccionada
-
-    const reader = new FileReader();
-
-    reader.onload = async () => {
-
-      try {
-
-        const original = reader.result;
-
-        if (
-          typeof original !== 'string' ||
-          !original.startsWith('data:image/')
-        ) {
-          throw new Error('Imagen inválida');
-        }
-
-        // Comprimir imagen antes de enviarla
-        // usando la función de StateService.
-
-        const optimized = await compressImage(
-          original,
-          800,
-          800
-        );
-
-        // Evitar actualizar un modal ya cerrado
-
-        if (
-          selection !== this.imageSelectionVersion ||
-          !this.isModalOpen
-        ) {
-          return;
-        }
-
-        // Asignar imagen al producto
-
-        this.currentItem.image = optimized;
-
-        this.isProcessingImage = false;
-
-        // Actualizar vista previa
-
-        this.cdr.detectChanges();
-
-      } catch (error) {
-
-        console.error(
-          'Error procesando imagen del producto:',
-          error
-        );
-
-        if (selection === this.imageSelectionVersion) {
-
-          this.isProcessingImage = false;
-
-          this.showWarning(
-            'No se pudo cargar la imagen',
-            'Intente seleccionar otra imagen JPG, PNG o WebP.'
-          );
-        }
-      }
-    };
-
-    reader.onerror = () => {
-
-      if (selection === this.imageSelectionVersion) {
-
-        this.isProcessingImage = false;
-
-        this.showWarning(
-          'Error de lectura',
-          'No se pudo abrir la imagen seleccionada.'
-        );
-      }
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  // ==========================================
-  // QUITAR IMAGEN DEL PRODUCTO
-  // ==========================================
-
-  removeProductImage(): void {
-
-    // Cancelar cualquier lectura pendiente
-
-    this.imageSelectionVersion++;
-
-    this.isProcessingImage = false;
-
-    // Quitar imagen del formulario
-
-    this.currentItem.image = '';
-
-    // Limpiar el selector de archivos
-
-    const input = document.getElementById(
-      'pujol-product-image'
-    ) as HTMLInputElement | null;
-
-    if (input) {
-      input.value = '';
-    }
-
-    this.cdr.detectChanges();
-  }
-
-  // ==========================================
-  // OBTENER IMAGEN DEL PRODUCTO
-  // ==========================================
-
-  getProductImage(item: StockItem): string {
-
-    return this.stateService.getProductImage(item);
-  }
-
-  // ==========================================
-  // MANEJO DE ERROR DE IMÁGENES
-  // ==========================================
-
-  onImageError(event: any): void {
-
-    const fallback =
-      './assets/media/products/beverages/coca-cola-225.jpg';
-
-    const img = event.target as HTMLImageElement;
-
-    // Evitar bucles de imágenes faltantes
-
-    if (
-      !img.src.endsWith(
-        '/assets/media/products/beverages/coca-cola-225.jpg'
-      )
-    ) {
-      img.src = fallback;
-    }
+    this.stateService.saveStockItem(updated, () => this.closeQuickPriceModal());
   }
 }

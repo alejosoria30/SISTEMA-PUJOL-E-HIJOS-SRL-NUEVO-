@@ -86,6 +86,7 @@ export class RoleListingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.stateService.loadPermissions();
     this.roles$ = this.apiService.getRoles();
   }
 
@@ -115,10 +116,16 @@ export class RoleListingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   edit(id: number) {
     this.role$ = this.apiService.getRole(id);
-    this.role$.subscribe((role: IRoleModel) => {
-      this.roleModel = role;
-      if (!this.roleModel.permissions) {
-        this.roleModel.permissions = [];
+    this.role$.subscribe({
+      next: (role: IRoleModel) => {
+        this.roleModel = role;
+        if (!this.roleModel.permissions) this.roleModel.permissions = [];
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.modalService.dismissAll();
+        this.showAlert({ icon: 'error', title: 'No se pudo cargar el rol',
+          text: error?.error?.message || 'Verificá la conexión con el servidor.' });
       }
     });
   }
@@ -168,6 +175,7 @@ export class RoleListingComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    if (this.isLoading) return;
     this.isLoading = true;
 
     const successAlert: SweetAlertOptions = {
@@ -195,7 +203,7 @@ export class RoleListingComponent implements OnInit, AfterViewInit, OnDestroy {
           this.reloadEvent.emit(true);
         },
         error: (error) => {
-          errorAlert.text = this.extractText(error.error);
+          errorAlert.text = this.extractText(error?.error) || error?.message || 'La operación no pudo completarse.';
           this.showAlert(errorAlert);
           this.isLoading = false;
         },
@@ -210,7 +218,7 @@ export class RoleListingComponent implements OnInit, AfterViewInit, OnDestroy {
           this.reloadEvent.emit(true);
         },
         error: (error) => {
-          errorAlert.text = this.extractText(error.error);
+          errorAlert.text = this.extractText(error?.error) || error?.message || 'La operación no pudo completarse.';
           this.showAlert(errorAlert);
           this.isLoading = false;
         },

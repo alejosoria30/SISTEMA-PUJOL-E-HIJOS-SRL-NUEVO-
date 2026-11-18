@@ -1,0 +1,56 @@
+<section class="personal-accesos">
+  <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+    <div>
+      <h1 class="fs-2 fw-bold text-gray-900 mb-1">Personal y accesos</h1>
+      <div class="text-gray-600 fs-6">Empleados, perfiles y autorizaciones del sistema en un solo lugar.</div>
+    </div>
+    <button class="btn btn-light-primary btn-sm" type="button" (click)="cargarResumen()" [disabled]="cargando">
+      Actualizar resumen
+    </button>
+  </header>
+
+  <div class="row g-3 mb-5" aria-label="Resumen de personal">
+    <div class="col-md-4">
+      <div class="card card-flush h-100"><div class="card-body py-4 px-5">
+        <div class="text-gray-600 fs-7">Personal registrado</div>
+        <div class="fs-2hx fw-bold text-gray-900">{{ cargando && !resumen ? '—' : (resumen?.empleados ?? '—') }}</div>
+        <div class="fs-8 text-gray-500">{{ resumen?.empleadosActivos ?? '—' }} cuentas activas</div>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-flush h-100"><div class="card-body py-4 px-5">
+        <div class="text-gray-600 fs-7">Perfiles disponibles</div>
+        <div class="fs-2hx fw-bold text-gray-900">{{ resumen?.perfiles ?? '—' }}</div>
+        <div class="fs-8 text-gray-500">Se asigna un perfil por empleado</div>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-flush h-100"><div class="card-body py-4 px-5">
+        <div class="text-gray-600 fs-7">Permisos configurables</div>
+        <div class="fs-2hx fw-bold text-gray-900">{{ resumen?.permisos ?? '—' }}</div>
+        <div class="fs-8 text-gray-500">Permisos administrados desde los perfiles</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="alert alert-light-warning d-flex align-items-start" *ngIf="(resumen?.clientesHistoricos ?? 0) > 0">
+    <div>
+      <strong>{{ resumen?.clientesHistoricos }} cuenta(s) histórica(s) de tipo Cliente.</strong>
+      No figuran como empleados ni en los perfiles operativos y no pueden iniciar sesión.
+      Sus datos se conservan para evitar borrados accidentales.
+    </div>
+  </div>
+  <div class="alert alert-light-danger d-flex justify-content-between align-items-center" *ngIf="errorResumen">
+    <span>{{ errorResumen }}</span><button class="btn btn-sm btn-light-danger" type="button" (click)="cargarResumen()">Reintentar</button>
+  </div>
+
+  <div class="card mb-5"><div class="card-body py-3 px-4">
+    <nav class="nav nav-pills personal-pestanas gap-2" aria-label="Secciones de personal y accesos">
+      <a class="nav-link" routerLink="empleados" routerLinkActive="active">Empleados</a>
+      <a class="nav-link" routerLink="perfiles" routerLinkActive="active">Perfiles y roles</a>
+      <a class="nav-link" routerLink="permisos" routerLinkActive="active">Catálogo de permisos</a>
+    </nav>
+  </div></div>
+
+  <router-outlet></router-outlet>
+</section>

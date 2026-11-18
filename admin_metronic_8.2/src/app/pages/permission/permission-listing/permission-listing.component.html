@@ -1,3 +1,4 @@
+<div class="alert alert-light-primary mb-5">Los permisos se asignan a <a routerLink="/personal/perfiles" class="fw-bold">Perfiles</a>. Después, asigná un perfil a cada empleado desde la pestaña Empleados. Este listado es el catálogo de permisos disponibles.</div>
 <div class="card">
     <div class="card-header border-0 pt-6">
         <!--begin::Card title-->
@@ -16,9 +17,7 @@
             <!--begin::Toolbar-->
             <div class="d-flex justify-content-end">
                 <!--begin::Add permission-->
-                <button type="button" class="btn btn-primary" data-action="create">
-                    Agregar Permiso
-                </button>
+                <a class="btn btn-primary" routerLink="/personal/perfiles">Administrar perfiles</a>
                 <!--end::Add permission-->
             </div>
             <!--end::Toolbar-->
@@ -27,7 +26,7 @@
     </div>
 
     <div class="card-body pt-0">
-        <app-crud [datatableConfig]="datatableConfig" route="/apps/users" (deleteEvent)="delete($event)" (editEvent)="edit($event)" (createEvent)="create()" [reload]="reloadEvent" [modal]="formModal"></app-crud>
+        <app-crud [datatableConfig]="datatableConfig" route="/personal/permisos" (deleteEvent)="delete($event)" (editEvent)="edit($event)" (createEvent)="create()" [reload]="reloadEvent" [modal]="formModal"></app-crud>
     </div>
 </div>
 

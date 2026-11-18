@@ -37,6 +37,7 @@ export class CustomPageTitleStrategy extends TitleStrategy {
     if (url.includes('/comprobantes')) return 'Comprobantes Fiscales';
     if (url.includes('/historial-ventas')) return 'Historial de Ventas';
     if (url.includes('/clientes')) return 'Clientes';
+    if (url.includes('/personal')) return 'Personal y accesos';
     if (url.includes('/empleados')) return 'Empleados';
     if (url.includes('/apps/users')) return 'Gestión de Usuarios';
     if (url.includes('/apps/roles')) return 'Roles y Permisos';

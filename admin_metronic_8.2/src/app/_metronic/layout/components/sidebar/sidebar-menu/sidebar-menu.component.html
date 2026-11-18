@@ -3,142 +3,49 @@
   data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer"
   data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
   <!--begin::Menu-->
-  <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" id="#kt_app_sidebar_menu"
+  <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" id="kt_app_sidebar_menu"
     data-kt-menu="true" data-kt-menu-expand="false">
 
-    <!-- Dashboard -->
-    <div class="menu-item" *ngIf="hasPermission(1)">
-      <a class="menu-link without-sub" routerLink="/dashboard" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="chart-pie-4" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title" translate="MENU.DASHBOARD"></span>
-      </a>
-    </div>
-
-    <!-- Separator Operaciones -->
-    <div class="menu-item" *ngIf="hasRole([1, 2])">
-      <div class="menu-content pt-8 pb-2">
-        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Operaciones</span>
-      </div>
-    </div>
-
-    <!-- Catálogo de Bebidas y Precios -->
-    <div class="menu-item" *ngIf="hasPermission(2)">
-      <a class="menu-link without-sub" routerLink="/catalogo" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="scroll" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Catálogo de Bebidas</span>
-      </a>
-    </div>
-
-    <!-- Gestión de Stock -->
-    <div class="menu-item" *ngIf="hasPermission(2)">
-      <a class="menu-link without-sub" routerLink="/stock" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="parcel" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Gestión de Stock</span>
-      </a>
-    </div>
-
-    <!-- Movimientos y Rendición de Caja -->
-    <div class="menu-item" *ngIf="hasPermission(3)">
-      <a class="menu-link without-sub" routerLink="/caja" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="wallet" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Gestión de Caja</span>
-      </a>
-    </div>
-
-    <!-- Gestión de Comprobantes -->
-    <div class="menu-item" *ngIf="hasPermission(4)">
-      <a class="menu-link without-sub" routerLink="/comprobantes" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="document" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Comprobantes</span>
-      </a>
-    </div>
-
-    <!-- Sistema de Ventas -->
-    <div class="menu-item" *ngIf="hasPermission(5)">
-      <a class="menu-link without-sub" routerLink="/ventas" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="basket" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Sistema de Ventas</span>
-      </a>
-    </div>
-
-    <!-- Historial de Ventas -->
-    <div class="menu-item" *ngIf="hasPermission(8)">
-      <a class="menu-link without-sub" routerLink="/historial-ventas" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="calendar-8" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Historial de Ventas</span>
-      </a>
-    </div>
-
-    <!-- Gestión de Clientes -->
-    <div class="menu-item" *ngIf="hasPermission(6)">
-      <a class="menu-link without-sub" routerLink="/clientes" routerLinkActive="active">
-        <span class="menu-icon">
-          <app-keenicon name="people" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title">Gestión de Clientes</span>
-      </a>
-    </div>
-
-    <!-- Separator Administración -->
-    <div class="menu-item" *ngIf="hasPermission(7)">
-      <div class="menu-content pt-8 pb-2">
-        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Administración</span>
-      </div>
-    </div>
-
-    <!-- User Management (Untouched) -->
-    <div class="menu-item menu-accordion" data-kt-menu-trigger="click" routerLinkActive="here show"
-      *ngIf="hasPermission(7)">
-      <span class="menu-link">
-        <span class="menu-icon">
-          <app-keenicon name="security-user" class="fs-2"></app-keenicon>
-        </span>
-        <span class="menu-title" data-link="/apps">Manejo de Usuarios</span>
-        <span class="menu-arrow"></span>
-      </span>
-      <div class="menu-sub menu-sub-accordion" routerLinkActive="menu-active-bg">
-        <div class="menu-item">
-          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/users">
-            <span class="menu-bullet">
-              <span class="bullet bullet-dot"></span>
-            </span>
-            <span class="menu-title">Usuarios</span>
-          </a>
-        </div>
-        <div class="menu-item">
-          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/roles">
-            <span class="menu-bullet">
-              <span class="bullet bullet-dot"></span>
-            </span>
-            <span class="menu-title">Roles</span>
-          </a>
-        </div>
-        <div class="menu-item">
-          <a class="menu-link without-sub" routerLinkActive="active" routerLink="/apps/permissions">
-            <span class="menu-bullet">
-              <span class="bullet bullet-dot"></span>
-            </span>
-            <span class="menu-title">Permisos</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
+    <ng-container *ngIf="hasPermission(1)">
+      <div class="menu-content pt-4 pb-1"><span class="menu-section text-muted text-uppercase fs-8">Inicio</span></div>
+      <div class="menu-item" *ngIf="hasPermission(1)"><a class="menu-link py-2" routerLink="/dashboard" routerLinkActive="active" title="Dashboard">
+        <span class="menu-icon"><app-keenicon name="chart-pie-4" class="fs-3"></app-keenicon></span><span class="menu-title">Dashboard</span></a></div>
+    </ng-container>
+    <ng-container *ngIf="hasPermission(5) || hasPermission(8) || hasPermission(4)">
+      <div class="menu-content pt-4 pb-1"><span class="menu-section text-muted text-uppercase fs-8">Operaciones</span></div>
+      <div class="menu-item" *ngIf="hasPermission(5)"><a class="menu-link py-2" routerLink="/ventas" routerLinkActive="active" title="Sistema de ventas">
+        <span class="menu-icon"><app-keenicon name="basket" class="fs-3"></app-keenicon></span><span class="menu-title">Sistema de ventas</span></a></div>
+      <div class="menu-item" *ngIf="hasPermission(8)"><a class="menu-link py-2" routerLink="/historial-ventas" routerLinkActive="active" title="Historial de ventas">
+        <span class="menu-icon"><app-keenicon name="calendar-8" class="fs-3"></app-keenicon></span><span class="menu-title">Historial de ventas</span></a></div>
+      <div class="menu-item" *ngIf="hasPermission(4)"><a class="menu-link py-2" routerLink="/comprobantes" routerLinkActive="active" title="Comprobantes">
+        <span class="menu-icon"><app-keenicon name="document" class="fs-3"></app-keenicon></span><span class="menu-title">Comprobantes</span></a></div>
+    </ng-container>
+    <ng-container *ngIf="hasPermission(2) || hasPermission(12) || hasRole([1])">
+      <div class="menu-content pt-4 pb-1"><span class="menu-section text-muted text-uppercase fs-8">Productos e inventario</span></div>
+      <div class="menu-item" *ngIf="hasPermission(12)"><a class="menu-link py-2" routerLink="/catalogo" routerLinkActive="active" title="Catálogo de productos">
+        <span class="menu-icon"><app-keenicon name="scroll" class="fs-3"></app-keenicon></span><span class="menu-title">Catálogo de productos</span></a></div>
+      <div class="menu-item" *ngIf="hasRole([1])"><a class="menu-link py-2" routerLink="/categorias" routerLinkActive="active" title="Categorías y subcategorías">
+        <span class="menu-icon"><app-keenicon name="category" class="fs-3"></app-keenicon></span><span class="menu-title">Categorías y subcategorías</span></a></div>
+      <div class="menu-item" *ngIf="hasPermission(2)"><a class="menu-link py-2" routerLink="/stock" routerLinkActive="active" title="Gestión de stock">
+        <span class="menu-icon"><app-keenicon name="parcel" class="fs-3"></app-keenicon></span><span class="menu-title">Gestión de stock</span></a></div>
+      <div class="menu-item" *ngIf="hasPermission(2)"><a class="menu-link py-2" routerLink="/movimientos-stock" routerLinkActive="active" title="Movimientos de stock">
+        <span class="menu-icon"><app-keenicon name="arrow-right-left" class="fs-3"></app-keenicon></span><span class="menu-title">Movimientos de stock</span></a></div>
+    </ng-container>
+    <ng-container *ngIf="hasPermission(3) || hasRole([1])">
+      <div class="menu-content pt-4 pb-1"><span class="menu-section text-muted text-uppercase fs-8">Caja y cobros</span></div>
+      <div class="menu-item" *ngIf="hasPermission(3)"><a class="menu-link py-2" routerLink="/caja" routerLinkActive="active" title="Gestión de caja">
+        <span class="menu-icon"><app-keenicon name="wallet" class="fs-3"></app-keenicon></span><span class="menu-title">Gestión de caja</span></a></div>
+      <div class="menu-item" *ngIf="hasPermission(3)"><a class="menu-link py-2" routerLink="/historial-caja" routerLinkActive="active" title="Historial de caja">
+        <span class="menu-icon"><app-keenicon name="calendar-8" class="fs-3"></app-keenicon></span><span class="menu-title">Historial de caja</span></a></div>
+      <div class="menu-item" *ngIf="hasRole([1])"><a class="menu-link py-2" routerLink="/mercado-pago" routerLinkActive="active" title="Mercado Pago">
+        <span class="menu-icon"><app-keenicon name="bank" class="fs-3"></app-keenicon></span><span class="menu-title">Mercado Pago</span></a></div>
+    </ng-container>
+    <ng-container *ngIf="hasRole([1])">
+      <div class="menu-content pt-4 pb-1"><span class="menu-section text-muted text-uppercase fs-8">Administración</span></div>
+      <div class="menu-item"><a class="menu-link py-2" routerLink="/personal" routerLinkActive="active" title="Personal y accesos">
+        <span class="menu-icon"><app-keenicon name="security-user" class="fs-3"></app-keenicon></span><span class="menu-title">Personal y accesos</span></a></div>
+      <div class="menu-item" *ngIf="hasRole([1])"><a class="menu-link py-2" routerLink="/configuracion" routerLinkActive="active" title="Configuración del sistema">
+        <span class="menu-icon"><app-keenicon name="setting-2" class="fs-3"></app-keenicon></span><span class="menu-title">Configuración del sistema</span></a></div>
+    </ng-container>
   </div>
-  <!--end::Menu-->
 </div>
-<!--end::Menu wrapper-->

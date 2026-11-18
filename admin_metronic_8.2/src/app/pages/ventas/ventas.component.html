@@ -1,739 +1,140 @@
-<!-- ========================================= -->
-<!-- PUJOL E HIJOS - SISTEMA DE VENTAS POS     -->
-<!-- ========================================= -->
+<!-- Corrección 18: POS presencial rápido. Sin resumen de caja ni lista de recibos. -->
+<div *ngIf="mensaje" class="alert alert-info mb-4" role="status">{{ mensaje }}</div>
 
-<div class="card card-custom">
-
-  <div class="card-header border-0 pt-6">
+<div class="card card-custom pos-rapido">
+  <div class="card-header border-0 pt-5">
     <div class="card-title flex-column">
-      <h3 class="card-label fw-bold text-gray-900">
-        Sistema de Ventas (Punto de Venta POS)
-      </h3>
-
-      <span class="text-muted mt-1 fw-semibold fs-7">
-        Registre transacciones de caja, liquide por peso o unidad
-        y gestione la fidelidad
-      </span>
+      <h3 class="card-label fw-bold text-gray-900 mb-1">Sistema de ventas</h3>
+      <span class="text-muted fs-7">Terminal de cobro presencial · Buscá, agregá y cobrá</span>
     </div>
   </div>
+  <div class="card-body pt-4">
+    <div class="row g-5">
+      <div class="col-12 col-xl-7">
+        <div class="border rounded p-4 p-lg-5 h-100">
+          <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-4">
+            <h4 class="fs-5 fw-bold mb-0">Productos de la venta</h4>
+            <span class="badge badge-light-primary">{{ tipoVenta === 'mayorista' ? 'Mayorista' : 'Minorista' }}</span>
+          </div>
+          <div class="btn-group w-100 mb-5" role="group" aria-label="Modalidad de venta">
+            <button type="button" class="btn btn-sm py-3" [ngClass]="tipoVenta === 'mayorista' ? 'btn-primary' : 'btn-light'"
+              (click)="cambiarModalidad('mayorista')" [disabled]="enviando">Mayorista</button>
+            <button type="button" class="btn btn-sm py-3" [ngClass]="tipoVenta === 'minorista' ? 'btn-primary' : 'btn-light'"
+              (click)="cambiarModalidad('minorista')" [disabled]="enviando">Minorista</button>
+          </div>
+          <div class="alert alert-warning py-3" *ngIf="cart.length && advertenciaCarrito" role="alert">{{ advertenciaCarrito }}</div>
 
-  <div class="card-body">
-    <div class="row g-6">
-
-      <!-- =================================== -->
-      <!-- COLUMNA IZQUIERDA: NUEVA VENTA       -->
-      <!-- =================================== -->
-
-      <div class="col-xl-8">
-
-        <div class="card border border-dashed border-gray-300 card-flush h-100 p-6">
-
-          <h4 class="text-gray-800 fw-bold mb-4">
-            Nueva Venta / Terminal de Cobro
-          </h4>
-
-          <!-- Seleccion de cliente y canal -->
-          <div class="row g-4 mb-6">
-
-            <div class="col-md-6">
-
-              <label class="form-label fw-bold text-gray-700 fs-7">
-                Cliente Registrado (Fidelización)
-              </label>
-
-              <select class="form-select" [(ngModel)]="selectedClientId" (change)="onClientChange()">
-
-                <option value="">
-                  -- Consumidor Final (Sin registrar) --
-                </option>
-
-                <option *ngFor="let c of clients" [value]="c.id">
-
-                  {{ c.name }} {{ c.lastname }}
-                  (Puntos: {{ c.points }}
-                  {{ c.isVIP ? '| VIP ' + c.vipDiscount + '%' : '' }})
-
-                </option>
-
-              </select>
-
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-md-9">
+              <label for="buscar-pos" class="form-label fw-semibold">Buscar producto por nombre o código</label>
+              <div class="position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ms-3"><app-keenicon name="magnifier" class="fs-4 text-muted"></app-keenicon></span>
+                <input #campoBuscar id="buscar-pos" type="search" class="form-control form-control-solid ps-10"
+                  autocomplete="off" placeholder="Ej. Coca-Cola, Fanta, BEB-001..."
+                  [ngModel]="busquedaProducto" (ngModelChange)="onBuscarProducto($event)"
+                  (keydown)="tecladoBusqueda($event)" (focus)="busquedaActiva = true"
+                  [disabled]="enviando || !hasAction('create')" />
+              </div>
             </div>
-
-            <div class="col-md-6">
-
-              <label class="form-label fw-bold text-gray-700 fs-7">
-                Canal de Venta
-              </label>
-
-              <select class="form-select" [(ngModel)]="channel">
-
-                <option value="presencial">
-                  Presencial (Mostrador)
-                </option>
-
-                <option value="telefónico">
-                  Telefónico / Delivery
-                </option>
-
-                <option value="reserva web">
-                  Reserva Web
-                </option>
-
-              </select>
-
+            <div class="col-md-3">
+              <label for="cantidad-pos" class="form-label fw-semibold">Cantidad</label>
+              <input id="cantidad-pos" type="number" class="form-control form-control-solid"
+                [(ngModel)]="currentQty" min="0.001" step="1" [disabled]="enviando || !hasAction('create')" />
             </div>
+          </div>
+          <div class="fs-8 text-muted mb-3">Escribí parte del nombre o el código interno. Usá ↑, ↓ y Enter para agregar rápidamente. Los productos en stock mínimo, agotados o inactivos no aparecen.</div>
 
+          <div class="pos-resultados mb-5" *ngIf="busquedaActiva && busquedaProducto.trim()">
+            <button type="button" *ngFor="let p of resultadosBusqueda; let i = index"
+              class="pos-resultado w-100 text-start border-bottom px-3 py-3"
+              [class.pos-seleccionado]="i === indiceBusqueda"
+              [disabled]="enviando || !hasAction('create') || getPrecioProducto(p) === null"
+              (click)="agregarDesdeBusqueda(p)">
+              <span class="d-flex justify-content-between gap-2 flex-wrap align-items-center">
+                <span class="fw-semibold text-gray-900">{{ p.name }}
+                  <small class="text-muted ms-2">{{ p.code }}</small>
+                </span>
+                <span class="fw-bold" *ngIf="getPrecioProducto(p) !== null">{{ getPrecioProducto(p) | currency:'ARS':'symbol':'1.2-2' }}</span>
+                <span class="text-warning" *ngIf="getPrecioProducto(p) === null">Sin precio {{ tipoVenta }}</span>
+              </span>
+              <span class="d-block fs-8 text-muted mt-1">{{ p.unidad || 'unidad' }} · Existencias: {{ p.quantity }}<span *ngIf="tipoVenta === 'mayorista' && p.minimoMayorista"> · Mínimo mayorista: {{ p.minimoMayorista }}</span></span>
+            </button>
+            <div class="p-3 text-muted fs-8" *ngIf="totalCoincidencias === 0">No hay productos disponibles que coincidan con la búsqueda.</div>
+            <div class="p-2 text-muted fs-8" *ngIf="totalCoincidencias > resultadosBusqueda.length">Mostrando {{ resultadosBusqueda.length }} de {{ totalCoincidencias }} coincidencias. Escribí más para precisar.</div>
           </div>
 
-          <!-- =================================== -->
-          <!-- AGREGAR PRODUCTOS AL CARRITO        -->
-          <!-- =================================== -->
-
-          <div class="bg-light p-4 rounded mb-6">
-
-            <h5 class="fw-bold text-gray-800 fs-7 mb-3">
-              Agregar Producto al Carrito
-            </h5>
-
-            <div class="row g-3 align-items-end">
-
-              <div class="col-md-7">
-
-                <label class="form-label text-muted fs-8">
-                  Producto
-                </label>
-
-                <select class="form-select form-select-solid" [(ngModel)]="currentProductId">
-
-                  <option value="">
-                    Seleccione un producto...
-                  </option>
-
-                  <option *ngFor="let p of stockItems" [value]="p.id">
-
-                    {{ p.name }} —
-                    Precio:
-                    {{ p.price | currency:'USD':'symbol':'1.2-2' }}
-                    (Stock: {{ p.quantity }})
-
-                  </option>
-
-                </select>
-
-              </div>
-
-              <div class="col-md-3">
-
-                <label class="form-label text-muted fs-8">
-                  Cantidad / Porciones
-                </label>
-
-                <input type="number" class="form-control form-control-solid" [(ngModel)]="currentQty" min="1" />
-
-              </div>
-
-              <div class="col-md-2">
-
-                <button class="btn btn-primary w-100" (click)="addToCart()"
-                  title="Añadir producto seleccionado al carrito" *ngIf="hasAction('create')">
-
-                  <app-keenicon name="plus" class="fs-4 me-1">
-                  </app-keenicon>
-
-                  Añadir
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- =================================== -->
-          <!-- DETALLE DEL CARRITO                 -->
-          <!-- =================================== -->
-
-          <h5 class="fw-bold text-gray-800 mb-3">
-            Detalle del Carrito
-          </h5>
-
-          <div class="table-responsive flex-grow-1 min-h-200px">
-
-            <table class="table table-row-dashed table-row-gray-200 align-middle gs-0 gy-3">
-
-              <thead>
-                <tr class="fw-bold text-muted fs-7 text-uppercase">
-                  <th>Producto</th>
-                  <th class="text-end">Precio Unitario</th>
-                  <th class="text-end">Cantidad</th>
-                  <th class="text-end">Subtotal</th>
-                  <th class="text-end">Acción</th>
-                </tr>
-              </thead>
-
+          <h5 class="fw-bold mb-3">Detalle de la venta</h5>
+          <div class="table-responsive">
+            <table class="table table-row-dashed align-middle gy-3">
+              <thead><tr class="fw-bold text-muted fs-8"><th>PRODUCTO</th><th class="text-end">PRECIO</th><th style="min-width:105px">CANTIDAD</th><th class="text-end">SUBTOTAL</th><th class="text-end">QUITAR</th></tr></thead>
               <tbody>
-
                 <tr *ngFor="let item of cart; let i = index">
-
-                  <td>
-                    <div class="d-flex align-items-center gap-3">
-                      <div
-                        class="flex-shrink-0 bg-light p-1 rounded-2 border border-gray-200 d-flex align-items-center justify-content-center"
-                        style="width: 40px; height: 40px; min-width: 40px; max-width: 40px; overflow: hidden;">
-                        <img [src]="getProductImage(item.name)" [alt]="item.name" style="max-width: 100%; max-height: 100%; object-fit: contain;"
-                          (error)="onImageError($event)" loading="lazy" />
-                      </div>
-                      <span class="fw-bold text-gray-800">{{ item.name }}</span>
-                    </div>
-                  </td>
-
-                  <td class="text-end text-gray-700">
-                    {{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}
-                  </td>
-
-                  <td class="text-end text-gray-700 fw-bold">
-                    {{ item.qty }}
-                  </td>
-
-                  <td class="text-end text-gray-900 fw-bold">
-                    {{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}
-                  </td>
-
-                  <td class="text-end">
-
-                    <button class="btn btn-icon btn-active-light-danger btn-sm" (click)="removeFromCart(i)"
-                      title="Quitar producto del carrito">
-
-                      <app-keenicon name="trash" class="fs-5">
-                      </app-keenicon>
-
-                    </button>
-
-                  </td>
-
+                  <td class="fw-semibold">{{ item.name }}</td>
+                  <td class="text-end">{{ item.precioValido ? (item.unitPrice | currency:'ARS':'symbol':'1.2-2') : 'Sin precio' }}</td>
+                  <td><input type="number" class="form-control form-control-sm form-control-solid pos-cantidad" [ngModel]="item.qty"
+                    (ngModelChange)="modificarCantidad(item, $event)" min="0.001" step="1" [disabled]="enviando" [attr.aria-label]="'Cantidad de ' + item.name" /></td>
+                  <td class="text-end fw-bold">{{ item.subtotal | currency:'ARS':'symbol':'1.2-2' }}</td>
+                  <td class="text-end"><button type="button" class="btn btn-sm btn-icon btn-light-danger" (click)="removeFromCart(i)" [disabled]="enviando" aria-label="Quitar producto"><app-keenicon name="trash" class="fs-5"></app-keenicon></button></td>
                 </tr>
-
-                <tr *ngIf="cart.length === 0">
-
-                  <td colspan="5" class="text-center text-muted py-8 fs-7">
-
-                    El carrito está vacío.
-                    Agregue productos arriba para iniciar el cobro.
-
-                  </td>
-
-                </tr>
-
+                <tr *ngIf="!cart.length"><td colspan="5" class="py-8 text-center text-muted">La venta está vacía. Buscá un producto para comenzar.</td></tr>
               </tbody>
-
             </table>
-
           </div>
-
-          <!-- =================================== -->
-          <!-- CALCULO Y FINALIZACION DE VENTA     -->
-          <!-- =================================== -->
-
-          <div class="separator separator-dashed my-4"></div>
-
-          <div class="row g-4 align-items-center">
-
-            <div class="col-md-6">
-
-              <label class="form-label fw-bold text-gray-700 fs-7">
-                Método de Pago
-              </label>
-
-              <select class="form-select" [(ngModel)]="paymentMethod">
-
-                <option value="Efectivo">
-                  Efectivo
-                </option>
-
-                <option value="Transferencia">
-                  Transferencia Bancaria / QR
-                </option>
-
-              </select>
-
-              <div class="mt-2 fs-8 text-muted" *ngIf="paymentMethod === 'Transferencia'">
-
-                * Se registrará en estado
-                "Pendiente de confirmación"
-                hasta su verificación en cuenta.
-
-              </div>
-
-            </div>
-
-            <div class="col-md-6 text-end">
-
-              <!-- Subtotal -->
-              <div class="d-flex justify-content-end mb-2">
-
-                <span class="text-muted fw-semibold me-4">
-                  Subtotal:
-                </span>
-
-                <span class="text-gray-800 fw-bold">
-                  {{ getCartSubtotal() | currency:'USD':'symbol':'1.2-2' }}
-                </span>
-
-              </div>
-
-              <!-- Descuento VIP -->
-              <div class="d-flex justify-content-end mb-2" *ngIf="getCartDiscount() > 0">
-
-                <span class="text-success fw-semibold me-4">
-
-                  Descuento Cliente VIP
-                  ({{ selectedClient?.vipDiscount }}%):
-
-                </span>
-
-                <span class="text-success fw-bold">
-
-                  -{{ getCartDiscount() | currency:'USD':'symbol':'1.2-2' }}
-
-                </span>
-
-              </div>
-
-              <!-- Total -->
-              <div class="d-flex justify-content-end mb-4">
-
-                <span class="fs-4 text-gray-800 fw-bold me-4">
-                  Total a Cobrar:
-                </span>
-
-                <span class="fs-2 text-success fw-bold">
-                  {{ getCartTotal() | currency:'USD':'symbol':'1.2-2' }}
-                </span>
-
-              </div>
-
-              <!-- Boton de cobro -->
-              <button class="btn btn-success btn-lg w-100" (click)="checkout()" [disabled]="cart.length === 0"
-                title="Registrar venta y generar comprobante" ngbTooltip="Finalizar venta" *ngIf="hasAction('create')">
-
-                <app-keenicon name="check" class="fs-3 me-1">
-                </app-keenicon>
-
-                Cobrar y Generar Recibo
-
-              </button>
-
-            </div>
-
-          </div>
-
         </div>
-
       </div>
 
-      <!-- =================================== -->
-      <!-- COLUMNA DERECHA                    -->
-      <!-- RESUMEN DE CAJA Y RECIBOS           -->
-      <!-- =================================== -->
+      <div class="col-12 col-xl-5">
+        <div class="border rounded p-4 p-lg-5 h-100 d-flex flex-column">
+          <h4 class="fs-5 fw-bold mb-4">Cobro</h4>
+          <label class="form-label fw-semibold" for="medio-pos">Método de pago</label>
+          <select id="medio-pos" class="form-select form-select-solid mb-3" [(ngModel)]="paymentMethod" (ngModelChange)="cambiarMedioPago()" [disabled]="enviando">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Transferencia bancaria">Transferencia bancaria</option>
+            <option value="Mercado Pago" *ngIf="cajas.length && permiteQR('create')">QR Mercado Pago</option>
+          </select>
 
-      <div class="col-xl-4">
-
-        <div class="d-flex flex-column gap-6 h-100">
-
-          <!-- =================================== -->
-          <!-- RESUMEN DE CAJA                     -->
-          <!-- =================================== -->
-
-          <div class="card border border-dashed border-gray-300 card-flush p-6 bg-light">
-
-            <h4 class="text-gray-800 fw-bold mb-4">
-              Resumen de Caja
-            </h4>
-
-            <div class="d-flex justify-content-between mb-2">
-
-              <span class="text-muted">
-                Total Recaudado (Caja):
-              </span>
-
-              <span class="text-success fw-bold fs-5">
-
-                {{ receipts.length > 0 ?
-                (receipts[0].total | currency:'USD':'symbol':'1.2-2')
-                : '$0.00' }}
-
-                (última)
-
-              </span>
-
-            </div>
-
-            <div class="d-flex justify-content-between">
-
-              <span class="text-muted">
-                Comprobantes hoy:
-              </span>
-
-              <span class="text-gray-800 fw-bold">
-                {{ receipts.length }} emitidos
-              </span>
-
-            </div>
-
+          <div *ngIf="esTransferencia()" class="border rounded bg-light p-3 mb-3">
+            <div class="fs-8 text-muted mb-2">Este pago no se verifica automáticamente. Confirmá el ingreso de dinero en la cuenta del comercio antes de registrar la venta.</div>
+            <label class="form-check form-check-custom form-check-solid">
+              <input type="checkbox" class="form-check-input" [(ngModel)]="acreditacionConfirmada" [disabled]="enviando" />
+              <span class="form-check-label fw-semibold fs-7">Confirmé que el dinero está acreditado</span>
+            </label>
           </div>
 
-          <!-- ========================================= -->
-          <!-- ULTIMOS RECIBOS EMITIDOS                  -->
-          <!-- FUNCIONALIDAD MOSTRAR / OCULTAR           -->
-          <!-- NO ELIMINA REGISTROS DE BASE DE DATOS     -->
-          <!-- ========================================= -->
-
-          <details open class="card border border-dashed border-gray-300 card-flush flex-grow-1">
-
-            <!-- Encabezado interactivo -->
-            <summary class="card-header pt-5 pb-4 d-flex align-items-center justify-content-between gap-3"
-              style="cursor: pointer; list-style: none;" title="Mostrar u ocultar los últimos recibos emitidos">
-
-              <h4 class="card-title fw-bold text-gray-800 fs-5 mb-0">
-                Últimos Recibos Emitidos
-              </h4>
-
-              <span class="btn btn-sm btn-light-primary" style="white-space: nowrap;">
-
-                <app-keenicon name="eye" class="fs-6 me-1">
-                </app-keenicon>
-
-                Mostrar / Ocultar
-
-              </span>
-
-            </summary>
-
-            <!-- ================================= -->
-            <!-- CONTENIDO QUE SE PUEDE OCULTAR   -->
-            <!-- ================================= -->
-
-            <div class="card-body pt-3">
-
-              <!-- Buscador de recibos -->
-              <div class="position-relative mb-4">
-
-                <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
-
-                  <app-keenicon name="magnifier" class="fs-4 text-muted">
-                  </app-keenicon>
-
-                </span>
-
-                <input type="text" class="form-control form-control-sm ps-9" placeholder="Buscar recibo..."
-                  [(ngModel)]="searchQueryReceipt" />
-
+          <div *ngIf="paymentMethod === 'Mercado Pago'" class="mb-3">
+            <label for="caja-qr" class="form-label fw-semibold">Caja QR</label>
+            <select id="caja-qr" class="form-select" [(ngModel)]="idCaja" (ngModelChange)="renovarClaveOperacion()" [disabled]="enviando">
+              <option [ngValue]="0">Elegí la caja QR</option>
+              <option *ngFor="let k of cajas" [ngValue]="k.idCaja">{{ k.externalPosId }}</option>
+            </select>
+            <div class="text-muted fs-8 mt-2">La venta se confirmará según el estado informado por Mercado Pago.</div>
+            <button type="button" class="btn btn-sm btn-light-primary mt-3" (click)="mostrarCobrosQR = !mostrarCobrosQR; cargarCobros()">{{ mostrarCobrosQR ? 'Ocultar' : 'Consultar' }} cobros QR pendientes</button>
+            <div *ngIf="mostrarCobrosQR" class="pos-cobros-qr border rounded p-3 mt-2">
+              <div *ngFor="let c of cobros" class="border-bottom py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span class="fs-8">#{{ c.idCobro }} · {{ c.importe | currency:'ARS':'symbol':'1.2-2' }} · {{ c.estado }}</span>
+                <button type="button" class="btn btn-sm btn-light" *ngIf="permiteQR('create') && c.estado === 'pendiente'" (click)="verificar(c.idCobro)">Verificar</button>
               </div>
-
-              <!-- Lista de ultimos recibos -->
-              <div class="d-flex flex-column gap-3 overflow-auto max-h-400px pe-2">
-
-                <div *ngFor="let r of getFilteredReceipts()"
-                  class="p-3 rounded border bg-light d-flex align-items-center justify-content-between">
-
-                  <div>
-
-                    <span class="fs-7 fw-bold text-gray-800 d-block">
-
-                      #REC-{{ r.id }}
-                      ({{ r.date | date:'dd/MM' }})
-
-                    </span>
-
-                    <span class="fs-8 text-muted d-block">
-                      {{ r.clientName }}
-                    </span>
-
-                    <span class="badge badge-light-dark fs-9 text-capitalize mt-1">
-                      {{ r.method }}
-                    </span>
-
-                  </div>
-
-                  <div class="text-end">
-
-                    <span class="fs-6 fw-bold text-success d-block">
-
-                      {{ r.total | currency:'USD':'symbol':'1.2-2' }}
-
-                    </span>
-
-                    <button type="button" class="btn btn-icon btn-light-primary btn-sm mt-1" (click)="printReceipt(r)"
-                      title="Imprimir / Ver Comprobante" ngbTooltip="Ver recibo">
-
-                      <app-keenicon name="document" class="fs-6">
-                      </app-keenicon>
-
-                    </button>
-
-                  </div>
-
-                </div>
-
-                <!-- Sin recibos -->
-                <div *ngIf="getFilteredReceipts().length === 0" class="text-center py-6 text-muted fs-8">
-
-                  No hay recibos registrados.
-
-                </div>
-
-              </div>
-
+              <span class="fs-8 text-muted" *ngIf="!cobros.length">Sin cobros QR para mostrar.</span>
             </div>
+          </div>
 
-          </details>
-
-          <!-- FIN DE ULTIMOS RECIBOS -->
-
+          <div class="mt-auto border-top pt-5">
+            <div class="d-flex justify-content-between text-muted mb-2"><span>{{ cart.length }} artículo(s)</span><span>Subtotal: {{ getCartSubtotal() | currency:'ARS':'symbol':'1.2-2' }}</span></div>
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-4">
+              <span class="fw-bold fs-5">Total a cobrar</span>
+              <span class="fw-bold fs-1 text-success">{{ getCartTotal() | currency:'ARS':'symbol':'1.2-2' }}</span>
+            </div>
+            <button type="button" class="btn btn-success btn-lg w-100" (click)="checkout()"
+              *ngIf="hasAction('create')"
+              [disabled]="enviando || !cart.length || !!advertenciaCarrito || (esTransferencia() && !acreditacionConfirmada) || (paymentMethod === 'Mercado Pago' && !idCaja)">
+              <app-keenicon name="check" class="fs-4 me-2"></app-keenicon>
+              {{ enviando ? 'Registrando…' : (paymentMethod === 'Mercado Pago' ? 'Iniciar cobro QR' : 'Cobrar y registrar venta') }}
+            </button>
+          </div>
         </div>
-
       </div>
-
     </div>
   </div>
-
 </div>
 
-
-<!-- ======================================= -->
-<!-- MODAL DE COMPROBANTE DE VENTA           -->
-<!-- ======================================= -->
-
-<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" *ngIf="showReceiptModal">
-
-  <div class="modal-dialog modal-dialog-centered modal-md">
-
-    <div class="modal-content">
-
-      <div class="modal-header border-0 pb-0">
-
-        <h5 class="modal-title fw-bold text-gray-900">
-          Comprobante de Venta
-        </h5>
-
-        <button type="button" class="btn-close" (click)="closeReceiptModal()" aria-label="Cerrar">
-        </button>
-
-      </div>
-
-      <div class="modal-body py-8 px-10">
-
-        <div id="printable-receipt-card" class="bg-white p-6 border rounded border-gray-300 shadow-xs">
-
-          <!-- Cabecera del comprobante -->
-          <div class="text-center mb-6">
-
-            <h2 class="fw-bold text-gray-900 mb-1">
-              Pujol e Hijos S.R.L.
-            </h2>
-
-            <p class="text-muted fs-8 mb-0">
-              Distribuidora Mayorista de Bebidas - Formosa
-            </p>
-
-            <p class="text-muted fs-9 mb-0">
-              WAMP Server Host Local
-            </p>
-
-            <div class="separator separator-dashed my-4"></div>
-
-            <h4 class="fw-bold text-gray-800">
-
-              TICKET DE COMPRA
-              #REC-{{ activeReceipt?.id }}
-
-            </h4>
-
-            <span class="text-muted fs-8">
-
-              Fecha de emisión:
-              {{ activeReceipt?.date | date:'dd/MM/yyyy' }}
-
-            </span>
-
-          </div>
-
-          <!-- Datos del comprobante -->
-          <div class="fs-7 mb-4">
-
-            <div class="d-flex justify-content-between mb-1">
-
-              <span class="text-muted">
-                Cliente:
-              </span>
-
-              <span class="fw-bold text-gray-800">
-                {{ activeReceipt?.clientName }}
-              </span>
-
-            </div>
-
-            <div class="d-flex justify-content-between mb-1">
-
-              <span class="text-muted">
-                Canal:
-              </span>
-
-              <span class="fw-bold text-gray-800 text-capitalize">
-                {{ activeReceipt?.channel }}
-              </span>
-
-            </div>
-
-            <div class="d-flex justify-content-between mb-1">
-
-              <span class="text-muted">
-                Método de Pago:
-              </span>
-
-              <span class="fw-bold text-gray-800">
-                {{ activeReceipt?.method }}
-              </span>
-
-            </div>
-
-            <div class="d-flex justify-content-between">
-
-              <span class="text-muted">
-                Estado del Cobro:
-              </span>
-
-              <span class="badge fs-8 fw-bold"
-                [ngClass]="activeReceipt?.method === 'Transferencia' ? 'badge-light-warning' : 'badge-light-success'">
-
-                {{ activeReceipt?.method === 'Transferencia' ?
-                'Pendiente confirmación' : 'Confirmado' }}
-
-              </span>
-
-            </div>
-
-          </div>
-
-          <div class="separator separator-dashed my-4"></div>
-
-          <!-- Productos del comprobante -->
-          <table class="w-100 fs-7 mb-4">
-
-            <thead>
-
-              <tr class="fw-bold text-gray-700 border-bottom">
-                <th class="pb-2">Detalle</th>
-                <th class="pb-2 text-end">Cant</th>
-                <th class="pb-2 text-end">Total</th>
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              <tr *ngFor="let item of activeReceipt?.details" class="text-gray-800 border-bottom border-bottom-dashed">
-
-                <td class="py-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <img [src]="getProductImage(item.productName)" [alt]="item.productName"
-                      class="w-25px h-25px object-fit-contain rounded border border-gray-200 p-1"
-                      (error)="onImageError($event)" />
-                    <span>{{ item.productName }}</span>
-                  </div>
-                </td>
-
-                <td class="py-2 text-end">
-                  {{ item.qty }}
-                </td>
-
-                <td class="py-2 text-end">
-
-                  {{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}
-
-                </td>
-
-              </tr>
-
-            </tbody>
-
-          </table>
-
-          <!-- Totales -->
-          <div class="fs-7">
-
-            <div class="d-flex justify-content-between mb-1" *ngIf="activeReceipt && activeReceipt.discount > 0">
-
-              <span class="text-muted">
-                Descuento aplicado:
-              </span>
-
-              <span class="text-success fw-bold">
-
-                -{{ activeReceipt.discount | currency:'USD':'symbol':'1.2-2' }}
-
-              </span>
-
-            </div>
-
-            <div class="d-flex justify-content-between fs-5 fw-bold text-gray-900 mt-2 pt-2 border-top">
-
-              <span>
-                Total Neto:
-              </span>
-
-              <span class="text-success">
-
-                {{ activeReceipt?.total | currency:'USD':'symbol':'1.2-2' }}
-
-              </span>
-
-            </div>
-
-          </div>
-
-          <div class="separator separator-dashed my-4"></div>
-
-          <!-- Pie de comprobante -->
-          <div class="text-center mt-4">
-
-            <p class="fs-8 text-muted mb-0">
-              ¡Gracias por su compra!
-            </p>
-
-            <p class="fs-9 text-muted mb-0">
-              Pujol e Hijos S.R.L. ERP
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Botones del modal -->
-      <div class="modal-footer border-0">
-
-        <button type="button" class="btn btn-light" (click)="closeReceiptModal()">
-
-          Cerrar
-
-        </button>
-
-        <button type="button" class="btn btn-primary" (click)="printAction()">
-
-          <app-keenicon name="printer" class="fs-5 me-1">
-          </app-keenicon>
-
-          Imprimir Ticket
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>

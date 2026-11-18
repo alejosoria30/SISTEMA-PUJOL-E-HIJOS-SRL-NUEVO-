@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -9,7 +10,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 @NgModule({
   declarations: [DashboardComponent],
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     SharedModule,
     RouterModule.forChild([
       {
