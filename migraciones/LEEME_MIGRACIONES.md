@@ -15,6 +15,5 @@ El volcado del 18/11/2026 incluye precioMinorista en productos y tipoVenta en ve
 | 4 | 09_configuracion_cobros.sql | Zona horaria del comercio y fecha de acreditación para operaciones nuevas. |
 | 5 | 09b_perfiles.sql | Copia los permisos previos de stock y ventas a los módulos nuevos, incluidas las excepciones. Después se administran individualmente. Requiere permiso para crear tablas temporales. |
 | 6 | 10_verificaciones.sql | Solo lectura. Deben aparecer las seis columnas indicadas, los tres permisos y la zona horaria. Los tres contadores de inconsistencias deben devolver cero. |
-| 7 | 11_permisos_operativos_empleado.sql | Inicializa permisos operativos del perfil Empleado (ventas, caja, stock, catálogo y comprobantes), protegiendo la gestión de perfiles para administradores. |
 
 Los SQL históricos 00–04 y el esquema inicial pertenecen a la instalación original. Para esta actualización usá únicamente la secuencia de esta guía. Ante una reversión coordiná código y base con el respaldo de la misma ventana, preservando cualquier operación posterior.

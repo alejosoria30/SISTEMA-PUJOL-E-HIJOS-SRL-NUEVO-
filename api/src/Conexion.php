@@ -5,6 +5,9 @@ final class Conexion {
         $nombre = getenv('PUJOL_DB_NAME') ?: 'pujol_e_hijos';
         $usuario = getenv('PUJOL_DB_USER') ?: 'root';
         $password = getenv('PUJOL_DB_PASSWORD') !== false ? (string)getenv('PUJOL_DB_PASSWORD') : '';
+        if (!$nombre || !$usuario || !preg_match('/^[a-zA-Z0-9_]+$/D', $nombre)) {
+            throw new RuntimeException('Configure la conexión del comercio.');
+        }
         $host = getenv('PUJOL_DB_HOST') ?: '127.0.0.1';
         $specifiedPort = getenv('PUJOL_DB_PORT') ? (int)getenv('PUJOL_DB_PORT') : null;
         $ports = $specifiedPort ? [$specifiedPort] : [3305, 3307, 3306];
@@ -27,15 +30,9 @@ final class Conexion {
         if (!$db) {
             throw $lastException ?? new RuntimeException('No se pudo conectar a la base de datos.');
         }
-
-        try {
-            $zona = $db->query('SELECT zonaHoraria FROM configuracion_comercio WHERE id=1')->fetchColumn() ?: 'America/Argentina/Buenos_Aires';
-            $ahora = new DateTimeImmutable('now', new DateTimeZone($zona));
-            $db->prepare('SET SESSION time_zone=?')->execute([$ahora->format('P')]);
-        } catch (Exception $e) {
-            // Ignore if configuracion_comercio not initialized yet
-        }
-
+        $zona=$db->query('SELECT zonaHoraria FROM configuracion_comercio WHERE id=1')->fetchColumn();
+        $ahora=new DateTimeImmutable('now',new DateTimeZone($zona));
+        $db->prepare('SET SESSION time_zone=?')->execute([$ahora->format('P')]);
         return $db;
     }
 }

@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:herramientas|migraciones|documentacion|\.agents|admin_metronic_8\.2)(?:/|$) - [F,L]
+<FilesMatch "(?i)\.(sql|md|log|bak|env|lock)$">
+ Require all denied
+</FilesMatch>
