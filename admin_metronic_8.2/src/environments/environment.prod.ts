@@ -8,7 +8,7 @@ export const environment = {
   USERDATA_KEY: 'authf649fc9a5f55',
   isMockEnabled: false,
   apiUrl: 'http://localhost/Pujol_e_Hijos_SRL/api',
-  googleClientId: '188055916193-74a8v1vpb6j870t3cos3uh3742nd8kbb.apps.googleusercontent.com',
+  googleClientId: '777702903902-uijtca65adb8958620s0kf6r24fcel6h.apps.googleusercontent.com',
   appThemeName: 'Metronic',
   appPurchaseUrl: 'https://1.envato.market/EA4JP',
   appHTMLIntegration: 'https://preview.keenthemes.com/metronic8/demo1/documentation/base/helpers/flex-layouts.html',
