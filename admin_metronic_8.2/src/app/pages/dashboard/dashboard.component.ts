@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -13,22 +13,50 @@ export class DashboardComponent implements OnInit, OnDestroy {
   desde = '';
   hasta = '';
   private consulta?: Subscription;
-  constructor(private http: HttpClient, public auth: AuthService) {}
-  ngOnInit() { this.cargar(); }
-  ngOnDestroy() { this.consulta?.unsubscribe(); }
+  private authSub?: Subscription;
+
+  constructor(private http: HttpClient, public auth: AuthService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.cargar();
+    this.authSub = this.auth.currentUser$.subscribe(u => {
+      if (u && !this.datos) {
+        this.cargar();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.consulta?.unsubscribe();
+    this.authSub?.unsubscribe();
+  }
+
   cargar() {
-    if (!this.auth.hasAction(1)) { this.mensaje = 'Seleccione un módulo habilitado.'; return; }
+    if (!this.auth.hasAction(1)) {
+      this.mensaje = 'Seleccione un módulo habilitado.';
+      this.cdr.detectChanges();
+      return;
+    }
     this.consulta?.unsubscribe();
     this.datos = null;
     if (this.periodo === 'personalizado' && (!this.desde || !this.hasta)) {
       this.mensaje = 'Seleccione las fechas de inicio y fin.';
+      this.cdr.detectChanges();
       return;
     }
     this.mensaje = 'Consultando el período…';
+    this.cdr.detectChanges();
     const params = {periodo:this.periodo, agrupar:this.agrupar, desde:this.desde, hasta:this.hasta};
     this.consulta = this.http.get(environment.apiUrl + '/dashboard', {params}).subscribe({
-      next: datos => { this.datos = datos; this.mensaje = ''; },
-      error: error => this.mensaje = error.error?.message || 'No se pudieron cargar los indicadores.'
+      next: datos => {
+        this.datos = datos;
+        this.mensaje = '';
+        this.cdr.detectChanges();
+      },
+      error: error => {
+        this.mensaje = error.error?.message || 'No se pudieron cargar los indicadores.';
+        this.cdr.detectChanges();
+      }
     });
   }
 }
