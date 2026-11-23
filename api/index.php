@@ -13,15 +13,12 @@ require __DIR__.'/src/MercadoPago.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowedOrigins = ['http://localhost:4200', 'http://127.0.0.1:4200', 'http://localhost'];
-if (in_array($origin, $allowedOrigins, true) || empty($origin)) {
-    header('Access-Control-Allow-Origin: ' . ($origin ?: '*'));
-} else {
-    header('Access-Control-Allow-Origin: *');
+if (($_SERVER['HTTP_ORIGIN']??'')===(getenv('PUJOL_ORIGEN')?:'http://localhost:4200')) {
+    header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
+    header('Vary: Origin');
+    header('Access-Control-Allow-Headers: Authorization, Content-Type');
+    header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 }
-header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 function send_response($data,$status=200) {
     if ($status>=500) $data=['success'=>false,'message'=>'No se pudo completar la operación. Revise el registro del servidor.'];
     http_response_code($status); echo json_encode($data); exit;

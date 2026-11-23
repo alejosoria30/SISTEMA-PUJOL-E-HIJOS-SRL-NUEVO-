@@ -46,10 +46,6 @@ final class Acceso {
     }
     public function usuario(): array {
         $cabecera=$_SERVER['HTTP_AUTHORIZATION']??$_SERVER['REDIRECT_HTTP_AUTHORIZATION']??'';
-        if (!$cabecera && function_exists('apache_request_headers')) {
-            $h = apache_request_headers();
-            $cabecera = $h['Authorization'] ?? $h['authorization'] ?? '';
-        }
         if (!preg_match('/^Bearer ([a-f0-9]{64})$/D',$cabecera,$m)) send_response(['message'=>'Inicie sesión.'],401);
         $u=$this->consultar("SELECT u.idUsu,u.nombreUsu,u.apellidoUsu,u.usuarioUsu,u.correoUsu,u.telefonoUsu FROM sesiones_pos s
           JOIN usuario u ON u.idUsu=s.idUsu WHERE resumenToken=? AND expira>NOW() AND estadoUsu='Activo' AND u.rolUsu<>'Cliente' AND requiereCambioClave=0",[hash('sha256',$m[1],true)])->fetch();

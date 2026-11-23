@@ -1,5 +1,13 @@
 Options -Indexes
 RewriteEngine On
+
+SetEnv PUJOL_DB_NAME pujol_e_hijos
+SetEnv PUJOL_DB_USER root
+SetEnv PUJOL_DB_PASSWORD ""
+SetEnv PUJOL_DB_PORT 3305
+SetEnv PUJOL_DB_HOST 127.0.0.1
+SetEnv PUJOL_ORIGEN http://localhost:4200
+
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
